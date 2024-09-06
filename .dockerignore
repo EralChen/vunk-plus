@@ -1,0 +1,7 @@
+node_modules
+dist
+.git
+/docs
+/README.assets
+/app/public/Esri
+/app/src/styles/esri/_themes

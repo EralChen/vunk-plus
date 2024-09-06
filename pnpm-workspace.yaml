@@ -1,0 +1,7 @@
+packages:
+  - internal/*
+  - packages/*
+  - docs
+  - app
+  - app-ssr
+  

@@ -1,0 +1,10 @@
+{
+  "name": "@vunk-plus/components",
+  "scripts": {
+    "build": "gulp -f gulpfile.ts"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": ""
+}

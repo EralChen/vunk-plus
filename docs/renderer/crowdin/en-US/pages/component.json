@@ -1,0 +1,11 @@
+{
+  "select": {
+    "text": "Select",
+    "children": [
+      {
+        "link": "/user-select-tables",
+        "text": "UserSelectTables"
+      }
+    ]
+  }
+}

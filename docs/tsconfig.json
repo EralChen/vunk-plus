@@ -1,0 +1,65 @@
+{
+  "compilerOptions": {
+    "target": "esnext",
+    "module": "esnext",
+    "moduleResolution": "node",
+    "strict": true,
+    "jsx": "preserve",
+    "allowJs": true,
+    "sourceMap": true,
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "baseUrl": ".",
+    "paths": {
+      "#/*": [
+        "*"
+      ],
+      "#s/*": [
+        "src/*"
+      ],
+      "#p/*": [
+        "pages/*"
+      ],
+      "#r/*": [
+        "renderer/*"
+      ],
+      "#e/*":[
+        "examples/*"
+      ]
+
+    },
+    "lib": [
+      "ESNext", "DOM", "dom.iterable"
+    ],
+    "rootDir": "../"
+  },
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "src/**/*.vue",
+
+    "pages/**/*.ts",
+    "pages/**/*.tsx",
+    "pages/**/*.vue",
+
+    "renderer/**/*.ts",
+    "renderer/**/*.tsx",
+    "renderer/**/*.vue",
+
+    "examples/**/*.ts",
+    "examples/**/*.tsx",
+    "examples/**/*.vue",
+
+    "vike-vue/**/*.ts",
+    "vitepress/**/*.ts",
+    "vitepress/**/*.vue",
+
+    "typings/**/*.d.ts",
+
+    "../typings/**/*.d.ts",
+    "vite.config.mts"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
+}
