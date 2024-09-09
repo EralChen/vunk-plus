@@ -33,10 +33,9 @@ export async function createApp () {
 
   const app = express()
   
+
   useTestRouter(app)
-
   useUsersRouter(app)
-
   useChatRouter(app)
 
 
@@ -73,6 +72,7 @@ export async function createApp () {
   app.use(cookieParser())
   // 设置静态资源目录
   app.use(express.static(path.join(appRoot, 'public')))
+
 
 
 

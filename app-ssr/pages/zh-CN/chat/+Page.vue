@@ -1,31 +1,60 @@
 <script lang="ts" setup>
-import { onMounted, Ref, ref } from 'vue'
-import { parse } from 'marked'
+import { ref, shallowRef } from 'vue'
+import { VkTypingMarkdown } from '@vunk-plus/components/typing-markdown'
+import { 
+  ChatgptSSEResponse, isDoneResponse, 
+  isContentMessage,
+} from '@vunk-plus/shared/chatgpt'
 
-const chatContainer = ref<HTMLElement>() as Ref<HTMLElement>
-const markdownText = '# Hello\n\nThis is a **Markdown** message.\n\n- Item 1\n- Item 2'
-let currentIndex = 0
-const delay = 50 // 每个字之间的延迟（50ms）
+const source = ref('')
+const typingPause = ref(false)
+const currentEventSource = shallowRef<EventSource>()
 
-// 用于逐字逐句显示内容的函数
-async function typeWriter () {
-  if (currentIndex < markdownText.length) {
-    // 添加下一个字符到内容
-    currentIndex++
-    chatContainer.value.innerHTML = await parse(
-      markdownText.substring(0, currentIndex),
-    )
-    // 递归调用，模拟打字机效果
-    setTimeout(typeWriter, delay)
+function read () {
+  currentEventSource.value?.close()
+  source.value = ''
+  typingPause.value = false
+  const eventSource = new EventSource(import.meta.env.VITE_SSR_API_URL + '/chat/stream')
+  eventSource.onmessage = (
+    event:MessageEvent<string>,
+  ) => {
+    if (isDoneResponse(event.data)) {
+      eventSource.close()
+      return
+    }
+    const { message, error } = JSON.parse(event.data) as ChatgptSSEResponse
+    if (error) {
+      eventSource.close()
+      return
+    }
+    if (isContentMessage(message)) {
+      source.value = message.content.parts.join('')
+      return 
+    } 
   }
+  currentEventSource.value = eventSource
 }
 
-onMounted(() => {
-  typeWriter()
-})
+function stop () {
+  typingPause.value = true
+  currentEventSource.value?.close()
+}
+
 
 </script>
 <template>
-  <div ref="chatContainer" class="chat">
-  </div>
+  <p>
+    <ElButton @click="read">
+      生成
+    </ElButton>
+    <ElButton
+      @click="stop"
+    >
+      终止
+    </ElButton>
+  </p>
+  <VkTypingMarkdown
+    :source="source"
+    :pause="typingPause"
+  ></VkTypingMarkdown>
 </template>

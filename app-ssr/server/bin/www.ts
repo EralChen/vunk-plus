@@ -1,25 +1,13 @@
 import { createApp } from '../app'
 import debuger from 'debug'
 import http from 'http'
-import mri from 'mri'
-import { appRoot } from '../../path.config'
-import { loadEnv } from 'vite'
 import consola from 'consola'
 import os from 'os'
 import express from 'express'
+import { readSsrMetaEnv } from '../utils/readSsrMetaEnv'
 
-interface MriData {
-  mode: string
-}
-
-const argv = process.argv.slice(2)
-const mriData = mri<MriData>(argv)
 const debug = debuger('http')
-const isProduction = process.env.NODE_ENV === 'production'
-const mode = mriData.mode || (
-  isProduction ? 'production' : 'development'
-)
-const env = loadEnv(mode, appRoot, '') as SsrMetaEnv
+const env = readSsrMetaEnv()
 const port = normalizePort(env.SERVER_PORT ?? 3000) 
 
 const base = env.VITE_BASE_URL ?? '/'

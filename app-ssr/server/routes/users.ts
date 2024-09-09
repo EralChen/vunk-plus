@@ -1,11 +1,12 @@
 import express from 'express'
+import { createApiRoute } from '../utils/createApiRoute'
 
 export default function (app: express.Express) {
-  const router = express.Router()
+  const router = createApiRoute(app, '/users')
 
   router.get('/', (req, res) => {
     res.send('Users Page')
   })
 
-  app.use('/users', router)
+  return router
 }
