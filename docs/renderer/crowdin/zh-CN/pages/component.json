@@ -16,5 +16,18 @@
         "text": "LottieAnimation"
       }
     ]
+  },
+  "monaco": {
+    "text": "Monaco",
+    "children": [
+      {
+        "link": "/monaco-editor",
+        "text": "MonacoEditor"
+      },
+      {
+        "link": "/monaco-environment",
+        "text": "MonacoEnvironment"
+      }
+    ]
   }
 }

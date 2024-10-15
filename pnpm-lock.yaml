@@ -65,6 +65,9 @@ importers:
       monaco-editor:
         specifier: ^0.52.0
         version: 0.52.0
+      monaco-editor-nls:
+        specifier: ^3.1.0
+        version: 3.1.0
       vue:
         specifier: ^3.4.21
         version: 3.4.31(typescript@5.5.2)
@@ -3346,6 +3349,9 @@ packages:
 
   mlly@1.7.1:
     resolution: {integrity: sha512-rrVRZRELyQzrIUAVMHxP97kv+G786pHmOKzuFII8zDYahFBS7qnHh2AlYSl1GAHhaMPCz6/oHjVMcfFYgFYHgA==}
+
+  monaco-editor-nls@3.1.0:
+    resolution: {integrity: sha512-GdzgKRAiwXlGI/ude/HbzP8ukml28yUoZ7rx/xsSsmYf9W13jTyWjXjoMK/+pjL6JorAThH2WkCYaDoCnIX7Jg==}
 
   monaco-editor@0.52.0:
     resolution: {integrity: sha512-OeWhNpABLCeTqubfqLMXGsqf6OmPU6pHM85kF3dhy6kq5hnhuVS1p3VrEW/XhWHc71P2tHyS5JFySD8mgs1crw==}
@@ -8255,6 +8261,8 @@ snapshots:
       pathe: 1.1.2
       pkg-types: 1.1.1
       ufo: 1.5.3
+
+  monaco-editor-nls@3.1.0: {}
 
   monaco-editor@0.52.0: {}
 
