@@ -9,7 +9,11 @@ import { createTsPlugins, createVuePlugins } from '@vunk/shared/build/rollup/plu
 
 const buildFile = '**/index.ts'
 const baseDirname = __dirname.split(path.sep).pop() as string
-const external = []
+const external = [
+  'lottie-web',
+  /^monaco-editor/,
+  'markdown-it',
+]
 
 const filePaths = sync(buildFile, {
   cwd: path.resolve(__dirname, './'),

@@ -58,7 +58,7 @@
 		"ssr:dev": "pnpm run -C app-ssr dev",
 		"lint:fix": "eslint . --fix",
 		"lint": "eslint --fix app/**/*.{ts,tsx,vue}",
-		"build": "pnpm run -C app build",
+		"build": "pnpm run lib:build",
 		"lib:build": "gulp -f scripts/build/index.ts",
 		"stub": "pnpm run -r --parallel stub",
 		"postinstall": "pnpm stub",
