@@ -24,6 +24,7 @@
 		"tsx": "^4.7.1",
 		"unbuild": "^2.0.0",
 		"unocss": "^0.58.5",
+		"unocss-preset-vunk": "^1.0.4",
 		"unplugin-vue-markdown": "^0.26.2",
 		"vike": "0.4.193",
 		"vite": "^5.1.6",
@@ -47,7 +48,9 @@
 		"@vunk/shared": "^0.5.5",
 		"@vunk/skzz": "0.0.0-alpha.111",
 		"element-plus": "npm:element-plus@latest",
+		"lottie-web": "^5.12.2",
 		"markdown-it": "^14.1.0",
+		"monaco-editor": "^0.52.0",
 		"vue": "^3.4.21"
 	},
 	"scripts": {

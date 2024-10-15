@@ -7,9 +7,12 @@ export default defineComponent({
   name: 'VkTypingMarkdown',
   props,
   emits,
-  setup (props) {
+  setup (props,  { emit }) {
     const currentIndex = ref(0)
     const currentText = computed(() => {
+      if (props.disabled) {
+        return props.source
+      }
       return props.source.substring(0, currentIndex.value)
     })
     const markdownItPromise = createMarkdownIt()
@@ -21,25 +24,28 @@ export default defineComponent({
 
     const isTyping = computed(() => {
       // 非暂停下，props.source.length 和 currentIndex.value 不相等
-      return !props.pause 
+      return !props.pause && !props.disabled
       && currentIndex.value !== props.source.length
     })
     const isDebouncedTyping = debouncedRef(isTyping, 100)
 
     const isFinished = ref(false)
     function typeWriter () {
-      if (props.pause) {
+      if (props.pause || props.disabled) {
         return
       }
       if (currentIndex.value < props.source.length) {
         currentIndex.value++
+
+        emit('typing')
+
         setTimeout(typeWriter, props.delay)
       } else {
         isFinished.value = true
       }
     }
-    watch(() => props.pause, () => {
-      if (!props.pause) {
+    watch(() => props.pause || props.disabled, (v) => {
+      if (!v) {
         typeWriter()
       }
     }, {

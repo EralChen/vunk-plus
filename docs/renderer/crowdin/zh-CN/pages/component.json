@@ -7,5 +7,14 @@
         "text": "TypingMarkdown"
       }
     ]
+  },
+  "lottie": {
+    "text": "Lottie",
+    "children": [
+      {
+        "link": "/lottie-animation",
+        "text": "LottieAnimation"
+      }
+    ]
   }
 }

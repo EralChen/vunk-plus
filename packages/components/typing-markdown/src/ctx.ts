@@ -13,7 +13,16 @@ export const props = {
     type: Boolean,
     default: false,
   },
+  /**
+   * 禁用typing
+   */
+  disabled: {
+    type: Boolean,
+    default: false,
+  },
 }
 
 export const emits = {
+  typing: null,
 }
+
