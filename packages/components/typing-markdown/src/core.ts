@@ -36,3 +36,5 @@ export const createMarkdownIt = async () => {
   return md
 }
 
+export const markdownItPromise = createMarkdownIt()
+

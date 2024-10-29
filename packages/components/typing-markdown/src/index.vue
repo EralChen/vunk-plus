@@ -2,7 +2,8 @@
 import { props, emits } from './ctx'
 import { defineComponent, computed, ref, watch } from 'vue'
 import { computedAsync, debouncedRef } from '@vueuse/core'
-import { createMarkdownIt } from './core'
+import { markdownItPromise } from './core'
+
 export default defineComponent({
   name: 'VkTypingMarkdown',
   props,
@@ -15,7 +16,7 @@ export default defineComponent({
       }
       return props.source.substring(0, currentIndex.value)
     })
-    const markdownItPromise = createMarkdownIt()
+   
     const htmlText = computedAsync(async () => {
       currentText.value // trigger dependency
       const md = await markdownItPromise
