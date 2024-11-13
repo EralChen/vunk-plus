@@ -27,4 +27,4 @@ export const emits = {
   'update:modelValue': null,
 }
 
-export const onEmits = onEmitsFactory(emits)
+export const createOnEmits = onEmitsFactory(emits)
