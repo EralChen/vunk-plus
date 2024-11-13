@@ -10,21 +10,21 @@ import { existsSync } from 'fs'
 import { replaceRight } from '@vunk/shared/string'
 
 export default series(
-  gulpTask('update:vision', async () => {
+  // gulpTask('update:vision', async () => {
 
-    const fileObj = readJsonSync(entryPackage) as { version: string; module: string }
+  //   const fileObj = readJsonSync(entryPackage) as { version: string; module: string }
     
-    // 默认小版本+1
-    const versionList = fileObj.version.split('.')
-    const sVersion = versionList.at(-1)
-    if (sVersion) {
-      versionList[versionList.length - 1] = +sVersion + 1 + ''
-    }
-    fileObj.version = versionList.join('.')
+  //   // 默认小版本+1
+  //   const versionList = fileObj.version.split('.')
+  //   const sVersion = versionList.at(-1)
+  //   if (sVersion) {
+  //     versionList[versionList.length - 1] = +sVersion + 1 + ''
+  //   }
+  //   fileObj.version = versionList.join('.')
  
-    writeJsonSync(entryPackage, fileObj, 2)
+  //   writeJsonSync(entryPackage, fileObj, 2)
 
-  }),
+  // }),
   gulpTask('destPkg', async () => {
     const distPkgFile = path.resolve(distDir, './package.json')
 
@@ -61,7 +61,7 @@ export default series(
 
       const cjsPath = replaceRight(item.id, '.mjs', '.cjs')
   
-      let relativePath = path.relative(distDir, item.pid).replace(/\\/g, '/')
+      let relativePath = path.relative(distDir, item.pid ?? '').replace(/\\/g, '/')
   
 
       relativePath = relativePath 
@@ -83,7 +83,7 @@ export default series(
       .filter(item => item.filename === 'index.css')
       
     cssEntries.forEach(item => {
-      let relativePath = path.relative(distDir, item.pid).replace(/\\/g, '/')
+      let relativePath = path.relative(distDir, item.pid ?? '').replace(/\\/g, '/')
   
       relativePath = relativePath 
         ?  './' + relativePath
@@ -103,7 +103,7 @@ export default series(
   
   gulpTask('publish', async () => {
     run(
-      'npm publish --tag alpha --registry https://registry.npmjs.org --access public',
+      'npm publish --registry https://registry.npmjs.org --access public',
       distDir,
     )
   }),
