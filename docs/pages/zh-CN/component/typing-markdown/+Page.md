@@ -14,4 +14,8 @@ TypingMarkdown
 typing-markdown/basic
 :::
 
-## TypingMarkdown 其他
+## TypingMarkdown Props
+
+:::props
+typing-markdown/src/ctx
+:::

@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { VkMonacoEditor } from '@vunk-plus/components/monaco-editor'
-import { VkMonacoEnvironment } from '@vunk-plus/components/monaco-environment'
+import MonacoEnvironment from './MonacoEnvironment.vue'
 import { ref } from 'vue'
 
 const code = ref(`{
@@ -10,8 +10,8 @@ const code = ref(`{
 
 </script>
 <template>
-  <VkMonacoEnvironment>
-    <div h-200px>
+  <MonacoEnvironment>
+    <div h-300px>
       <VkMonacoEditor
         v-model="code"
         :default-options="{
@@ -21,5 +21,5 @@ const code = ref(`{
       >
       </VkMonacoEditor>
     </div>
-  </VkMonacoEnvironment>
+  </MonacoEnvironment>
 </template>

@@ -15,8 +15,8 @@ export default defineComponent({
       const animation = lottie.loadAnimation({
         container: lottieNode.value,
         renderer: 'svg',
-        loop: false,
-        autoplay: false,
+        loop: true,
+        autoplay: true,
         path: props.path,
       })
 
@@ -24,9 +24,6 @@ export default defineComponent({
       animation.addEventListener('complete', () => {
         emit('load', { animation })
       })
-
-      animation.goToAndPlay(50 * animation.totalFrames / 100)
-  
 
 
     })
