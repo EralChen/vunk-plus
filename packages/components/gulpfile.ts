@@ -11,8 +11,8 @@ const buildFile = '**/index.ts'
 const baseDirname = __dirname.split(path.sep).pop() as string
 const external = [
   'lottie-web',
-  'monaco-editor',
   'markdown-it',
+  /^monaco-editor/,
 ]
 
 const filePaths = sync(buildFile, {

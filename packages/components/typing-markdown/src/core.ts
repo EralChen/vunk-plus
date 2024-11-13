@@ -2,15 +2,17 @@ import MarkdownIt  from 'markdown-it'
 import { highlight } from '@vunk/shared/markdown/shiki'
 import { noop } from '@vueuse/core'
 
+const highlightPromise = highlight({
+  dark: 'github-dark',
+  light: 'github-light',
+}, {}, {
+  warn: noop,
+})
 
 export const createMarkdownIt = async () => {
+  const highlight = await highlightPromise
   const md = new MarkdownIt({
-    highlight: (await highlight({
-      dark: 'github-dark',
-      light: 'github-light',
-    }, {}, {
-      warn: noop,
-    })),
+    highlight,
   })
 
 
