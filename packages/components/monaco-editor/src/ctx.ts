@@ -1,5 +1,6 @@
 import { PropType } from 'vue'
 import { editor } from 'monaco-editor'
+import { bindPropsFactory, onEmitsFactory } from '@vunk/core/shared/utils-vue'
 
 export const props = {
   modelValue: {
@@ -18,6 +19,12 @@ export const props = {
   },
 }
 
+export const createBindProps = bindPropsFactory(props)
+
+
+
 export const emits = {
   'update:modelValue': null,
 }
+
+export const onEmits = onEmitsFactory(emits)
