@@ -25,5 +25,14 @@
         "text": "MonacoEditor"
       }
     ]
+  },
+  "vditor": {
+    "text": "Vditor",
+    "children": [
+      {
+        "link": "/vditor",
+        "text": "Vditor"
+      }
+    ]
   }
 }
