@@ -34,5 +34,14 @@
         "text": "Vditor"
       }
     ]
+  },
+  "element": {
+    "text": "Element",
+    "children": [
+      {
+        "link": "/table-columns",
+        "text": "TableColumns"
+      }
+    ]
   }
 }
