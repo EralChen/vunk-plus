@@ -41,6 +41,10 @@
       {
         "link": "/table-columns",
         "text": "TableColumns"
+      },
+      {
+        "link": "/routes-menu-content",
+        "text": "RoutesMenuContent"
       }
     ]
   }
