@@ -20,24 +20,18 @@ importers:
       '@vueuse/core':
         specifier: ^10.9.0
         version: 10.11.0(vue@3.5.12(typescript@5.5.2))
-      '@vunk-plus/api':
-        specifier: workspace:*
-        version: link:packages/api
       '@vunk-plus/components':
         specifier: workspace:*
         version: link:packages/components
       '@vunk-plus/composables':
         specifier: workspace:*
         version: link:packages/composables
+      '@vunk-plus/fetch':
+        specifier: workspace:*
+        version: link:packages/fetch
       '@vunk-plus/shared':
         specifier: workspace:*
         version: link:packages/shared
-      '@vunk-plus/stores':
-        specifier: workspace:*
-        version: link:packages/stores
-      '@vunk-plus/theme':
-        specifier: workspace:*
-        version: link:packages/theme
       '@vunk/core':
         specifier: 1.1.3
         version: 1.1.3
@@ -97,8 +91,8 @@ importers:
         specifier: ^3.1.0
         version: 3.1.0(vite@5.3.2(@types/node@18.0.4)(sass@1.77.6)(terser@5.31.1))(vue@3.5.12(typescript@5.5.2))
       '@vue/compiler-sfc':
-        specifier: ^3.4.21
-        version: 3.4.31
+        specifier: ^3.5.12
+        version: 3.5.12
       arcgis-js-api:
         specifier: ^4.29.7
         version: 4.30.1
@@ -151,8 +145,8 @@ importers:
         specifier: ^0.26.2
         version: 0.26.2(rollup@4.18.0)(vite@5.3.2(@types/node@18.0.4)(sass@1.77.6)(terser@5.31.1))
       vike:
-        specifier: 0.4.193
-        version: 0.4.193(vite@5.3.2(@types/node@18.0.4)(sass@1.77.6)(terser@5.31.1))
+        specifier: 0.4.203
+        version: 0.4.203(vite@5.3.2(@types/node@18.0.4)(sass@1.77.6)(terser@5.31.1))
       vite:
         specifier: ^5.1.6
         version: 5.3.2(@types/node@18.0.4)(sass@1.77.6)(terser@5.31.1)
@@ -266,11 +260,25 @@ importers:
 
   packages/api: {}
 
-  packages/components: {}
+  packages/components:
+    devDependencies:
+      vue-router:
+        specifier: ^4.4.5
+        version: 4.4.5(vue@3.5.12(typescript@5.5.2))
 
   packages/composables: {}
 
   packages/entry: {}
+
+  packages/fetch:
+    dependencies:
+      qs:
+        specifier: ^6.11.0
+        version: 6.12.1
+    devDependencies:
+      '@types/qs':
+        specifier: ^6.9.7
+        version: 6.9.15
 
   packages/icons: {}
 
@@ -580,17 +588,17 @@ packages:
   '@brillout/picocolors@1.0.13':
     resolution: {integrity: sha512-LblvMKItHbvkaIMI+Awsk1EEjmReE8E8Mgjtj3Pdn/qBvwQ6e+ts5uEqG6iTrK6JWndcxrQgSe664KfoteN6fA==}
 
-  '@brillout/picocolors@1.0.14':
-    resolution: {integrity: sha512-XhyZY3/FUh56mDuLIjv5kN9qy+oQj7A/d2uQ6cJJ4uVv55+velua3abcrM5WIvs2RHZGA3EE7S9FWo+TjF10ew==}
+  '@brillout/picocolors@1.0.15':
+    resolution: {integrity: sha512-VrgvPtfnKP/i8kxCAyQVd0DWg6xU8OZJndbLf/lrywd96UdMhnGL/PK42HhHhhwkDSkaiQU+zc+OPWpvqOe4Cg==}
 
   '@brillout/require-shim@0.1.2':
     resolution: {integrity: sha512-3I4LRHnVZXoSAsEoni5mosq9l6eiJED58d9V954W4CIZ88AUfYBanWGBGbJG3NztaRTpFHEA6wB3Hn93BmmJdg==}
 
-  '@brillout/vite-plugin-server-entry@0.4.12':
-    resolution: {integrity: sha512-d2GPMPFfKEIjajW6wylIL9QsW4Sp/QyY7yr1FDxpgehgcgiXJUjRSvHBt0Ynyb4PtOyeLbhJECVIKwVMU4+BmQ==}
-
   '@brillout/vite-plugin-server-entry@0.4.6':
     resolution: {integrity: sha512-VmnbkEVNY9pGnr2ICu+5lFnT3Zz4oblWxKZ1D4kutkzljxDOOBld8oWQI1RVup7c5OiG7XOHFJYYZS38BAXiLw==}
+
+  '@brillout/vite-plugin-server-entry@0.5.1':
+    resolution: {integrity: sha512-ZoXt8D/Z1E6e8ylKm5z8VzuxtIqPfLoWvsKkeK08LIpfCnRMxRJQLBZ1i3s9gGxE5+PvzY2dU5pBr7dL9aM8bg==}
 
   '@ctrl/tinycolor@3.6.1':
     resolution: {integrity: sha512-SITSV6aIXsuVNV3f3O0f2n/cgyEDWoSqtZMYiAmcsYHydcKrOz3gUxB/iXd/Qf08+IZX4KpgNbvUdMBmWz+kcA==}
@@ -1571,6 +1579,9 @@ packages:
 
   '@vue/devtools-api@6.6.3':
     resolution: {integrity: sha512-0MiMsFma/HqA6g3KLKn+AGpL1kgKhFWszC9U29NfpWK5LE7bjeXxySWJrOJ77hBz+TBrBQ7o4QJqbPbqbs8rJw==}
+
+  '@vue/devtools-api@6.6.4':
+    resolution: {integrity: sha512-sGhTPMuXqZ1rVOk32RylztWkfXTRhuS7vgAKv0zjqk8gbsHkJ7xfFf+jbySxt7tWObEJwyKaHMikV/WGDiQm8g==}
 
   '@vue/devtools-api@7.2.1':
     resolution: {integrity: sha512-6oNCtyFOrNdqm6GUkFujsCgFlpbsHLnZqq7edeM/+cxAbMyCWvsaCsIMUaz7AiluKLccCGEM8fhOsjaKgBvb7g==}
@@ -4236,8 +4247,8 @@ packages:
       react-streaming:
         optional: true
 
-  vike@0.4.193:
-    resolution: {integrity: sha512-nrqSXfocmm10asmoYrczO9iO4aZZ9SNygbpDTn0emmOPUFxROW3MUd8XcuBWJh6QVUTN4KiZYZDZGBMgPfhdbg==}
+  vike@0.4.203:
+    resolution: {integrity: sha512-La+0BK+QvZ0N+ggVvEBgXtnKKOdVkNah44Z9c+2mkJZVIbw9eBybQ8G9AilxFbsz8ikBhBNRVHR4ubKoWfN9ZA==}
     engines: {node: '>=18.0.0'}
     hasBin: true
     peerDependencies:
@@ -4393,6 +4404,11 @@ packages:
     engines: {node: ^14.17.0 || >=16.0.0}
     peerDependencies:
       eslint: '>=6.0.0'
+
+  vue-router@4.4.5:
+    resolution: {integrity: sha512-4fKZygS8cH1yCyuabAXGUAsyi1b2/o/OKgu/RUb+znIYOxPRxdkytJEx+0wGcpBE1pX6vUgh5jwWOKRGvuA/7Q==}
+    peerDependencies:
+      vue: ^3.2.0
 
   vue-template-compiler@2.7.16:
     resolution: {integrity: sha512-AYbUWAJHLGGQM7+cNTELw+KsOG9nl2CnSv467WobS5Cv9uk3wFcnr1Etsz2sEIHEZvw1U+o9mRlEO6QbZvUPGQ==}
@@ -4899,15 +4915,15 @@ snapshots:
 
   '@brillout/picocolors@1.0.13': {}
 
-  '@brillout/picocolors@1.0.14': {}
+  '@brillout/picocolors@1.0.15': {}
 
   '@brillout/require-shim@0.1.2': {}
 
-  '@brillout/vite-plugin-server-entry@0.4.12':
+  '@brillout/vite-plugin-server-entry@0.4.6':
     dependencies:
       '@brillout/import': 0.2.3
 
-  '@brillout/vite-plugin-server-entry@0.4.6':
+  '@brillout/vite-plugin-server-entry@0.5.1':
     dependencies:
       '@brillout/import': 0.2.3
 
@@ -5942,7 +5958,7 @@ snapshots:
       '@babel/helper-module-imports': 7.22.15
       '@babel/helper-plugin-utils': 7.24.7
       '@babel/parser': 7.24.7
-      '@vue/compiler-sfc': 3.4.31
+      '@vue/compiler-sfc': 3.5.12
 
   '@vue/compiler-core@3.4.31':
     dependencies:
@@ -5958,7 +5974,7 @@ snapshots:
       '@vue/shared': 3.5.12
       entities: 4.5.0
       estree-walker: 2.0.2
-      source-map-js: 1.2.0
+      source-map-js: 1.2.1
 
   '@vue/compiler-dom@3.4.31':
     dependencies:
@@ -5992,7 +6008,7 @@ snapshots:
       estree-walker: 2.0.2
       magic-string: 0.30.12
       postcss: 8.4.49
-      source-map-js: 1.2.0
+      source-map-js: 1.2.1
 
   '@vue/compiler-ssr@3.4.31':
     dependencies:
@@ -6005,6 +6021,8 @@ snapshots:
       '@vue/shared': 3.5.12
 
   '@vue/devtools-api@6.6.3': {}
+
+  '@vue/devtools-api@6.6.4': {}
 
   '@vue/devtools-api@7.2.1':
     dependencies:
@@ -6562,7 +6580,7 @@ snapshots:
   css-tree@2.2.1:
     dependencies:
       mdn-data: 2.0.28
-      source-map-js: 1.2.0
+      source-map-js: 1.2.1
 
   css-tree@2.3.1:
     dependencies:
@@ -8930,20 +8948,19 @@ snapshots:
       source-map-support: 0.5.21
       vite: 5.3.2(@types/node@18.0.4)(sass@1.77.6)(terser@5.31.1)
 
-  vike@0.4.193(vite@5.3.2(@types/node@18.0.4)(sass@1.77.6)(terser@5.31.1)):
+  vike@0.4.203(vite@5.3.2(@types/node@18.0.4)(sass@1.77.6)(terser@5.31.1)):
     dependencies:
       '@brillout/import': 0.2.3
       '@brillout/json-serializer': 0.5.13
-      '@brillout/picocolors': 1.0.14
+      '@brillout/picocolors': 1.0.15
       '@brillout/require-shim': 0.1.2
-      '@brillout/vite-plugin-server-entry': 0.4.12
+      '@brillout/vite-plugin-server-entry': 0.5.1
       acorn: 8.12.0
       cac: 6.7.14
       es-module-lexer: 1.5.4
       esbuild: 0.21.5
       fast-glob: 3.3.2
       semver: 7.6.2
-      sirv: 2.0.4
       source-map-support: 0.5.21
       vite: 5.3.2(@types/node@18.0.4)(sass@1.77.6)(terser@5.31.1)
 
@@ -9180,6 +9197,11 @@ snapshots:
       semver: 7.6.2
     transitivePeerDependencies:
       - supports-color
+
+  vue-router@4.4.5(vue@3.5.12(typescript@5.5.2)):
+    dependencies:
+      '@vue/devtools-api': 6.6.4
+      vue: 3.5.12(typescript@5.5.2)
 
   vue-template-compiler@2.7.16:
     dependencies:

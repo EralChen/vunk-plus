@@ -13,6 +13,7 @@ const external = [
   'lottie-web',
   'markdown-it',
   /^monaco-editor/,
+  'vditor',
 ]
 
 const filePaths = sync(buildFile, {
