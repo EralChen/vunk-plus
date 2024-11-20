@@ -20,24 +20,18 @@ importers:
       '@vueuse/core':
         specifier: ^10.9.0
         version: 10.11.0(vue@3.5.12(typescript@5.5.2))
-      '@vunk-plus/api':
-        specifier: workspace:*
-        version: link:packages/api
       '@vunk-plus/components':
         specifier: workspace:*
         version: link:packages/components
       '@vunk-plus/composables':
         specifier: workspace:*
         version: link:packages/composables
+      '@vunk-plus/fetch':
+        specifier: workspace:*
+        version: link:packages/fetch
       '@vunk-plus/shared':
         specifier: workspace:*
         version: link:packages/shared
-      '@vunk-plus/stores':
-        specifier: workspace:*
-        version: link:packages/stores
-      '@vunk-plus/theme':
-        specifier: workspace:*
-        version: link:packages/theme
       '@vunk/core':
         specifier: 1.1.3
         version: 1.1.3
@@ -266,11 +260,25 @@ importers:
 
   packages/api: {}
 
-  packages/components: {}
+  packages/components:
+    devDependencies:
+      vue-router:
+        specifier: ^4.4.5
+        version: 4.4.5(vue@3.5.12(typescript@5.5.2))
 
   packages/composables: {}
 
   packages/entry: {}
+
+  packages/fetch:
+    dependencies:
+      qs:
+        specifier: ^6.11.0
+        version: 6.12.1
+    devDependencies:
+      '@types/qs':
+        specifier: ^6.9.7
+        version: 6.9.15
 
   packages/icons: {}
 
@@ -1571,6 +1579,9 @@ packages:
 
   '@vue/devtools-api@6.6.3':
     resolution: {integrity: sha512-0MiMsFma/HqA6g3KLKn+AGpL1kgKhFWszC9U29NfpWK5LE7bjeXxySWJrOJ77hBz+TBrBQ7o4QJqbPbqbs8rJw==}
+
+  '@vue/devtools-api@6.6.4':
+    resolution: {integrity: sha512-sGhTPMuXqZ1rVOk32RylztWkfXTRhuS7vgAKv0zjqk8gbsHkJ7xfFf+jbySxt7tWObEJwyKaHMikV/WGDiQm8g==}
 
   '@vue/devtools-api@7.2.1':
     resolution: {integrity: sha512-6oNCtyFOrNdqm6GUkFujsCgFlpbsHLnZqq7edeM/+cxAbMyCWvsaCsIMUaz7AiluKLccCGEM8fhOsjaKgBvb7g==}
@@ -4394,6 +4405,11 @@ packages:
     peerDependencies:
       eslint: '>=6.0.0'
 
+  vue-router@4.4.5:
+    resolution: {integrity: sha512-4fKZygS8cH1yCyuabAXGUAsyi1b2/o/OKgu/RUb+znIYOxPRxdkytJEx+0wGcpBE1pX6vUgh5jwWOKRGvuA/7Q==}
+    peerDependencies:
+      vue: ^3.2.0
+
   vue-template-compiler@2.7.16:
     resolution: {integrity: sha512-AYbUWAJHLGGQM7+cNTELw+KsOG9nl2CnSv467WobS5Cv9uk3wFcnr1Etsz2sEIHEZvw1U+o9mRlEO6QbZvUPGQ==}
 
@@ -6005,6 +6021,8 @@ snapshots:
       '@vue/shared': 3.5.12
 
   '@vue/devtools-api@6.6.3': {}
+
+  '@vue/devtools-api@6.6.4': {}
 
   '@vue/devtools-api@7.2.1':
     dependencies:
@@ -9179,6 +9197,11 @@ snapshots:
       semver: 7.6.2
     transitivePeerDependencies:
       - supports-color
+
+  vue-router@4.4.5(vue@3.5.12(typescript@5.5.2)):
+    dependencies:
+      '@vue/devtools-api': 6.6.4
+      vue: 3.5.12(typescript@5.5.2)
 
   vue-template-compiler@2.7.16:
     dependencies:

@@ -36,7 +36,6 @@
 		"@element-plus/icons-vue": "^2.3.1",
 		"@skzz/platform": "0.0.0-alpha.73",
 		"@vueuse/core": "^10.9.0",
-		"@vunk-plus/api": "workspace:*",
 		"@vunk-plus/components": "workspace:*",
 		"@vunk-plus/composables": "workspace:*",
 		"@vunk-plus/fetch": "workspace:*",
