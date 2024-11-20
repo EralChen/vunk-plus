@@ -21,9 +21,6 @@ routes-menu-content/basic/index
 
 :::demo 
 routes-menu-content/link/index
->>>tabs
-[routes-menu-content/link/link ]
->>>
 :::
 
 ## RoutesMenuContent Props
