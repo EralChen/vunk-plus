@@ -1,0 +1,1 @@
+import{d as e,K as o,o as n,c as s,t as r}from"./chunk-D2NH_4EQ.js";import"./chunk-CrX-KWCQ.js";const a=e({props:{to:{type:String,default:""}}}),p=["href"];function c(t,i,f,l,d,_){return n(),s("a",{class:"menu-link",href:t.to},r(t.to),9,p)}const h=o(a,[["render",c]]);export{h as default};
