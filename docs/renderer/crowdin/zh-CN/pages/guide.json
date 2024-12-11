@@ -7,5 +7,9 @@
         "text": "Introduction 介绍"
       }
     ]
+  },
+  "changelog": {
+    "text": "Changelog 更新日志",
+    "link": "/changelog"
   }
 }

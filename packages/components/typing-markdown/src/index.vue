@@ -16,10 +16,15 @@ export default defineComponent({
       }
       return props.source.substring(0, currentIndex.value)
     })
+
+    const theMarkdownIt = markdownItPromise.then(md => {
+      props.markdownItSetup?.(md)
+      return md
+    })
    
     const htmlText = computedAsync(async () => {
       currentText.value // trigger dependency
-      const md = await markdownItPromise
+      const md = await theMarkdownIt
       return md.render(currentText.value)
     }, '')
 
