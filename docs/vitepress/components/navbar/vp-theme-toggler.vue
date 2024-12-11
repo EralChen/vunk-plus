@@ -9,7 +9,7 @@ import CommonThemeToggler from '../common/vp-theme-toggler.vue'
 <template>
   <div class="theme-toggler-content">
     <CommonThemeToggler
-      :aria-label="'theme-toggler'"
+      aria-label="theme-toggler"
       :aria-checked="isDark"
     />
   </div>

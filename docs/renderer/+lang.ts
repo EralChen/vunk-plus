@@ -1,5 +1,5 @@
-import { CrowdinFileLangOptions } from './crowdin'
-import { PageContext } from 'vike/types'
+import type { PageContext } from 'vike/types'
+import { crowdinFileLangOptions } from './crowdin'
 
 export default lang
 
@@ -10,7 +10,7 @@ function lang (pageContext: PageContext) {
 
   const mightBeLang = urlPaths[1]
   let locale = 'zh-CN'
-  CrowdinFileLangOptions.some((langMedia) => {
+  crowdinFileLangOptions.some((langMedia) => {
     if (langMedia.value === mightBeLang) {
       locale = mightBeLang
       return true
@@ -19,4 +19,3 @@ function lang (pageContext: PageContext) {
 
   return locale
 }
-

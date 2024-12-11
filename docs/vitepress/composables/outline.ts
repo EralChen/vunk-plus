@@ -1,5 +1,4 @@
-
-import { DefaultTheme, Header } from 'vitepress'
+import type { DefaultTheme, Header } from 'vitepress'
 
 export type MenuItem = Omit<Header, 'slug' | 'children'> & {
   element: HTMLHeadElement
@@ -10,13 +9,13 @@ export function getHeaders (range: DefaultTheme.Config['outline']) {
   const headers = [
     ...document.querySelectorAll('.vp-doc :where(h1,h2,h3,h4,h5,h6)'),
   ]
-    .filter((el) => el.id && el.hasChildNodes())
+    .filter(el => el.id && el.hasChildNodes())
     .map((el) => {
       const level = Number(el.tagName[1])
       return {
         element: el as HTMLHeadElement,
         title: serializeHeader(el),
-        link: '#' + el.id,
+        link: `#${el.id}`,
         level,
       }
     })
@@ -24,20 +23,20 @@ export function getHeaders (range: DefaultTheme.Config['outline']) {
   return resolveHeaders(headers, range)
 }
 
-
 function serializeHeader (h: Element): string {
   let ret = ''
   for (const node of h.childNodes) {
     if (node.nodeType === 1) {
       if (
-        (node as Element).classList.contains('VPBadge') ||
-        (node as Element).classList.contains('header-anchor') ||
-        (node as Element).classList.contains('ignore-header')
+        (node as Element).classList.contains('VPBadge')
+        || (node as Element).classList.contains('header-anchor')
+        || (node as Element).classList.contains('ignore-header')
       ) {
         continue
       }
       ret += node.textContent
-    } else if (node.nodeType === 3) {
+    }
+    else if (node.nodeType === 3) {
       ret += node.textContent
     }
   }
@@ -52,19 +51,19 @@ function resolveHeaders (
     return []
   }
 
-  const levelsRange =
-    (typeof range === 'object' && !Array.isArray(range)
+  const levelsRange
+    = (typeof range === 'object' && !Array.isArray(range)
       ? range.level
       : range) || 2
 
-  const [high, low]: [number, number] =
-    typeof levelsRange === 'number'
+  const [high, low]: [number, number]
+    = typeof levelsRange === 'number'
       ? [levelsRange, levelsRange]
       : levelsRange === 'deep'
         ? [2, 6]
         : levelsRange
 
-  headers = headers.filter((h) => h.level >= high && h.level <= low)
+  headers = headers.filter(h => h.level >= high && h.level <= low)
   // clear previous caches
   // resolvedHeaders.length = 0
   // update global header list for active link rendering
@@ -73,15 +72,18 @@ function resolveHeaders (
   // }
 
   const ret: MenuItem[] = []
+  // eslint-disable-next-line no-labels
   outer: for (let i = 0; i < headers.length; i++) {
     const cur = headers[i]
     if (i === 0) {
       ret.push(cur)
-    } else {
+    }
+    else {
       for (let j = i - 1; j >= 0; j--) {
         const prev = headers[j]
         if (prev.level < cur.level) {
           ;(prev.children || (prev.children = [])).push(cur)
+          // eslint-disable-next-line no-labels
           continue outer
         }
       }
@@ -92,21 +94,18 @@ function resolveHeaders (
   return ret
 }
 
-
 export function getAbsoluteTop (
   element: HTMLElement,
   root = document.body,
 ): number {
-
   let offsetTop = 0
   while (element !== root) {
-
     if (element === null) {
       // child element is:
       // - not attached to the DOM (display: none)
       // - set to fixed position (not scrollable)
       // - body or html element (null offsetParent)
-      return NaN
+      return Number.NaN
     }
     offsetTop += element.offsetTop
     element = element.offsetParent as HTMLElement

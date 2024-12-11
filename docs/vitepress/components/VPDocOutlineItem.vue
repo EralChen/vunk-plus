@@ -2,7 +2,6 @@
 import type { MenuItem } from '../composables/outline'
 import { VkCheckLogic } from '@vunk/core'
 
-
 defineOptions({
   name: 'VPDocOutlineItem',
 })
@@ -21,9 +20,8 @@ function onClick ({ target: el }: Event) {
   const heading = document.getElementById(decodeURIComponent(id))
   heading?.focus({ preventScroll: true })
 
-  emit('linkClick', '#' + decodeURIComponent(id))
+  emit('linkClick', `#${decodeURIComponent(id)}`)
 }
-
 </script>
 
 <template>

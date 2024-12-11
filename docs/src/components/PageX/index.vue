@@ -1,4 +1,3 @@
-
 <template>
   <div
     pa-page

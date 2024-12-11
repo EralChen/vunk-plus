@@ -1,8 +1,8 @@
 {
 	"devDependencies": {
+		"@antfu/eslint-config": "^3.11.2",
 		"@lib-env/build-constants": "workspace:*",
 		"@lib-env/build-utils": "workspace:*",
-		"@lib-env/eslint-config": "workspace:*",
 		"@lib-env/path": "workspace:*",
 		"@types/gulp": "^4.0.17",
 		"@types/node": "18.0.4",
@@ -25,11 +25,12 @@
 		"unbuild": "^2.0.0",
 		"unocss": "^0.58.5",
 		"unocss-preset-vunk": "^1.0.4",
+		"unplugin-oxlint": "^0.7.3",
 		"unplugin-vue-markdown": "^0.26.2",
-		"vike": "0.4.203",
-		"vite": "^5.1.6",
+		"vike": "0.4.208",
+		"vite": "^6.0.3",
 		"vite-plugin-vue-devtools": "^7.0.27",
-		"vitest": "^2.0.5"
+		"vitest": "^2.1.8"
 	},
 	"dependencies": {
 		"@arcgis/core": "^4.29.7",
