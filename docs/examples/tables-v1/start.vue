@@ -1,10 +1,11 @@
 <script lang="ts" setup>
-import { VkTablesV1, __VkTablesV1 } from '@vunk-plus/components/tables-v1'
+import type { __VkTablesV1 } from '@vunk-plus/components/tables-v1'
+import { VkTablesV1 } from '@vunk-plus/components/tables-v1'
 import { computed, ref } from 'vue'
 
 const data = Array.from({ length: 100 }).map((_, i) => {
   return {
-    name: `name-${i+1}`,
+    name: `name-${i + 1}`,
   }
 })
 
@@ -21,6 +22,7 @@ const columns: __VkTablesV1.Column[] = [
   },
 ]
 </script>
+
 <template>
   <VkTablesV1
     v-model:start="start"

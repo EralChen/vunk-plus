@@ -1,11 +1,12 @@
 <script lang="ts">
-import { props, emits, createPaginationBindProps, createPaginationOnEmits, createTableBindProps } from './ctx'
-import { computed, defineComponent } from 'vue'
-import { VkDuplexCalc } from '@vunk/core'
-import { ElPagination , ElTable } from 'element-plus'
-import { VkTableColumns, _VkTableColumnsElCtx } from '@vunk-plus/components/table-columns'
-import { createElTableOnEmits } from './el-ctx'
+import { _VkTableColumnsElCtx, VkTableColumns } from '@vunk-plus/components/table-columns'
 import { useElBreakpoints } from '@vunk-plus/composables/el-breakpoints'
+import { VkDuplexCalc } from '@vunk/core'
+import { ElPagination, ElTable } from 'element-plus'
+import { computed, defineComponent } from 'vue'
+import { createPaginationBindProps, createPaginationOnEmits, createTableBindProps, emits, props } from './ctx'
+import { createElTableOnEmits } from './el-ctx'
+
 export default defineComponent({
   name: 'VkTablesV1',
   components: {
@@ -14,8 +15,8 @@ export default defineComponent({
     ElPagination,
     ElTable,
   },
-  emits,
   props,
+  emits,
   setup (props, { emit }) {
     const paginationBindProps = createPaginationBindProps(props, ['layout', 'currentPage'])
     const paginationOnEmits = createPaginationOnEmits(emit, [
@@ -32,15 +33,15 @@ export default defineComponent({
       get: () => {
         if (props.start !== undefined) {
           return Math.floor(props.start / props.pageSize) + 1
-        } 
-        return props.currentPage 
+        }
+        return props.currentPage
       },
       set: (val: number) => {
         emit('update:current-page', val)
         updateStart({ currentPage: val })
-      }
+      },
     })
-    
+
     function updateStart (e: {
       currentPage?: number
       pageSize?: number
@@ -50,14 +51,13 @@ export default defineComponent({
       emit('update:start', (currentPage - 1) * pageSize)
     }
     /* currentPage => start end */
-    
 
     /* layout */
     const layout = computed(() => {
       if (props.layout) {
         return props.layout
       }
-      if (isMobile.value) { 
+      if (isMobile.value) {
         // mobile default: 'total, prev, pager, next'
         return 'total, prev, pager, next'
       }
@@ -65,7 +65,6 @@ export default defineComponent({
       return 'total, sizes, prev, pager, next, jumper'
     })
     /* layout end */
-
 
     return {
       paginationBindProps,
@@ -76,27 +75,28 @@ export default defineComponent({
       tableProps,
       tableOnEmits,
       layout,
-      hasPagination
+      hasPagination,
     }
   },
 })
 </script>
+
 <template>
   <VkDuplexCalc
     class="vk-tables-v1"
-    :with-resize="'one'"
-    :gap="'var(--vk-tables-v1-gap, 14px)'"
+    with-resize="one"
+    gap="var(--vk-tables-v1-gap, 14px)"
   >
     <template #one>
-      <ElTable 
+      <ElTable
         v-bind="tableProps"
         :ref="elRef"
         :style="tableStyle"
-        :class-name="'vk-tables-v1-table ' + tableClass"
+        :class-name="`vk-tables-v1-table ${tableClass}`"
         v-on="tableOnEmits"
       >
-        <VkTableColumns 
-          v-bind="columnsProps" 
+        <VkTableColumns
+          v-bind="columnsProps"
           :source="columns"
         />
       </ElTable>
@@ -116,6 +116,7 @@ export default defineComponent({
     </div>
   </VkDuplexCalc>
 </template>
+
 <style>
 .vk-tables-v1-table{
   height: 100%;

@@ -1,4 +1,3 @@
-import type { Func } from "@vunk/core"
 import type MarkdownIt from "markdown-it"
 import { PropType } from "vue"
 

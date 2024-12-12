@@ -1,5 +1,7 @@
-import { App } from 'vue'
+import type { App } from 'vue'
 import VkTablesV1 from './src/index.vue'
+
+export * as _VkTabelsV1Ctx from './src/ctx'
 export * as __VkTablesV1 from './src/types'
 
 VkTablesV1.install = (app: App): void => {

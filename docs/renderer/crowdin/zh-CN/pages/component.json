@@ -7,6 +7,10 @@
         "text": "TablesV1"
       },
       {
+        "link": "/tables-v1-checkbox",
+        "text": "TablesV1Checkbox"
+      },
+      {
         "link": "/table-columns",
         "text": "TableColumns"
       },
@@ -14,6 +18,7 @@
         "link": "/routes-menu-content",
         "text": "RoutesMenuContent"
       }
+
     ]
   },
   "markdown": {
@@ -52,5 +57,4 @@
       }
     ]
   }
-
 }
