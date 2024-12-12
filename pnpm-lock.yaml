@@ -156,6 +156,9 @@ importers:
       vike:
         specifier: 0.4.208
         version: 0.4.208(vite@6.0.3(@types/node@18.0.4)(jiti@1.21.6)(sass@1.77.6)(terser@5.31.1)(tsx@4.15.7)(yaml@2.6.1))
+      vike-vue:
+        specifier: ^0.8.6
+        version: 0.8.6(vike@0.4.208(vite@6.0.3(@types/node@18.0.4)(jiti@1.21.6)(sass@1.77.6)(terser@5.31.1)(tsx@4.15.7)(yaml@2.6.1)))(vue@3.5.12(typescript@5.5.2))
       vite:
         specifier: ^6.0.3
         version: 6.0.3(@types/node@18.0.4)(jiti@1.21.6)(sass@1.77.6)(terser@5.31.1)(tsx@4.15.7)(yaml@2.6.1)
@@ -5067,6 +5070,12 @@ packages:
 
   vditor@3.10.7:
     resolution: {integrity: sha512-n+ZM1IgLJzUGZeXzQT4xKbUwCplSFoRlsnmMvLv2kMPLnUTMk9O2qV8nMEOahYed0xExhQZtVb6TKeavgA6w3w==}
+
+  vike-vue@0.8.6:
+    resolution: {integrity: sha512-DT2PsxqfvMdkyuR3zdHPBcwrKjqpN7mIYeSIZ0WZsN+cEsY467nznyoZltq5vMQiQcEeQtQI0WrZTyBWKA7S5A==}
+    peerDependencies:
+      vike: '>=0.4.191'
+      vue: '>=3.0.0'
 
   vike@0.4.208:
     resolution: {integrity: sha512-gxgPkNaH9/PdWCFUbNkVRCTlYNB6m+dnaVvexYxKebj+xvITmgapOihZwwy/o9aqWcoa8KWB7tIfhvNossDUNA==}
@@ -10768,6 +10777,11 @@ snapshots:
   vditor@3.10.7:
     dependencies:
       diff-match-patch: 1.0.5
+
+  vike-vue@0.8.6(vike@0.4.208(vite@6.0.3(@types/node@18.0.4)(jiti@1.21.6)(sass@1.77.6)(terser@5.31.1)(tsx@4.15.7)(yaml@2.6.1)))(vue@3.5.12(typescript@5.5.2)):
+    dependencies:
+      vike: 0.4.208(vite@6.0.3(@types/node@18.0.4)(jiti@1.21.6)(sass@1.77.6)(terser@5.31.1)(tsx@4.15.7)(yaml@2.6.1))
+      vue: 3.5.12(typescript@5.5.2)
 
   vike@0.4.208(vite@6.0.3(@types/node@18.0.4)(jiti@1.21.6)(sass@1.77.6)(terser@5.31.1)(tsx@4.15.7)(yaml@2.6.1)):
     dependencies:
