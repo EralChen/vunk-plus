@@ -45,6 +45,10 @@
       {
         "link": "/routes-menu-content",
         "text": "RoutesMenuContent"
+      },
+      {
+        "link": "/tables-v1",
+        "text": "TablesV1"
       }
     ]
   }

@@ -36,8 +36,8 @@ importers:
         specifier: 1.1.3
         version: 1.1.3
       '@vunk/form':
-        specifier: ^1.1.77
-        version: 1.1.77
+        specifier: ^1.4.12
+        version: 1.4.12
       '@vunk/plus':
         specifier: workspace:*
         version: link:packages/entry
@@ -2094,14 +2094,11 @@ packages:
   '@vueuse/shared@9.13.0':
     resolution: {integrity: sha512-UrnhU+Cnufu4S6JLCPZnkWh0WwZGUp72ktOF2DFptMlOs3TOdVv8xJN53zhHGARmVOsz5KqOls09+J1NR6sBKw==}
 
-  '@vunk/core@0.0.0-alpha.130':
-    resolution: {integrity: sha512-W2JGM0qpTeIQz311NQyRzN24iYRAZT5p3+eMa7ObU8bujkvDM3ayIrK5Ombzv84DqebjgcH+crphgVOAQ0FvSw==}
-
   '@vunk/core@1.1.3':
     resolution: {integrity: sha512-zDRvMACEoorLNghl8Zudg2jNAO7daP83uAFcz1JBXu4XViTwEw9ML2gSJJ1O46CzzPOBQ5PRSoqEhQEKnCF4yA==}
 
-  '@vunk/form@1.1.77':
-    resolution: {integrity: sha512-RBaqneiy/Y+0iuQeaNppIdROYaEBg1sV9Fw4FoFg5E4uweWsayqIiqhjzH9lOfPAtHZRBTMqouLK8Rh5LOryrQ==}
+  '@vunk/form@1.4.12':
+    resolution: {integrity: sha512-R6l8ROFXhOLPCV6b9qfsIG32vTeZnr8hGIkTbVt3C++0lqcwXNbaa+KHqqsQ4rPM8EStgCGuPtif79AyghDfUA==}
 
   '@vunk/gsap@0.0.0-alpha.3':
     resolution: {integrity: sha512-UTyP4VmeAoMY+eab/OhFyyXrd21W4zgQuV2px4r/5x8iox187yf3AH42zuI//ub+loVTgE74iu9MQasTJ8NdMw==}
@@ -7336,13 +7333,9 @@ snapshots:
       - '@vue/composition-api'
       - vue
 
-  '@vunk/core@0.0.0-alpha.130': {}
-
   '@vunk/core@1.1.3': {}
 
-  '@vunk/form@1.1.77':
-    dependencies:
-      '@vunk/core': 0.0.0-alpha.130
+  '@vunk/form@1.4.12': {}
 
   '@vunk/gsap@0.0.0-alpha.3': {}
 
