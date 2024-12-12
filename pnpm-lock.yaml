@@ -33,8 +33,8 @@ importers:
         specifier: workspace:*
         version: link:packages/shared
       '@vunk/core':
-        specifier: 1.1.3
-        version: 1.1.3
+        specifier: 1.2.2
+        version: 1.2.2
       '@vunk/form':
         specifier: ^1.4.12
         version: 1.4.12
@@ -2094,8 +2094,8 @@ packages:
   '@vueuse/shared@9.13.0':
     resolution: {integrity: sha512-UrnhU+Cnufu4S6JLCPZnkWh0WwZGUp72ktOF2DFptMlOs3TOdVv8xJN53zhHGARmVOsz5KqOls09+J1NR6sBKw==}
 
-  '@vunk/core@1.1.3':
-    resolution: {integrity: sha512-zDRvMACEoorLNghl8Zudg2jNAO7daP83uAFcz1JBXu4XViTwEw9ML2gSJJ1O46CzzPOBQ5PRSoqEhQEKnCF4yA==}
+  '@vunk/core@1.2.2':
+    resolution: {integrity: sha512-AeqFfsT3/DKWgme+c4BZ9HbQ6gidyguNfUo01l+eiBZVdwYJer1aRO+LmMTOLQkVEYtGbX4PWOz8Xes/8qdAHQ==}
 
   '@vunk/form@1.4.12':
     resolution: {integrity: sha512-R6l8ROFXhOLPCV6b9qfsIG32vTeZnr8hGIkTbVt3C++0lqcwXNbaa+KHqqsQ4rPM8EStgCGuPtif79AyghDfUA==}
@@ -7333,7 +7333,7 @@ snapshots:
       - '@vue/composition-api'
       - vue
 
-  '@vunk/core@1.1.3': {}
+  '@vunk/core@1.2.2': {}
 
   '@vunk/form@1.4.12': {}
 
