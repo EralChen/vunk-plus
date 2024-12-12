@@ -1,4 +1,26 @@
 {
+  "element": {
+    "text": "Element",
+    "children": [
+      {
+        "link": "/tables-v1",
+        "text": "TablesV1"
+      },
+      {
+        "link": "/tables-v1-checkbox",
+        "text": "TablesV1Checkbox"
+      },
+      {
+        "link": "/table-columns",
+        "text": "TableColumns"
+      },
+      {
+        "link": "/routes-menu-content",
+        "text": "RoutesMenuContent"
+      }
+
+    ]
+  },
   "markdown": {
     "text": "Markdown",
     "children": [
@@ -32,19 +54,6 @@
       {
         "link": "/vditor",
         "text": "Vditor"
-      }
-    ]
-  },
-  "element": {
-    "text": "Element",
-    "children": [
-      {
-        "link": "/table-columns",
-        "text": "TableColumns"
-      },
-      {
-        "link": "/routes-menu-content",
-        "text": "RoutesMenuContent"
       }
     ]
   }

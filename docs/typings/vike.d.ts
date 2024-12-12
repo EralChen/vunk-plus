@@ -1,8 +1,8 @@
-/// <reference types="vike-vue/dist/types" />
 /// <reference types="vike-vue/dist/+config" />
 
-import { ApiReturnType } from '@vunk/core'
-import { rCrowdinFilesAsReflect, CrowdinFileLang } from '../renderer/crowdin'
+import type { CrowdinFileLang } from '#/shared'
+import type { ApiReturnType } from '@vunk/core'
+import type { rCrowdinFilesAsReflect } from '../renderer/crowdin'
 
 declare global {
   namespace Vike {
@@ -14,15 +14,14 @@ declare global {
 
   namespace VikePackages {
     interface ConfigVikeVue {
-        /**
-         * @deprecated
-         * use `pageContext.lang` instead
-         */
-        lang?: string;
-  
+      /**
+       * @deprecated
+       * use `pageContext.lang` instead
+       */
+      lang?: string
+
     }
   }
 }
-
 
 export {}

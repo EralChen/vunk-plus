@@ -1,24 +1,9 @@
-import { NormalObject } from '@vunk/core'
-import path from 'path'
+import type { NormalObject } from '@vunk/core'
+import type { CrowdinFile, CrowdinFileLangMedia } from '../../shared'
+import path from 'node:path'
+import { CrowdinFileLang } from '../../shared'
 
-export interface CrowdinFile<S extends NormalObject = NormalObject> {
-  lang: string
-  path: string
-  basename: string
-  source: S
-}
-
-/* lang */
-export enum CrowdinFileLang {
-  zhCN = 'zh-CN',
-  enUS = 'en-US',
-} 
-export interface CrowdinFileLangMedia {
-  label: string
-  value: CrowdinFileLang
-  glob: Record<string, () => Promise<NormalObject>>
-}
-export const CrowdinFileLangOptions: CrowdinFileLangMedia[]  = [
+export const crowdinFileLangOptions: CrowdinFileLangMedia[] = [
   {
     label: '中文',
     value: CrowdinFileLang.zhCN,
@@ -30,22 +15,15 @@ export const CrowdinFileLangOptions: CrowdinFileLangMedia[]  = [
     glob: import.meta.glob('./en-US/**/*.json'),
   },
 ]
-export const CrowdinFileLangReflect = CrowdinFileLangOptions.reduce((acc, cur) => {
+export const crowdinFileLangReflect = crowdinFileLangOptions.reduce((acc, cur) => {
   acc[cur.value] = cur
   return acc
-} , {} as Record<CrowdinFileLang, CrowdinFileLangMedia>)
-/* end of lang */
-
-
-export enum CrowdinFilePath {
-  component = 'pages/component.json'
-}
+}, {} as Record<CrowdinFileLang, CrowdinFileLangMedia>)
 
 export async function rCrowdinFiles (
-  lang: CrowdinFileLang =  CrowdinFileLang.zhCN,
+  lang: CrowdinFileLang = CrowdinFileLang.zhCN,
 ) {
-
-  const files = CrowdinFileLangReflect[lang]?.glob || []
+  const files = crowdinFileLangReflect[lang]?.glob || []
   const crowdinFiles: CrowdinFile[] = []
 
   for (const filepath in files) {
@@ -65,8 +43,7 @@ export async function rCrowdinFilesAsReflect (
 ) {
   const res = await rCrowdinFiles(lang)
   return res.reduce((acc, cur) => {
-    acc[cur.path as CrowdinFilePath] = cur
+    acc[cur.path] = cur
     return acc
   }, {} as Record<string/* path */, CrowdinFile>)
 }
-

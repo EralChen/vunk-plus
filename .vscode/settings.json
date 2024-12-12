@@ -1,6 +1,5 @@
 {
 
-
   // Disable the default formatter, use eslint instead
   "editor.formatOnSave": false,
 
@@ -38,5 +37,6 @@
     "yaml",
     "toml",
     "astro"
-  ]
+  ],
+  "oxc.enable": true
 }

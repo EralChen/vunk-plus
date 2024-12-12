@@ -1,5 +1,6 @@
 {
-  "name": "@vunk-plus/docs",
+  "name": "@skzz-template/docs",
+  "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
@@ -9,9 +10,7 @@
     "@vunk/gsap": "0.0.0-alpha.3",
     "deepdash-es": "^5.3.9",
     "gsap": "^3.12.5",
-    "prism-theme-vars": "^0.2.4",
-    "vike": "0.4.177",
-    "vike-vue": "^0.7.5"
+    "prism-theme-vars": "^0.2.4"
   },
   "devDependencies": {
     "@iconify-json/ri": "^1.1.20",

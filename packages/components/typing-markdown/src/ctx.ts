@@ -1,3 +1,5 @@
+import type MarkdownIt from "markdown-it"
+import { PropType } from "vue"
 
 export const props = {
   source: {
@@ -20,6 +22,17 @@ export const props = {
     type: Boolean,
     default: false,
   },
+
+  /**
+   *  @description markdown-it 配置
+   */
+  markdownItSetup: {
+    type: Function as PropType<
+      (md: MarkdownIt) => void
+    >,
+    default: null,
+  }
+  
 }
 
 export const emits = {

@@ -1,7 +1,4 @@
---- 
-title: TypingMarkdown
-lang: zh-CN
----
+
 
 # TypingMarkdown
 
@@ -19,3 +16,5 @@ typing-markdown/basic
 :::props
 typing-markdown/src/ctx
 :::
+
+

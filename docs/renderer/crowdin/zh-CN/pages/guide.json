@@ -1,0 +1,15 @@
+{
+  "start": {
+    "text": "Start 开始",
+    "children": [
+      {
+        "link": "/introduction",
+        "text": "Introduction 介绍"
+      }
+    ]
+  },
+  "changelog": {
+    "text": "Changelog 更新日志",
+    "link": "/changelog"
+  }
+}
