@@ -42,11 +42,7 @@ export const props = {
     default: undefined,
   },
 
-  start: {
-    type: Number,
-    default: undefined,
-  },
-  
+
   pageSize: {
     type: Number,
     default: 10,
@@ -57,20 +53,32 @@ export const props = {
     default: 1,
   },
 
+  /**
+   * @description 表示偏移量 v-model:start 和 v-model:currentPage 二选一 
+   */
+  start: {
+    type: Number,
+    default: undefined,
+  },
+    
+  /**
+   * @description 表格列
+   * @link ./table-columns
+   */
   columns: {
-    type: Array as PropType<Column<any>[]>,
+    type: Array as PropType<Column[]>,
     default: () => [],
   },
 
+  /**
+   * @description 组件模块。
+   * 如无需分页，可传入 `:modules="[]"`
+   */
   modules: {
     type: Array as PropType<('pagination')[]>,
     default: () => ['pagination'],
   },
-  
-  /*   
-    :align="'center'"
-    :headerAlign="'center'"
-  */
+
   align: {
     type: String,
     default: 'center',

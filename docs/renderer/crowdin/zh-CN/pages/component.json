@@ -1,4 +1,21 @@
 {
+  "element": {
+    "text": "Element",
+    "children": [
+      {
+        "link": "/tables-v1",
+        "text": "TablesV1"
+      },
+      {
+        "link": "/table-columns",
+        "text": "TableColumns"
+      },
+      {
+        "link": "/routes-menu-content",
+        "text": "RoutesMenuContent"
+      }
+    ]
+  },
   "markdown": {
     "text": "Markdown",
     "children": [
@@ -34,22 +51,6 @@
         "text": "Vditor"
       }
     ]
-  },
-  "element": {
-    "text": "Element",
-    "children": [
-      {
-        "link": "/table-columns",
-        "text": "TableColumns"
-      },
-      {
-        "link": "/routes-menu-content",
-        "text": "RoutesMenuContent"
-      },
-      {
-        "link": "/tables-v1",
-        "text": "TablesV1"
-      }
-    ]
   }
+
 }
