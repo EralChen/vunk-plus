@@ -47,6 +47,14 @@ export const props = {
     default: false,
   },
 
+  /**
+   * check触发方式
+   */
+  checkTrigger: {
+    type: String as PropType<'check' | 'rowClick'>,
+    default: 'check',
+  },
+
 }
 
 export const emits = {

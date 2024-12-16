@@ -1,5 +1,9 @@
 # Changelog 更新日志
 
+## 1.1.1
+
++ [TablesV1Checkbox] 添加 prop `checkTrigger`: 选择 check 触发方式
+
 ## 1.1.0
 
 + [TablesV1] 新增 component `TablesV1`: ElTable、ElTableColumn、ElPagination 的集成组件

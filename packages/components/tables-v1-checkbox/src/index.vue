@@ -5,6 +5,7 @@ import type { CheckboxValueType } from 'element-plus'
 import type { RadioProps } from 'naive-ui'
 import { _VkTabelsV1Ctx, VkTablesV1 } from '@vunk-plus/components/tables-v1'
 import { VkCheckRecordLogic, VkCheckRecordLogicProvider } from '@vunk/core'
+import { noop } from '@vunk/shared/function'
 import { ElCheckbox } from 'element-plus'
 import { NRadio } from 'naive-ui'
 import { defineComponent } from 'vue'
@@ -30,7 +31,7 @@ export default defineComponent({
   emits,
   setup (props, { emit }) {
     const coreProps = _VkTabelsV1Ctx.createBindProps(props, ['columns'])
-    const coreEmits = _VkTabelsV1Ctx.createOnEmits(emit)
+    const coreEmits = _VkTabelsV1Ctx.createOnEmits(emit, ['row-click'])
     const getCurrentPageCheckInfo = () => {
       const oidField = props.oidField
       const allCheckedId = props.modelValue.map(d => d[oidField])
@@ -81,12 +82,15 @@ export default defineComponent({
       }
     }
 
+    const changeEvents = {} as Record<string/* id */, AnyFunc>
+
     const checkboxCol: __VkTablesV1.Column = {
       prop: undefined,
       label: '',
       width: '50',
       align: 'center',
       headerAlign: 'center',
+
       slots: {
         default: e => (
           <VkCheckRecordLogic
@@ -99,12 +103,20 @@ export default defineComponent({
                   ? toggle
                   : () => singleChange(e.row)
 
+                if (!props.disabled) {
+                  changeEvents[e.row[props.oidField]] = onChange
+                }
+
+                const handleCheck = props.checkTrigger === 'check'
+                  ? onChange
+                  : noop
+
                 return props.multiple
                   ? (
                     <ElCheckbox
                       disabled={props.disabled}
                       modelValue={isActive}
-                      onChange={onChange}
+                      onChange={handleCheck}
                     >
                     </ElCheckbox>
                   )
@@ -112,7 +124,7 @@ export default defineComponent({
                     <NRadio
                       disabled={props.disabled}
                       checked={isActive}
-                      onUpdate:checked={onChange}
+                      onUpdate:checked={handleCheck}
                       theme-overrides={radioThemeOverrides}
                     >
                     </NRadio>
@@ -144,10 +156,24 @@ export default defineComponent({
       },
     }
 
+    /* triggle row-click */
+    function handleRowClick (...e) {
+      const [row] = e
+      if (props.checkTrigger === 'rowClick') {
+        const id = row[props.oidField]
+        changeEvents[id]?.()
+      }
+
+      // eslint-disable-next-line vue/custom-event-name-casing
+      emit('row-click', ...e)
+    }
+    /* endof triggle row-click */
+
     return {
       coreProps,
       coreEmits,
       checkboxCol,
+      handleRowClick,
     }
   },
 })
@@ -169,6 +195,8 @@ export default defineComponent({
         selectionHidden ? { hidden: true } : checkboxCol,
         ...columns,
       ]"
+
+      @row-click="handleRowClick"
       v-on="coreEmits"
     ></VkTablesV1>
   </VkCheckRecordLogicProvider>

@@ -65,5 +65,6 @@ function toggleMultiple () {
     :total="100"
     :disabled="disabled"
     background
+    check-trigger="rowClick"
   ></VkTablesV1Checkbox>
 </template>
