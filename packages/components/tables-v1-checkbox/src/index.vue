@@ -8,7 +8,7 @@ import { VkCheckRecordLogic, VkCheckRecordLogicProvider } from '@vunk/core'
 import { noop } from '@vunk/shared/function'
 import { ElCheckbox } from 'element-plus'
 import { NRadio } from 'naive-ui'
-import { defineComponent } from 'vue'
+import { computed, defineComponent } from 'vue'
 import { emits, props } from './ctx'
 
 type RadioThemeOverrides = NonNullable<RadioProps['themeOverrides']>
@@ -30,8 +30,13 @@ export default defineComponent({
   props,
   emits,
   setup (props, { emit }) {
-    const coreProps = _VkTabelsV1Ctx.createBindProps(props, ['columns'])
+    const coreProps = _VkTabelsV1Ctx.createBindProps(props, [
+      'columns',
+      'disabled',
+    ])
     const coreEmits = _VkTabelsV1Ctx.createOnEmits(emit, ['row-click'])
+    const theDisabled = computed(() => props.disabled || props.readonly)
+
     const getCurrentPageCheckInfo = () => {
       const oidField = props.oidField
       const allCheckedId = props.modelValue.map(d => d[oidField])
@@ -99,32 +104,34 @@ export default defineComponent({
           >
             {{
               default: ({ toggle, isActive }) => {
-                const onChange: AnyFunc = props.multiple
-                  ? toggle
-                  : () => singleChange(e.row)
+                const onChange: AnyFunc = theDisabled.value
+                  ? noop
+                  : (
+                    props.multiple ? toggle : () => singleChange(e.row)
+                  )
 
-                if (!props.disabled) {
-                  changeEvents[e.row[props.oidField]] = onChange
+                changeEvents[e.row[props.oidField]] = onChange
+
+                const checkHandler = () => {
+                  if (props.checkTrigger === 'check') {
+                    onChange()
+                  }
                 }
-
-                const handleCheck = props.checkTrigger === 'check'
-                  ? onChange
-                  : noop
 
                 return props.multiple
                   ? (
                     <ElCheckbox
-                      disabled={props.disabled}
+                      disabled={theDisabled.value}
                       modelValue={isActive}
-                      onChange={handleCheck}
+                      onChange={checkHandler}
                     >
                     </ElCheckbox>
                   )
                   : (
                     <NRadio
-                      disabled={props.disabled}
+                      disabled={theDisabled.value}
                       checked={isActive}
-                      onUpdate:checked={handleCheck}
+                      onUpdate:checked={checkHandler}
                       theme-overrides={radioThemeOverrides}
                     >
                     </NRadio>
@@ -196,6 +203,7 @@ export default defineComponent({
         ...columns,
       ]"
 
+      :disabled="paginationDisabled"
       @row-click="handleRowClick"
       v-on="coreEmits"
     ></VkTablesV1>

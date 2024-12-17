@@ -55,6 +55,22 @@ export const props = {
     default: 'check',
   },
 
+  /**
+   * 同 TableV1 disabled， 用于控制分页组件是否禁用
+   */
+  paginationDisabled: {
+    type: Boolean,
+    default: false,
+  },
+
+  /**
+   * 是否只读
+   */
+  readonly: {
+    type: Boolean,
+    default: false,
+  },
+
 }
 
 export const emits = {
