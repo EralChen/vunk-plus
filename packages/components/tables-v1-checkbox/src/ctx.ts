@@ -1,5 +1,6 @@
 import type { PropType } from 'vue'
 import { _VkTabelsV1Ctx } from '@vunk-plus/components/tables-v1'
+import { bindPropsFactory, onEmitsFactory } from '@vunk/core/shared/utils-vue'
 
 export const props = {
   ..._VkTabelsV1Ctx.props,
@@ -55,9 +56,28 @@ export const props = {
     default: 'check',
   },
 
+  /**
+   * 同 TableV1 disabled， 用于控制分页组件是否禁用
+   */
+  paginationDisabled: {
+    type: Boolean,
+    default: false,
+  },
+
+  /**
+   * 是否只读
+   */
+  readonly: {
+    type: Boolean,
+    default: false,
+  },
+
 }
+export const createBindProps = bindPropsFactory(props)
 
 export const emits = {
   ..._VkTabelsV1Ctx.emits,
   'update:modelValue': (val: any[]) => Array.isArray(val),
 }
+
+export const createOnEmits = onEmitsFactory(emits)

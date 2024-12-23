@@ -17,7 +17,7 @@ tables-v1-checkbox/basic
 
 :::props
 >>>leading
-| [TableV1](../tables-v1/+Page.md#tablesv1-props) | - | - | - |
+| [TableV1](../tables-v1/+Page.md#tablesv1-props) | - | - | Omit<_, 'disabled'> |
 >>>
 tables-v1-checkbox/src/ctx
 :::

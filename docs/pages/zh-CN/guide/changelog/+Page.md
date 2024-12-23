@@ -1,5 +1,15 @@
 # Changelog 更新日志
 
+## 1.1.3
+
++ [TablesV1Checkbox] 添加 prop `readonly`: 是否只读。样式与 `disabled` 区分
+
+## 1.1.2
+
++ [TablesV1Checkbox] fix: 修复 `disabled`下 checkbox 可以选中的问题
+
++ [TablesV1Checkbox] 添加 prop `paginationDisabled`: 同 TableV1 disabled， 用于控制分页组件是否禁用。与组件 disabled 区分
+
 ## 1.1.1
 
 + [TablesV1Checkbox] 添加 prop `checkTrigger`: 选择 check 触发方式
