@@ -1,20 +1,18 @@
 <script lang="ts">
-import { props, emits } from './ctx'
-import { defineComponent, nextTick, onMounted, Ref, ref, watchEffect } from 'vue'
-import { editor as mEditor } from 'monaco-editor'
+import type { Ref } from 'vue'
 import { watchPausable } from '@vueuse/core'
+import { editor as mEditor } from 'monaco-editor'
+import { defineComponent, nextTick, onMounted, ref, watchEffect } from 'vue'
+import { emits, props } from './ctx'
 
 export default defineComponent({
   name: 'VkMonacoEditor',
   props,
   emits,
   setup (props, { emit }) {
-
     const editorNode = ref() as Ref<HTMLDivElement>
     onMounted(() => {
-
       const editor = mEditor.create(editorNode.value, props.defaultOptions)
-
 
       /* v-model */
       // 主动修改 props.modelValue 时，更新编辑器内容
@@ -36,17 +34,11 @@ export default defineComponent({
       })
       /* endof v-model */
 
-
       watchEffect(() => {
         editor.updateOptions({
           readOnly: props.readOnly,
         })
       })
-
-      
-      
-
-
     })
 
     return {
@@ -55,12 +47,14 @@ export default defineComponent({
   },
 })
 </script>
+
 <template>
   <div
     ref="editorNode"
     class="vk-monaco-editor"
   ></div>
 </template>
+
 <style>
 .vk-monaco-editor {
   width: 100%;

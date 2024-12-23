@@ -1,5 +1,6 @@
 import type { PropType } from 'vue'
 import { _VkTabelsV1Ctx } from '@vunk-plus/components/tables-v1'
+import { bindPropsFactory, onEmitsFactory } from '@vunk/core/shared/utils-vue'
 
 export const props = {
   ..._VkTabelsV1Ctx.props,
@@ -72,8 +73,11 @@ export const props = {
   },
 
 }
+export const createBindProps = bindPropsFactory(props)
 
 export const emits = {
   ..._VkTabelsV1Ctx.emits,
   'update:modelValue': (val: any[]) => Array.isArray(val),
 }
+
+export const createOnEmits = onEmitsFactory(emits)

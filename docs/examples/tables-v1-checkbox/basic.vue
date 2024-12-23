@@ -23,6 +23,7 @@ const columns: __VkTablesV1.Column[] = [
 
 const multiple = ref(true)
 const value = ref([])
+const readonly = ref(false)
 
 const selectionHidden = ref(false)
 const disabled = ref(false)
@@ -51,6 +52,11 @@ function toggleMultiple () {
     <ElButton @click="disabled = !disabled">
       disabled : {{ disabled }}
     </ElButton>
+
+    <!-- readonly -->
+    <ElButton @click="readonly = !readonly">
+      readonly : {{ readonly }}
+    </ElButton>
   </p>
 
   <VkTablesV1Checkbox
@@ -66,5 +72,6 @@ function toggleMultiple () {
     :disabled="disabled"
     background
     check-trigger="rowClick"
+    :readonly="readonly"
   ></VkTablesV1Checkbox>
 </template>

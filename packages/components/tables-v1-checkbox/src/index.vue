@@ -147,7 +147,7 @@ export default defineComponent({
           const { checkedNodes, uncheckedNodes } = getCurrentPageCheckInfo()
           return (
             <ElCheckbox
-              disabled={props.disabled}
+              disabled={theDisabled.value}
               indeterminate={checkedNodes.length > 0 && checkedNodes.length < props.data.length}
               modelValue={checkedNodes.length && checkedNodes.length === props.data.length}
               onUpdate:modelValue={
@@ -202,6 +202,10 @@ export default defineComponent({
         selectionHidden ? { hidden: true } : checkboxCol,
         ...columns,
       ]"
+      class="vk-tables-v1-checkbox"
+      :class="{
+        'is-readonly': readonly,
+      }"
 
       :disabled="paginationDisabled"
       @row-click="handleRowClick"
@@ -209,3 +213,14 @@ export default defineComponent({
     ></VkTablesV1>
   </VkCheckRecordLogicProvider>
 </template>
+
+<style>
+.vk-tables-v1-checkbox.is-readonly .el-checkbox__input.is-disabled.is-checked .el-checkbox__inner{
+  background-color: var(--el-color-primary);
+
+  --el-checkbox-disabled-checked-icon-color: var(--el-color-white);
+}
+.vk-tables-v1-checkbox.is-readonly .n-radio.n-radio--disabled .n-radio__dot--checked::before{
+  background-color: var(--el-color-primary);
+}
+</style>
