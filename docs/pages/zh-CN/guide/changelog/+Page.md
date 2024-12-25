@@ -1,5 +1,9 @@
 # Changelog 更新日志
 
+## 1.1.4
+
++ [MonacoEditor] feat: 尺寸变化时, 自动调整布局 `editor.layout()`
+
 ## 1.1.3
 
 + [TablesV1Checkbox] 添加 prop `readonly`: 是否只读。样式与 `disabled` 区分
