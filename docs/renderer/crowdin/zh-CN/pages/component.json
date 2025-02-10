@@ -18,7 +18,6 @@
         "link": "/routes-menu-content",
         "text": "RoutesMenuContent"
       }
-
     ]
   },
   "markdown": {
@@ -54,6 +53,28 @@
       {
         "link": "/vditor",
         "text": "Vditor"
+      }
+    ]
+  },
+  "antx": {
+    "text": "Antx",
+    "children": [
+      {
+        "link": "/sender",
+        "text": "Sender"
+      },
+      {
+        "link": "/speech-button",
+        "text": "SpeechButton"
+      }
+    ]
+  },
+  "recorder": {
+    "text": "Recorder",
+    "children": [
+      {
+        "link": "/recorder-button",
+        "text": "RecorderButton"
       }
     ]
   }
