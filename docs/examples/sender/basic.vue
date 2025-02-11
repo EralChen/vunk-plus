@@ -9,7 +9,6 @@ import { speechToText } from './speechToText'
 const text = ref('')
 const loading = ref(false)
 async function submit (v: string) {
-  console.log(v)
   loading.value = true
   await sleep(10000)
   loading.value = false
@@ -30,22 +29,26 @@ function speechStop (blob: Blob) {
 </script>
 
 <template>
-  {{ loading }}
-  <VkSender
-    v-model="text"
-    :loading="loading"
-    @submit="submit"
-    @cancel="cancel"
-  >
-    <template #actions_before>
-      <ElButton round size="small">
-        深度思考
-      </ElButton>
-    </template>
-    <template #actions_after>
-      <VkSpeechButton
-        @stop="speechStop"
-      />
-    </template>
-  </VkSender>
+  <div sk-flex="col-between" class="h-400px">
+    <div>
+      {{ loading }}
+    </div>
+    <VkSender
+      v-model="text"
+      :loading="loading"
+      @submit="submit"
+      @cancel="cancel"
+    >
+      <template #actions_before>
+        <ElButton round size="small">
+          深度思考
+        </ElButton>
+      </template>
+      <template #actions_after>
+        <VkSpeechButton
+          @stop="speechStop"
+        />
+      </template>
+    </VkSender>
+  </div>
 </template>

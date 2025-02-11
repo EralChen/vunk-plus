@@ -1,15 +1,21 @@
 <script lang="tsx">
-import { SendOutlined } from '@ant-design/icons-vue'
+import type { AttachmentsProps } from 'ant-design-x-vue'
+import type {} from 'vue-types'
+import { CloudUploadOutlined, LinkOutlined, SendOutlined } from '@ant-design/icons-vue'
 import { useModelComputed } from '@vunk/core/composables'
-import { Tooltip } from 'ant-design-vue'
-import { Sender } from 'ant-design-x-vue'
-import { defineComponent } from 'vue'
+import { Button as AntButton, Tooltip } from 'ant-design-vue'
+import { Attachments, Sender } from 'ant-design-x-vue'
+import { defineComponent, ref } from 'vue'
 import { emits, props } from './ctx'
 
 export default defineComponent({
   name: 'VkSender',
   components: {
     Sender,
+    LinkOutlined,
+    AntButton,
+    SenderHeader: Sender.Header as never,
+    Attachments,
   },
   props,
   emits,
@@ -18,6 +24,8 @@ export default defineComponent({
       key: 'loading',
       default: false,
     }, props, emit)
+
+    const headerOpen = ref(false)
 
     const actionsRender = (_, info) => {
       const { SendButton, LoadingButton } = info.components
@@ -61,8 +69,26 @@ export default defineComponent({
         </div>
       )
     }
+
+    const attachmentsPlaceholder: AttachmentsProps['placeholder'] = (type) => {
+      if (type === 'drop') {
+        return {
+          title: '请将文件拖到此处',
+        }
+      }
+      else {
+        return {
+          icon: <CloudUploadOutlined />,
+          title: '上传文件',
+          description: '点击上传或拖拽文件到此处',
+        }
+      }
+    }
+
     return {
       actionsRender,
+      headerOpen,
+      attachmentsPlaceholder,
     }
   },
 })
@@ -79,16 +105,46 @@ export default defineComponent({
     :on-cancel="() => $emit('cancel')"
     @update:value="$emit('update:modelValue', $event)"
   >
+    <template #header>
+      <SenderHeader
+        :open="headerOpen"
+        title="添加附件"
+        @open-change="(v) => headerOpen = v"
+      >
+        <Attachments
+          :placeholder="attachmentsPlaceholder"
+        ></Attachments>
+      </SenderHeader>
+    </template>
+    <template #prefix>
+      <AntButton
+        type="text"
+        @click="headerOpen = !headerOpen"
+      >
+        <template #icon>
+          <LinkOutlined></LinkOutlined>
+        </template>
+      </AntButton>
+    </template>
   </Sender>
 </template>
 
 <style>
 .vk-sender .ant-sender-content{
-  display: block;
+  display: grid;
+  /* 两列 auto 1fr */
+  grid-template-columns: auto 1fr;
 }
 .vk-sender .ant-sender-actions-list {
   margin-top: 1em;
+  /* 独占两列 */
+  grid-column: 1 / -1;
 }
+.vk-sender .ant-sender-prefix {
+  /* 要素考上 */
+  align-self: start;
+}
+
 .vk-sender-actions{
   display: flex;
   justify-content: space-between;
