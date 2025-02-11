@@ -221,7 +221,6 @@ export default defineComponent({
       isDragging,
       cancelZone,
       isTextZone,
-      supported,
     }
   },
 })
@@ -231,7 +230,7 @@ export default defineComponent({
   <div class="sk-recorder-container">
     <!-- 遮罩层 -->
     <div
-      v-if="supported && isDragging"
+      v-if="isDragging"
       class="recording-mask"
     >
       <!-- 录音提示区域移到上面 -->

@@ -11,6 +11,7 @@ import 'recorder-core/src/app-support/app'
 export function useRecorder () {
   const supported = ref(false)
   const recording = ref(false)
+  const opening = ref(false)
 
   const recorder = new Recorder({
     // mp3格式，指定采样率hz、比特率kbps
@@ -20,10 +21,13 @@ export function useRecorder () {
   })
 
   function open () {
+    opening.value = true
+
     return new Promise((resolve, reject) => {
       recorder.open(
         () => {
           supported.value = true
+          opening.value = false
           resolve(recorder)
         },
         () => (msg, isUserNotAllow) => {
@@ -45,7 +49,7 @@ export function useRecorder () {
   }
 
   function stop () {
-    return new Promise((resolve, reject) => {
+    return new Promise<Blob>((resolve, reject) => {
       recorder.stop((blob) => {
         recorder.close() // 关闭录音
         recording.value = false
@@ -60,6 +64,11 @@ export function useRecorder () {
     })
   }
 
+  /**
+   * 若没有授权，则尝试发起授权
+   * 若已授权，则直接开始录音
+   * @returns {Promise<Recorder|undefined>} 若开始录音，则返回Recorder实例，否则返回undefined
+   */
   async function openOrStart () {
     if (supported.value) {
       return open().then(start)
@@ -67,12 +76,11 @@ export function useRecorder () {
     else {
       return Promise.race([
         open(),
-        sleep(550),
+        sleep(600),
       ]).then((v) => {
-        if (v) {
-          return start()
-        }
-        return recorder
+        if (!v)
+          return
+        return start()
       })
     }
   }
@@ -80,6 +88,7 @@ export function useRecorder () {
   return {
     supported,
     recording,
+    opening,
     recorder,
 
     open,

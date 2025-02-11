@@ -96,6 +96,12 @@ export default defineComponent({
   width: 100%;
 }
 
+.vk-sender-actions__before,
+.vk-sender-actions__after {
+  display: flex;
+  align-items: center;
+}
+
 .vk-sender-actions__before > * + *,
 .vk-sender-actions__after > * + * {
   margin-left: 8px;

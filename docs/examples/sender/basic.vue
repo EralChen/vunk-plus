@@ -4,6 +4,7 @@ import { VkSpeechButton } from '@vunk-plus/components/speech-button'
 import { sleep } from '@vunk/shared/promise'
 import { ref } from 'vue'
 import { createClient } from './createClient'
+import { speechToText } from './speechToText'
 
 const text = ref('')
 const loading = ref(false)
@@ -16,6 +17,15 @@ async function submit (v: string) {
 }
 function cancel () {
   loading.value = false
+}
+
+function speechStop (blob: Blob) {
+  speechToText(
+    'http://192.168.111.246:20096/speech-to-text',
+    blob,
+  ).then((v) => {
+    text.value += v
+  })
 }
 </script>
 
@@ -33,7 +43,9 @@ function cancel () {
       </ElButton>
     </template>
     <template #actions_after>
-      <VkSpeechButton />
+      <VkSpeechButton
+        @stop="speechStop"
+      />
     </template>
   </VkSender>
 </template>
