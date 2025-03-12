@@ -1,8 +1,9 @@
 <script lang="tsx">
 import type { AttachmentsProps } from 'ant-design-x-vue'
+import type { AttachmentsRef } from 'ant-design-x-vue/dist/typings/attachments/interface'
 import type {} from 'vue-types'
 import { CloudUploadOutlined, LinkOutlined, SendOutlined } from '@ant-design/icons-vue'
-import { useModelComputed } from '@vunk/core/composables'
+import { useDeferred, useModelComputed } from '@vunk/core/composables'
 import { Button as AntButton, Tooltip } from 'ant-design-vue'
 import { Attachments, Sender } from 'ant-design-x-vue'
 import { defineComponent, ref } from 'vue'
@@ -27,6 +28,7 @@ export default defineComponent({
 
     const headerOpen = ref(false)
 
+    /* UI */
     const actionsRender = (_, info) => {
       const { SendButton, LoadingButton } = info.components
 
@@ -84,11 +86,29 @@ export default defineComponent({
         }
       }
     }
+    /* UI END */
+
+    /* FileList */
+    // 文件列表
+    const fileList = ref<File[]>([])
+    // 文件粘贴
+    const attachmentsDef = useDeferred<AttachmentsRef>()
+    // [TODO] 文件粘贴的参数可能在未来会有变化
+    // https://x.ant.design/components/sender-cn#sender-demo-paste-image
+    const handlePasteFile = async (file: File) => {
+      headerOpen.value = true
+      const attachmentsNode = await attachmentsDef.promise
+      attachmentsNode.upload(file)
+    }
+    /* FileList END */
 
     return {
       actionsRender,
       headerOpen,
       attachmentsPlaceholder,
+      handlePasteFile,
+      attachmentsResolve: attachmentsDef.resolve,
+      fileList,
     }
   },
 })
@@ -104,6 +124,7 @@ export default defineComponent({
     :on-submit="(e) => $emit('submit', e)"
     :on-cancel="() => $emit('cancel')"
     @update:value="$emit('update:modelValue', $event)"
+    @paste-file="handlePasteFile"
   >
     <template #header>
       <SenderHeader
@@ -112,7 +133,9 @@ export default defineComponent({
         @open-change="(v) => headerOpen = v"
       >
         <Attachments
+          :ref="attachmentsResolve"
           :placeholder="attachmentsPlaceholder"
+          :file-list="fileList"
         ></Attachments>
       </SenderHeader>
     </template>
