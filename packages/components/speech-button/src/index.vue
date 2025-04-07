@@ -4,6 +4,7 @@ import { useRecorder } from '@vunk-plus/composables/recorder'
 import { Button } from 'ant-design-vue'
 import { defineComponent } from 'vue'
 import { emits, props } from './ctx'
+import LoadingIcon from './LoadingIcon.vue'
 import RecordingIcon from './RecordingIcon.vue'
 
 export default defineComponent({
@@ -37,7 +38,7 @@ export default defineComponent({
       if (props.disabled)
         return <AudioMutedOutlined />
       if (opening.value)
-        return <AudioOutlined spin />
+        return <LoadingIcon />
 
       if (recording.value) {
         return (
