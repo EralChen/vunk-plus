@@ -28,6 +28,7 @@ export function useRecorder () {
         () => {
           supported.value = true
           opening.value = false
+          console.log('recorder open success', recorder)
           resolve(recorder)
         },
         () => (msg, isUserNotAllow) => {
@@ -76,7 +77,7 @@ export function useRecorder () {
     else {
       return Promise.race([
         open(),
-        sleep(600),
+        sleep(1500),
       ]).then((v) => {
         if (!v)
           return

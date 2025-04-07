@@ -8,7 +8,7 @@ import { speechToText } from './speechToText'
 
 const text = ref('')
 const loading = ref(false)
-async function submit (v: string) {
+async function submit (_: string) {
   loading.value = true
   await sleep(10000)
   loading.value = false
@@ -35,6 +35,7 @@ function speechStop (blob: Blob) {
     </div>
     <VkSender
       v-model="text"
+      action="http://localhost:4545/upload"
       :loading="loading"
       @submit="submit"
       @cancel="cancel"

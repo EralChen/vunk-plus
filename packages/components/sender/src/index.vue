@@ -1,13 +1,16 @@
 <script lang="tsx">
+import type { UploadChangeParam, UploadFile } from 'ant-design-vue'
 import type { AttachmentsProps } from 'ant-design-x-vue'
 import type { AttachmentsRef } from 'ant-design-x-vue/dist/typings/attachments/interface'
+import type { Ref } from 'vue'
 import type {} from 'vue-types'
 import { CloudUploadOutlined, LinkOutlined, SendOutlined } from '@ant-design/icons-vue'
 import { useDeferred, useModelComputed } from '@vunk/core/composables'
 import { Button as AntButton, Tooltip } from 'ant-design-vue'
 import { Attachments, Sender } from 'ant-design-x-vue'
-import { defineComponent, ref } from 'vue'
+import { defineComponent, nextTick, ref } from 'vue'
 import { emits, props } from './ctx'
+import SenderHeader from './SenderHeader.vue'
 
 export default defineComponent({
   name: 'VkSender',
@@ -15,8 +18,8 @@ export default defineComponent({
     Sender,
     LinkOutlined,
     AntButton,
-    SenderHeader: Sender.Header as never,
     Attachments,
+    SenderHeader,
   },
   props,
   emits,
@@ -26,7 +29,9 @@ export default defineComponent({
       default: false,
     }, props, emit)
 
+    /* header */
     const headerOpen = ref(false)
+    /* header End */
 
     /* UI */
     const actionsRender = (_, info) => {
@@ -90,15 +95,36 @@ export default defineComponent({
 
     /* FileList */
     // 文件列表
-    const fileList = ref<File[]>([])
+    const theFileList = useModelComputed({
+      key: 'fileList',
+      default: [] as UploadFile[],
+    }, props, emit)
     // 文件粘贴
-    const attachmentsDef = useDeferred<AttachmentsRef>()
+    const attachmentsRef = ref() as Ref<AttachmentsRef>
+    const attachmentWrapDef = useDeferred<HTMLDivElement>()
     // [TODO] 文件粘贴的参数可能在未来会有变化
     // https://x.ant.design/components/sender-cn#sender-demo-paste-image
     const handlePasteFile = async (file: File) => {
       headerOpen.value = true
-      const attachmentsNode = await attachmentsDef.promise
-      attachmentsNode.upload(file)
+      const attachmentWrap = await attachmentWrapDef.promise
+
+      await nextTick()
+
+      // [TODO] ant-design-x-vue 中 为完成 upload
+      // attachmentsRef.value.upload(file)
+      // 这里先手动实现
+      const fileInput = attachmentWrap.querySelector('input[type="file"]') as HTMLInputElement
+
+      if (fileInput) {
+        const dataTransfer = new DataTransfer()
+        dataTransfer.items.add(file)
+        fileInput.files = dataTransfer.files
+
+        fileInput.dispatchEvent(new Event('change', { bubbles: true }))
+      }
+    }
+    const handleChange = (e: UploadChangeParam<UploadFile>) => {
+      theFileList.value = e.fileList
     }
     /* FileList END */
 
@@ -107,8 +133,10 @@ export default defineComponent({
       headerOpen,
       attachmentsPlaceholder,
       handlePasteFile,
-      attachmentsResolve: attachmentsDef.resolve,
-      fileList,
+      attachmentsRef,
+      theFileList,
+      handleChange,
+      attachmentWrapResolve: attachmentWrapDef.resolve,
     }
   },
 })
@@ -128,14 +156,16 @@ export default defineComponent({
   >
     <template #header>
       <SenderHeader
-        :open="headerOpen"
-        title="添加附件"
-        @open-change="(v) => headerOpen = v"
+        v-model="headerOpen"
+        title="附件"
+        :content-ref="attachmentWrapResolve"
       >
         <Attachments
-          :ref="attachmentsResolve"
+          ref="attachmentsRef"
+          :file-list="theFileList"
           :placeholder="attachmentsPlaceholder"
-          :file-list="fileList"
+          :on-change="handleChange"
+          :action="action"
         ></Attachments>
       </SenderHeader>
     </template>
