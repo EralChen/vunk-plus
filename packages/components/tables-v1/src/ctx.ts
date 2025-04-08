@@ -1,25 +1,23 @@
-import { bindPropsFactory, onEmitsFactory } from '@vunk/core/shared/utils-vue'
+import type { AnyFunc } from '@vunk/core'
+import type { CSSProperties, PropType } from 'vue'
+import type { Column } from './types'
+import { _VkTableColumnsElCtx } from '@vunk-plus/components/table-columns'
 import { pickObject } from '@vunk/core/shared/utils-object'
-import { 
+import { bindPropsFactory, onEmitsFactory } from '@vunk/core/shared/utils-vue'
+import {
   paginationEmits,
   paginationProps,
 } from 'element-plus'
-import { CSSProperties, PropType } from 'vue'
-import { Column } from './types'
-import { _VkTableColumnsElCtx } from '@vunk/skzz/components/table-columns'
 import { tableProps as _tableProps, tableEmits } from './el-ctx'
-import { AnyFunc } from '@vunk/core'
 
 export const createPaginationBindProps = bindPropsFactory(paginationProps)
 
 export const createPaginationOnEmits = onEmitsFactory(paginationEmits)
 
-
 const tableProps = pickObject(_tableProps, {
   excludes: ['style', 'className'],
 })
 export const createTableBindProps = bindPropsFactory(tableProps)
-
 
 export const props = {
   ..._VkTableColumnsElCtx.tableColumnProps,
@@ -42,7 +40,6 @@ export const props = {
     default: undefined,
   },
 
-
   pageSize: {
     type: Number,
     default: 10,
@@ -54,13 +51,13 @@ export const props = {
   },
 
   /**
-   * @description 表示偏移量 v-model:start 和 v-model:currentPage 二选一 
+   * @description 表示偏移量 v-model:start 和 v-model:currentPage 二选一
    */
   start: {
     type: Number,
     default: undefined,
   },
-    
+
   /**
    * @description 表格列
    * @link ./table-columns
@@ -87,7 +84,7 @@ export const props = {
     type: String,
     default: 'center',
   },
-  
+
   elRef: {
     type: Function as PropType<AnyFunc>,
     default: undefined,
@@ -97,7 +94,6 @@ export const props = {
 
 export const createBindProps = bindPropsFactory(props)
 
-
 export const emits = {
   ...paginationEmits,
   ...tableEmits,
@@ -105,4 +101,3 @@ export const emits = {
 }
 
 export const createOnEmits = onEmitsFactory(emits)
-

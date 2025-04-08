@@ -7,7 +7,5 @@ import '@vunk/gsap/index.css'
 
 import './form'
 import './layout/index.css'
-import '@skzz/platform/index.css'
 import './vitepress'
 import './markdown'
-

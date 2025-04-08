@@ -3,11 +3,11 @@ import type { CrowdinFile, MenuRaw } from '#/shared'
 import type { Ref } from 'vue'
 import type { RouteRecordRaw } from 'vue-router'
 import { CrowdinFilePath, useCrowdinFile } from '#s/composables/crowdin'
-import { SkAppIcon } from '@skzz/platform/components/app-icon'
+import { VkAvatar } from '@vunk-plus/components/avatar'
+import { VkRoutesMenuContent } from '@vunk-plus/components/routes-menu-content'
 import { VkDuplex } from '@vunk/core'
-import { VkRoutesMenuContent } from '@vunk/skzz/components/routes-menu-content'
 import { findDeep } from 'deepdash-es/standalone'
-import { ElCollapseTransition, ElMenu } from 'element-plus'
+import { ElMenu } from 'element-plus'
 import { computed, nextTick, onMounted, ref, shallowRef } from 'vue'
 
 defineProps({
@@ -181,12 +181,10 @@ function initOpenMenu () {
                 class="layout-default-aside-menu-a"
                 :title="data.meta?.title"
               >
-                <ElIcon>
-                  <SkAppIcon
-                    v-if="data.meta?.icon"
-                    :icon="data.meta.icon"
-                  />
-                </ElIcon>
+                <VkAvatar
+                  v-if="data.meta?.icon"
+                  :icon="data.meta.icon"
+                />
               </a>
             </template>
 
