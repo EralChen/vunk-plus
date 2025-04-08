@@ -164,8 +164,9 @@ export default defineComponent({
           ref="attachmentsRef"
           :file-list="theFileList"
           :placeholder="attachmentsPlaceholder"
-          :on-change="handleChange"
           :action="action"
+          multiple
+          @change="handleChange"
         ></Attachments>
       </SenderHeader>
     </template>

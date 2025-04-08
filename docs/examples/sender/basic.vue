@@ -1,9 +1,10 @@
 <script lang="ts" setup>
+import type { UploadFile } from 'ant-design-vue'
+import type { Ref } from 'vue'
 import { VkSender } from '@vunk-plus/components/sender'
 import { VkSpeechButton } from '@vunk-plus/components/speech-button'
 import { sleep } from '@vunk/shared/promise'
-import { ref } from 'vue'
-import { createClient } from './createClient'
+import { computed, ref } from 'vue'
 import { speechToText } from './speechToText'
 
 const text = ref('')
@@ -14,26 +15,34 @@ async function submit (_: string) {
   loading.value = false
   text.value = ''
 }
+
+/* 附件 */
+const fileList = ref([]) as Ref<UploadFile[]>
+const uploadedFiles = computed(() => {
+  return fileList.value
+    .filter(file => file.status === 'done')
+    .map(item => item.response?.data[0].id)
+})
+/* 附件 END */
+
 function cancel () {
   loading.value = false
 }
-
 function speechStop (blob: Blob) {
-  speechToText(
-    'http://192.168.111.246:20096/speech-to-text',
-    blob,
-  ).then((v) => {
-    text.value += v
-  })
+  speechToText('http://192.168.111.246:20096/speech-to-text', blob)
+    .then((v) => {
+      text.value += v
+    })
 }
 </script>
 
 <template>
   <div sk-flex="col-between" class="h-400px">
-    <div>
-      {{ loading }}
-    </div>
+    <pre>
+      {{ uploadedFiles }}
+    </pre>
     <VkSender
+      v-model:file-list="fileList"
       v-model="text"
       action="http://localhost:4545/upload"
       :loading="loading"

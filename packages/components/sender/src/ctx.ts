@@ -3,11 +3,17 @@ import type { PropType } from 'vue'
 
 export const props = {
 
+  /**
+   * @description v-model 绑定文件列表
+   */
   fileList: {
     type: Array as PropType<UploadFile[]>,
     default: undefined,
   },
 
+  /**
+   * @description 文件上传地址
+   */
   action: {
     type: String,
     default: '',
