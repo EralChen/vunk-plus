@@ -2,7 +2,7 @@
 import type { Ref } from 'vue'
 import { watchPausable } from '@vueuse/core'
 import { editor as mEditor } from 'monaco-editor'
-import { defineComponent, nextTick, onMounted, ref, watchEffect } from 'vue'
+import { defineComponent, nextTick, onBeforeUnmount, onMounted, ref, watchEffect } from 'vue'
 import { emits, props } from './ctx'
 
 export default defineComponent({
@@ -32,12 +32,25 @@ export default defineComponent({
           subjectModelValueWatcher.resume()
         })
       })
+
       /* endof v-model */
 
       watchEffect(() => {
         editor.updateOptions({
           readOnly: props.readOnly,
         })
+      })
+
+      // resize
+      // editorNode 尺寸发生变化
+      const resizeObserver = new ResizeObserver(() => {
+        editor.layout()
+      })
+      resizeObserver.observe(editorNode.value)
+      // 组件销毁时，销毁编辑器
+      onBeforeUnmount(() => {
+        resizeObserver.disconnect()
+        editor.dispose()
       })
     })
 

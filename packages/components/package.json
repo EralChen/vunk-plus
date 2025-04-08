@@ -1,12 +1,12 @@
 {
   "name": "@vunk-plus/components",
+  "description": "",
+  "author": "",
+  "license": "ISC",
+  "keywords": [],
   "scripts": {
     "build": "gulp -f gulpfile.ts"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": "",
   "devDependencies": {
     "vue-router": "^4.4.5"
   }
