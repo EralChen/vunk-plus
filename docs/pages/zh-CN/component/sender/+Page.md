@@ -14,10 +14,9 @@ sender/basic
 sender/src/ctx
 :::
 
-
 ### Sender Emits
 
 | name | arguments | description |
 | ---- | --------- | ----------- |
-| submit | [string] | 触发提交事件 |
+| submit | string | 触发提交事件 |
 | cancel | - | 触发取消事件 |

@@ -29,7 +29,7 @@
     "@vunk/plus": "workspace:*",
     "@vunk/shared": "^0.5.43",
     "ant-design-vue": "^4.2.6",
-    "ant-design-x-vue": "1.0.7",
+    "ant-design-x-vue": "1.1.0",
     "element-plus": "npm:element-plus@latest",
     "lottie-web": "^5.12.2",
     "markdown-it": "^14.1.0",
