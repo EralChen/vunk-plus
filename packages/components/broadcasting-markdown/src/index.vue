@@ -18,7 +18,7 @@ export default defineComponent({
   },
   props,
   emits,
-  setup (props) {
+  setup (props, { emit }) {
     const { voices } = useVoices()
     const defaultVoice = computed(() => {
       return voices.value
@@ -35,13 +35,21 @@ export default defineComponent({
     })
 
     // 经过的段落
-    const paragraphs = ref([]) as Ref<Paragraph[]>
+    // const paragraphs = ref([]) as Ref<Paragraph[]>
 
     const fulfilledTextValue = computed(() => {
-      return paragraphs.value
+      if (props.data.length === 0) {
+        return ''
+      }
+
+      // 首句未开始直接为空
+      if (props.data[0].broadcast === Broadcast.initial) {
+        return ''
+      }
+
+      return props.data
         .filter(
-          item => item.status !== ParagraphStatus.initial
-            && item.broadcast !== Broadcast.initial,
+          item => item.status !== ParagraphStatus.initial,
         )
         .map(item => item.value)
         .join('')
@@ -56,7 +64,7 @@ export default defineComponent({
 
     write()
     function write () { // 写入
-      const lastParagraph = paragraphs.value.at(-1)
+      const lastParagraph = props.data.at(-1)
 
       // 遇到标点符号 添加段落
       for (const separator of sortedSeparators.value) {
@@ -100,13 +108,17 @@ export default defineComponent({
             }
           }
           else {
-            paragraphs.value.push({
+            const paragraph = {
               start,
               separator,
               end,
               status: ParagraphStatus.initial,
               value,
               broadcast: Broadcast.initial,
+            }
+            emit('setData', {
+              k: props.data.length,
+              v: paragraph,
             })
           }
         }
@@ -131,7 +143,6 @@ export default defineComponent({
     )
 
     return {
-      paragraphs,
       defaultVoice,
       ParagraphStatus,
       fulfilledTextValue,
@@ -141,7 +152,7 @@ export default defineComponent({
 </script>
 
 <template>
-  <slot :paragraphs="paragraphs">
+  <slot :paragraphs="data">
     <VkTypingMarkdown
       :source="fulfilledTextValue"
       :delay="200"
@@ -150,11 +161,11 @@ export default defineComponent({
   </slot>
 
   <ParagraphView
-    v-for="(item, index) of paragraphs"
+    v-for="(item, index) of data"
     :key="item.value"
     v-model:status="item.status"
-    :enable="paragraphs[index - 1]
-      ? paragraphs[index - 1].status === ParagraphStatus.fulfilled
+    :enable="data[index - 1]
+      ? data[index - 1].status === ParagraphStatus.fulfilled
       : true
     "
   >

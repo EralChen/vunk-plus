@@ -1,6 +1,16 @@
 <script lang="ts" setup>
-import { VkBroadcastingMarkdown } from '@vunk-plus/components/broadcasting-markdown'
-import { computed, ref } from 'vue'
+import type {
+
+  __VkBroadcastingMarkdown,
+} from '@vunk-plus/components/broadcasting-markdown'
+import {
+  Broadcast,
+  VkBroadcastingMarkdown,
+} from '@vunk-plus/components/broadcasting-markdown'
+import { setData } from '@vunk/core'
+import { computed, ref, watchEffect } from 'vue'
+import { MetahumanStatus } from './metahuman-background/const'
+import MetahumanBackground from './metahuman-background/index.vue'
 
 const text = `下面是一篇约 800 字的童话故事，适合儿童阅读：
 
@@ -54,6 +64,17 @@ const text = `下面是一篇约 800 字的童话故事，适合儿童阅读：
 
 如果你需要不同风格的版本，比如现代童话、科幻童话、寓言体等，修仙的人，我也可以为你创作。你想尝试哪种风格？`
 
+const paragraphs = ref<__VkBroadcastingMarkdown.Paragraph[]>([])
+
+const metahumanStatus = computed(() => {
+  const speaking = paragraphs.value.some((item) => {
+    return item.broadcast === Broadcast.playing
+  })
+  return speaking
+    ? MetahumanStatus.SPEAKING
+    : MetahumanStatus.SILENT
+})
+
 const currentIndex = ref(0)
 const theText = computed(() => {
   return text.substring(0, currentIndex.value)
@@ -64,7 +85,7 @@ setInterval(() => {
   if (currentIndex.value < text.length) {
     currentIndex.value += 3
   }
-}, 100)
+}, 500)
 </script>
 
 <template>
@@ -72,15 +93,24 @@ setInterval(() => {
     {{ pause ? '继续' : '暂停' }}
   </ElButton>
 
-  <VkBroadcastingMarkdown
-    :source="theText"
-    :pause="pause"
-  >
-  </VkBroadcastingMarkdown>
-
-  <!-- <template #default="{ paragraphs }">
-      <pre>
-        {{ paragraphs }}
-      </pre>
-    </template> -->
+  <div h-600px>
+    <MetahumanBackground
+      :status="metahumanStatus"
+    >
+      <div
+        pos-absolute bottom-0 z-2 top-350px bg-white
+        left-0 right-0
+      >
+        <ElScrollbar w-full>
+          <VkBroadcastingMarkdown
+            :data="paragraphs"
+            :source="theText"
+            :pause="pause"
+            @set-data="setData(paragraphs, $event)"
+          >
+          </VkBroadcastingMarkdown>
+        </ElScrollbar>
+      </div>
+    </MetahumanBackground>
+  </div>
 </template>

@@ -1,4 +1,15 @@
+import type { SetDataEvent } from '@vunk/core'
+import type { Paragraph } from './types'
+
 export const props = {
+
+  /**
+   *  @description 段落详情
+   */
+  data: {
+    type: Array<Paragraph>,
+    default: () => ([]),
+  },
 
   /**
    * @description 是否使用 web speech api
@@ -43,4 +54,5 @@ export const props = {
 }
 
 export const emits = {
+  setData: (e: SetDataEvent) => e,
 }

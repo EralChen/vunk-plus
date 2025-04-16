@@ -66,8 +66,8 @@ export default defineComponent({
       watch(() => props.pause, (v) => {
         if (props.data.status === ParagraphStatus.pending) {
           if (v) {
+            window.speechSynthesis.pause()
             if (theData.value.broadcast === Broadcast.playing) {
-              window.speechSynthesis.pause()
               theData.value.broadcast = Broadcast.paused
             }
           }
