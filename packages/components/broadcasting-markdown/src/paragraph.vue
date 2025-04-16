@@ -1,7 +1,6 @@
 <script lang="ts" setup>
-import { useReloaded, useUpdating } from '@vunk/core/composables'
 import { Deferred } from '@vunk/shared/promise'
-import { type PropType, shallowRef, watch } from 'vue'
+import { nextTick, type PropType, shallowRef, watch } from 'vue'
 import { ParagraphStatus } from './const'
 
 const props = defineProps({
@@ -35,13 +34,18 @@ watch(() => props.enable, (enable) => {
 
 function init () {
   const deferred = new Deferred()
+  emit('update:status', ParagraphStatus.pending)
   deferred.promise.then(() => {
     emit('update:status', ParagraphStatus.fulfilled)
   }).catch((err) => {
     console.error(err)
     emit('update:status', ParagraphStatus.rejected)
+    init()
   })
-  theDef.value = deferred
+  theDef.value = undefined
+  nextTick(() => {
+    theDef.value = deferred
+  })
 }
 </script>
 

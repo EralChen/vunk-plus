@@ -1,4 +1,4 @@
-import type { ParagraphStatus } from './const'
+import type { Broadcast, ParagraphStatus } from './const'
 
 export interface Paragraph {
   value: string
@@ -6,4 +6,6 @@ export interface Paragraph {
   start: number
   end: number
   separator: string
+
+  broadcast: Broadcast
 }

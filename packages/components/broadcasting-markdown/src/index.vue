@@ -2,8 +2,8 @@
 import type { Ref } from 'vue'
 import type { Paragraph } from './types'
 import { VkTypingMarkdown } from '@vunk-plus/components/typing-markdown'
-import { computed, defineComponent, onBeforeUnmount, ref, watch } from 'vue'
-import { ParagraphStatus } from './const'
+import { computed, defineComponent, ref, watch } from 'vue'
+import { Broadcast, ParagraphStatus } from './const'
 import { emits, props } from './ctx'
 import ParagraphView from './paragraph.vue'
 import { useVoices } from './use'
@@ -39,7 +39,10 @@ export default defineComponent({
 
     const fulfilledTextValue = computed(() => {
       return paragraphs.value
-        .filter(item => item.status !== ParagraphStatus.initial)
+        .filter(
+          item => item.status !== ParagraphStatus.initial
+            && item.broadcast !== Broadcast.initial,
+        )
         .map(item => item.value)
         .join('')
     })
@@ -103,6 +106,7 @@ export default defineComponent({
               end,
               status: ParagraphStatus.initial,
               value,
+              broadcast: Broadcast.initial,
             })
           }
         }
@@ -145,9 +149,6 @@ export default defineComponent({
     ></VkTypingMarkdown>
   </slot>
 
-  <pre>
-    {{ paragraphs }}
-  </pre>
   <ParagraphView
     v-for="(item, index) of paragraphs"
     :key="item.value"

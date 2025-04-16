@@ -2,8 +2,8 @@
 import type { Deferred } from '@vunk/shared/promise'
 import type { PropType } from 'vue'
 import type { Paragraph } from './types'
-import { defineComponent, nextTick, onMounted, onUnmounted, watch, watchEffect } from 'vue'
-import { defaultRender, ParagraphStatus } from './const'
+import { computed, defineComponent, onMounted, watch } from 'vue'
+import { Broadcast, defaultRender, ParagraphStatus } from './const'
 
 export default defineComponent({
   props: {
@@ -27,37 +27,59 @@ export default defineComponent({
   setup (props) {
     const value = defaultRender(props.data.value)
       .replace(/\n/g, '')
+    const theData = computed(() => {
+      return props.data
+    })
     if (!value.trim()) {
       // 直接 resolve
       props.deferred.resolve(true)
+      theData.value.broadcast = Broadcast.ended
       return () => null
+    }
+
+    if (props.data.start === 0) {
+      window.speechSynthesis.pause()
+      window.speechSynthesis.cancel()
     }
 
     const utterThis = new SpeechSynthesisUtterance(value)
 
     utterThis.onend = function () {
       props.deferred.resolve(true)
+      theData.value.broadcast = Broadcast.ended
     }
+
+    utterThis.onstart = function () {
+      theData.value.broadcast = Broadcast.playing
+    }
+
     utterThis.onerror = function (err) {
       props.deferred.reject(err)
+      theData.value.broadcast = Broadcast.failed
+      window.speechSynthesis.cancel()
     }
     utterThis.voice = props.voice
 
-    if (props.data.start === 0) {
-      window.speechSynthesis.cancel()
-    }
     window.speechSynthesis.speak(utterThis)
 
-    watch(() => props.pause, (v) => {
-      if (props.data.status === ParagraphStatus.pending) {
-        if (v) {
-          window.speechSynthesis.pause()
+    onMounted(() => {
+      watch(() => props.pause, (v) => {
+        if (props.data.status === ParagraphStatus.pending) {
+          if (v) {
+            if (theData.value.broadcast === Broadcast.playing) {
+              window.speechSynthesis.pause()
+              theData.value.broadcast = Broadcast.paused
+            }
+          }
+          else {
+            window.speechSynthesis.resume()
+            if (theData.value.broadcast === Broadcast.paused) {
+              theData.value.broadcast = Broadcast.playing
+            }
+          }
         }
-        else {
-          window.speechSynthesis.resume()
-        }
-      }
-    }, { immediate: true })
+      }, { immediate: true })
+    })
 
     return () => null
   },
