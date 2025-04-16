@@ -1,14 +1,15 @@
 <script lang="ts">
-import { props, emits } from './ctx'
-import { defineComponent, computed, ref, watch } from 'vue'
 import { computedAsync, debouncedRef } from '@vueuse/core'
+import { noop } from '@vunk/shared/function'
+import { computed, defineComponent, ref, watch } from 'vue'
 import { markdownItPromise } from './core'
+import { emits, props } from './ctx'
 
 export default defineComponent({
   name: 'VkTypingMarkdown',
   props,
   emits,
-  setup (props,  { emit }) {
+  setup (props, { emit }) {
     const currentIndex = ref(0)
     const currentText = computed(() => {
       if (props.disabled) {
@@ -17,13 +18,13 @@ export default defineComponent({
       return props.source.substring(0, currentIndex.value)
     })
 
-    const theMarkdownIt = markdownItPromise.then(md => {
+    const theMarkdownIt = markdownItPromise.then((md) => {
       props.markdownItSetup?.(md)
       return md
     })
-   
+
     const htmlText = computedAsync(async () => {
-      currentText.value // trigger dependency
+      noop(currentText.value) // trigger dependency
       const md = await theMarkdownIt
       return md.render(currentText.value)
     }, '')
@@ -31,7 +32,7 @@ export default defineComponent({
     const isTyping = computed(() => {
       // 非暂停下，props.source.length 和 currentIndex.value 不相等
       return !props.pause && !props.disabled
-      && currentIndex.value !== props.source.length
+        && currentIndex.value !== props.source.length
     })
     const isDebouncedTyping = debouncedRef(isTyping, 100)
 
@@ -42,11 +43,11 @@ export default defineComponent({
       }
       if (currentIndex.value < props.source.length) {
         currentIndex.value++
-
         emit('typing')
 
         setTimeout(typeWriter, props.delay)
-      } else {
+      }
+      else {
         isFinished.value = true
       }
     }
@@ -60,24 +61,22 @@ export default defineComponent({
     })
 
     watch(
-      () => isFinished.value 
-      && currentIndex.value < props.source.length, 
+      () => isFinished.value
+        && currentIndex.value < props.source.length,
       () => { // 说明source变化了
         isFinished.value = false
         typeWriter()
       },
     )
 
-
-  
     return {
       htmlText,
       isDebouncedTyping,
     }
-    
   },
 })
 </script>
+
 <template>
   <div
     class="vk-typing-markdown"
@@ -88,8 +87,8 @@ export default defineComponent({
   >
   </div>
 </template>
-<style>
 
+<style>
 .vk-typing-markdown.is-typing .is-last::after{
   animation: blink 0.7s infinite;
   content: '|';
