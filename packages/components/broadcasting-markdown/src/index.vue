@@ -43,7 +43,10 @@ export default defineComponent({
       }
 
       // 首句未开始直接为空
-      if (props.data[0].broadcast === Broadcast.initial) {
+      if (
+        props.data[0].broadcast === Broadcast.initial
+        || props.data[0].broadcast === Broadcast.failed
+      ) {
         return ''
       }
 

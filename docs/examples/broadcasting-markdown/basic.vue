@@ -108,6 +108,9 @@ setInterval(() => {
             :pause="pause"
             @set-data="setData(paragraphs, $event)"
           >
+            <pre>
+              {{ paragraphs }}
+            </pre>
           </VkBroadcastingMarkdown>
         </ElScrollbar>
       </div>
