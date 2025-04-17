@@ -1,5 +1,5 @@
-import type MarkdownIt from "markdown-it"
-import { PropType } from "vue"
+import type { MarkdownItAsync } from 'markdown-it-async'
+import type { PropType } from 'vue'
 
 export const props = {
   source: {
@@ -28,14 +28,13 @@ export const props = {
    */
   markdownItSetup: {
     type: Function as PropType<
-      (md: MarkdownIt) => void
+      (md: MarkdownItAsync) => void
     >,
     default: null,
-  }
-  
+  },
+
 }
 
 export const emits = {
   typing: null,
 }
-

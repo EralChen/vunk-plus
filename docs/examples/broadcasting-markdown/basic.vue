@@ -8,7 +8,7 @@ import {
   VkBroadcastingMarkdown,
 } from '@vunk-plus/components/broadcasting-markdown'
 import { setData } from '@vunk/core'
-import { computed, ref, watchEffect } from 'vue'
+import { computed, ref } from 'vue'
 import { MetahumanStatus } from './metahuman-background/const'
 import MetahumanBackground from './metahuman-background/index.vue'
 
@@ -108,9 +108,6 @@ setInterval(() => {
             :pause="pause"
             @set-data="setData(paragraphs, $event)"
           >
-            <pre>
-              {{ paragraphs }}
-            </pre>
           </VkBroadcastingMarkdown>
         </ElScrollbar>
       </div>

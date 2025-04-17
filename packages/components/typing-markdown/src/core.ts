@@ -1,8 +1,8 @@
 import { noop } from '@vueuse/core'
-import { highlight } from '@vunk/shared/markdown/shiki'
-import MarkdownIt from 'markdown-it'
+import { highlight as createHighlight } from '@vunk/shared/markdown/shiki'
+import MarkdownItAsync from 'markdown-it-async'
 
-const highlightPromise = highlight({
+const highlightInfo = createHighlight({
   dark: 'github-dark',
   light: 'github-light',
 }, {}, {
@@ -10,8 +10,8 @@ const highlightPromise = highlight({
 })
 
 export async function createMarkdownIt () {
-  const highlight = await highlightPromise
-  const md = new MarkdownIt({
+  const [highlight] = await highlightInfo
+  const md = MarkdownItAsync({
     highlight,
   })
 

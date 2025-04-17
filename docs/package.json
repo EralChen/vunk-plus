@@ -7,10 +7,13 @@
     "preview": "vite build && vite preview"
   },
   "dependencies": {
+    "@shikijs/core": "^3.2.2",
+    "@shikijs/transformers": "^3.2.2",
     "@vunk/gsap": "0.0.0-alpha.3",
     "deepdash-es": "^5.3.9",
     "gsap": "^3.12.5",
-    "prism-theme-vars": "^0.2.4"
+    "prism-theme-vars": "^0.2.4",
+    "shiki": "^3.2.2"
   },
   "devDependencies": {
     "@iconify-json/ri": "^1.1.20",
