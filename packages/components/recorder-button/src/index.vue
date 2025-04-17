@@ -276,6 +276,7 @@ export default defineComponent({
       :class="{
         'is-recording': recording,
       }"
+      size="large"
       @touchstart="onmousedown"
       @touchmove="onmousemove"
       @touchend="onmouseup"
@@ -301,7 +302,7 @@ export default defineComponent({
 .vk-recording-mask {
   position: absolute;
   inset: 0;
-  background: rgba(0, 0, 0, 0.6);
+  background: rgba(0, 0, 0, 0.5);
   z-index: 1000;
   display: flex;
   flex-direction: column;

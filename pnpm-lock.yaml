@@ -23,6 +23,9 @@ importers:
       '@vunk-plus/fetch':
         specifier: workspace:*
         version: link:packages/fetch
+      '@vunk-plus/icons':
+        specifier: workspace:*
+        version: link:packages/icons
       '@vunk-plus/shared':
         specifier: workspace:*
         version: link:packages/shared
@@ -36,8 +39,8 @@ importers:
         specifier: workspace:*
         version: link:packages/entry
       '@vunk/shared':
-        specifier: 0.8.2
-        version: 0.8.2
+        specifier: 0.8.3
+        version: 0.8.3
       ant-design-vue:
         specifier: ^4.2.6
         version: 4.2.6(vue@3.5.13(typescript@5.8.3))
@@ -275,6 +278,8 @@ importers:
       '@types/qs':
         specifier: ^6.9.7
         version: 6.9.18
+
+  packages/icons: {}
 
   packages/shared:
     dependencies:
@@ -2303,8 +2308,8 @@ packages:
   '@vunk/gsap@0.0.0-alpha.3':
     resolution: {integrity: sha512-UTyP4VmeAoMY+eab/OhFyyXrd21W4zgQuV2px4r/5x8iox187yf3AH42zuI//ub+loVTgE74iu9MQasTJ8NdMw==}
 
-  '@vunk/shared@0.8.2':
-    resolution: {integrity: sha512-25qGJRAJxmku7no8MSoasdMuIneqjyetUYEhMMWDGUycYZ/MP1JTnqBfH9nPUv20pX/K/9R4ilBOXxerNzc24w==}
+  '@vunk/shared@0.8.3':
+    resolution: {integrity: sha512-eAwJiRXaONucW9rDGKj2qq4vkf7nEkATH/cExC4rRNoHWCWCEHiPQFHvQsPCN4tY7r6UEym8hV2IsDqHzIz+LA==}
 
   abort-controller@3.0.0:
     resolution: {integrity: sha512-h8lQ8tacZYnR3vNQTgibj+tODHI5/+l06Au2Pcriv/Gmet0eaj4TwWH41sO9wnHDiQsEj19q0drzdWdeAHtweg==}
@@ -7518,7 +7523,7 @@ snapshots:
 
   '@vunk/gsap@0.0.0-alpha.3': {}
 
-  '@vunk/shared@0.8.2': {}
+  '@vunk/shared@0.8.3': {}
 
   abort-controller@3.0.0:
     dependencies:

@@ -180,22 +180,22 @@ export default defineComponent({
         </template>
       </AntButton>
     </template>
+    <template v-if="$slots.footer" #footer>
+      <slot name="footer"></slot>
+    </template>
   </Sender>
 </template>
 
 <style>
-.vk-sender .ant-sender-content{
+/* .vk-sender .ant-sender-content{
   display: grid;
-  /* 两列 auto 1fr */
   grid-template-columns: auto 1fr;
 }
 .vk-sender .ant-sender-actions-list {
   margin-top: 1em;
-  /* 独占两列 */
   grid-column: 1 / -1;
-}
+} */
 .vk-sender .ant-sender-prefix {
-  /* 要素考上 */
   align-self: start;
 }
 

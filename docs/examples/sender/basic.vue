@@ -49,12 +49,12 @@ function speechStop (blob: Blob) {
       @submit="submit"
       @cancel="cancel"
     >
-      <template #actions_before>
+      <template #footer>
         <ElButton round size="small">
           深度思考
         </ElButton>
       </template>
-      <template #actions_after>
+      <template #actions_before>
         <VkSpeechButton
           @stop="speechStop"
         />
