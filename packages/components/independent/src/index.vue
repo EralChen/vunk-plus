@@ -1,17 +1,33 @@
 <script lang="ts" setup>
+import type { __VkBubbleList } from '@vunk-plus/components/bubble-list'
+import { Role, VkBubbleList } from '@vunk-plus/components/bubble-list'
 import { VkRecorderButton } from '@vunk-plus/components/recorder-button'
 import { VkSender } from '@vunk-plus/components/sender'
 import { VkKeyboardAvatar } from '@vunk-plus/icons/keyboard'
 import { VkVoiceAvatar } from '@vunk-plus/icons/voice'
 import { VkDuplexCalc } from '@vunk/core'
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
+import { Bubble } from 'vue-element-plus-x'
 import { InputType } from './const'
+import { useAgentChat } from './use'
 
 defineOptions({
   name: 'VkIndependent',
 })
 const mainRef = ref<HTMLElement>()
-const inputType = ref<InputType>(InputType.Voice)
+const inputType = ref<InputType>(InputType.Text)
+const content = ref<string>('') // 输入框数据
+
+const { simplicity } = useAgentChat()
+// const { messages, parsedMessages } = chat
+const { items: bubbleItems, onRequest } = simplicity
+
+function onSubmit (nextContent: string) {
+  if (!nextContent)
+    return
+  onRequest(nextContent)
+  content.value = ''
+}
 </script>
 
 <template>
@@ -19,7 +35,12 @@ const inputType = ref<InputType>(InputType.Voice)
     <div ref="mainRef" class="vk-independent-main">
       <VkDuplexCalc with-resize="one">
         <template #one>
-          <div>1231</div>
+          <div class="vk-independent-main__bubbles">
+            <VkBubbleList
+              :items="bubbleItems"
+            >
+            </VkBubbleList>
+          </div>
         </template>
 
         <template #two>
@@ -41,7 +62,10 @@ const inputType = ref<InputType>(InputType.Voice)
             ></VkRecorderButton>
             <VkSender
               v-show="inputType === InputType.Text"
+              v-model="content"
+              :auto-size="true"
               placeholder="请输入内容"
+              @submit="onSubmit"
             ></VkSender>
           </div>
         </template>
@@ -54,6 +78,16 @@ const inputType = ref<InputType>(InputType.Voice)
 </template>
 
 <style>
+.vk-independent-main__bubbles {
+   padding: var(--gap-s, 8px);
+   height: 100%;
+}
+
+/* 去除边框 */
+.vk-independent-main .el-bubble-content-wrapper .el-bubble-content-borderless{
+  border: none;
+}
+
 .vk-independent-footer{
   display: flex;
   align-items: center;

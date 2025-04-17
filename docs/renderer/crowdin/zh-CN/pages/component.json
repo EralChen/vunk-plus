@@ -78,6 +78,10 @@
       {
         "link": "/independent",
         "text": "Independent"
+      },
+      {
+        "link": "/bubble-list",
+        "text": "BubbleList"
       }
     ]
   },

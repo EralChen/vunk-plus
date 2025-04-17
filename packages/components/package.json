@@ -9,7 +9,8 @@
   },
   "dependencies": {
     "audiobuffer-to-wav": "^1.0.0",
-    "markdown-it-async": "^2.2.0"
+    "markdown-it-async": "^2.2.0",
+    "vue-element-plus-x": "^1.1.6"
   },
   "devDependencies": {
     "@types/audiobuffer-to-wav": "^1.0.4",
