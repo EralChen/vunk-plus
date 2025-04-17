@@ -14,10 +14,11 @@ defineProps(dProps)
   <ElAutoResizer>
     <template #default="{ height }">
       <BubbleList
-        v-bind="$attrs"
         :ref="elRef"
+        :btn-icon-size="18"
         :max-height="`${height}px`"
         :list="items"
+        v-bind="$attrs"
       ></BubbleList>
     </template>
   </ElAutoResizer>
