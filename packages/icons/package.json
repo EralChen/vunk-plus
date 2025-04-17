@@ -1,0 +1,10 @@
+{
+  "name": "@vunk-plus/icons",
+  "description": "",
+  "author": "",
+  "license": "ISC",
+  "keywords": [],
+  "scripts": {
+    "build": "gulp -f gulpfile.ts"
+  }
+}

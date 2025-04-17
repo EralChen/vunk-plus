@@ -74,6 +74,10 @@
       {
         "link": "/speech-button",
         "text": "SpeechButton"
+      },
+      {
+        "link": "/independent",
+        "text": "Independent"
       }
     ]
   },

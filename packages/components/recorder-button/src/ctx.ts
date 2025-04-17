@@ -14,6 +14,14 @@ export const props = {
     type: Function as PropType<OnTextZone>,
     default: undefined,
   },
+
+  /**
+   * 遮罩层 appendTo
+   */
+  appendTo: {
+    type: null,
+    default: 'body',
+  },
 }
 
 export const emits = {
