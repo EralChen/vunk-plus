@@ -1,4 +1,4 @@
-import { VkAvatar } from '@vunk/plus/components/avatar'
+import { VkAvatar } from '@vunk-plus/components/avatar'
 import { h } from 'vue'
 import Icon from './icon'
 

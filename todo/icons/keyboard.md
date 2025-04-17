@@ -13,7 +13,7 @@ packages\icons\end
 
 ## Path
 
-index.ts: 入口组件, 根据 icon 名称, 导入对应的 svg, icon, avatar 组件
+index.ts: 入口组件, 根据 icon 名称, 导入对应的 svg, icon, avatar 组件;
 
 src/index.vue: 图标的 svg 实现
 
@@ -27,10 +27,10 @@ src/avatar.ts: 是对 icon.ts 组件的 avatar 包装
 + svg 中的主体内容要相对居中
 
 ## TIP
-
-+ icon.ts: 包装函数, 拷贝即可
-+ avatar.ts: 包装函数, 拷贝即可
++ index.ts:  入口组件, 导出形式可以参考其他 Icon 组件;
++ src/icon.ts: 包装函数, 拷贝即可
++ src/avatar.ts: 包装函数, 拷贝即可
 
 ## TODO
 
-- [ ] 实现 Icon
+- [x] 实现 Icon
