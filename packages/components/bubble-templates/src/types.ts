@@ -13,3 +13,12 @@ export interface BroadcastingMarkdownSource extends __VkRenderer.SourceItem, Vue
 }
 
 export type RenderItem = TypewriterSource | BroadcastingMarkdownSource
+
+
+export type RenderData = Record<string, RenderDataRecord>
+
+export interface RenderDataRecord {
+  templateType?: RenderItem['templateType']
+  meta?: any
+  completed?: boolean
+}

@@ -27,7 +27,7 @@ export type RoleMedia = RoleMediaBasic
   & __VkBubbleTemplates.RenderItem
 
 interface BubbleItemBasic extends BubbleMessage {
-  key?: string
+  key: string
 }
 interface RoleMediaBasic extends Partial<BubbleItemBasic>
   , Media {

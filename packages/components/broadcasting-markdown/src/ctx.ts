@@ -63,4 +63,6 @@ export const props = {
 
 export const emits = {
   setData: (e: SetDataEvent) => e,
+  'update:broadcasting': (_: boolean) => true,
+  'update:completed': (_: boolean) => true,
 }

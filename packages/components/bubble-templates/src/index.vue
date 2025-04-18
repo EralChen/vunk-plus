@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import type { __VkBubbleList } from '@vunk-plus/components/bubble-list'
-import type { BroadcastingMarkdownSource } from './types'
 import { VkBroadcastingMarkdown } from '@vunk-plus/components/broadcasting-markdown'
 import { VkRendererTemplate } from '@vunk/core/components/renderer-template'
 import { Typewriter } from 'vue-element-plus-x'
@@ -25,9 +24,22 @@ const typed = (e: __VkBubbleList.Item) => e
   </VkRendererTemplate>
 
   <VkRendererTemplate type="VkBroadcastingMarkdown">
-    <template #default="{ props }">
+    <template #default="{ props, emitSetData }">
       <VkBroadcastingMarkdown
         :source="props.content"
+        :keepRead="!props.seviceEnd"
+        @update:broadcasting="(v) => emitSetData({
+          k: [props.key, 'meta', 'broadcasting'],
+          v: v
+        })"
+        @vue:mounted="() => emitSetData({
+          k: [props.key, 'templateType'],
+          v: 'VkBroadcastingMarkdown'
+        })"
+        @update:completed="(v) => emitSetData({
+          k: [props.key, 'completed'],
+          v: v
+        })"
       ></VkBroadcastingMarkdown>
     </template>
   </VkRendererTemplate>

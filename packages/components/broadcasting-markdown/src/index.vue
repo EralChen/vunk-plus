@@ -4,7 +4,7 @@ import type { Ref } from 'vue'
 import type { Paragraph } from './types'
 import { VkTypingMarkdown } from '@vunk-plus/components/typing-markdown'
 import { setData } from '@vunk/core'
-import { computed, defineComponent, ref, watch } from 'vue'
+import { computed, defineComponent, ref, watch, watchEffect } from 'vue'
 import { Broadcast, ParagraphStatus } from './const'
 import { emits, props } from './ctx'
 import ParagraphView from './paragraph.vue'
@@ -181,6 +181,29 @@ export default defineComponent({
         }
       }
     }
+
+    /* 收集段落状态 */
+    const isBroadcasting = computed(() => {
+      return theData.value.some(
+        item => item.broadcast === Broadcast.playing
+      )
+    })
+    watchEffect(() => {
+      emit('update:broadcasting', isBroadcasting.value)
+    })
+
+    const isCompleted = computed(() => {
+      return theData.value.every(
+        item => item.status === ParagraphStatus.fulfilled
+      )
+    })
+
+    watchEffect(() => {
+      emit('update:completed', isCompleted.value)
+    })
+    
+  
+    /* 收集段落状态 END */
 
     return {
       theData,
