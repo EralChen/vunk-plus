@@ -1,11 +1,12 @@
 import type { NormalObject } from '@vunk/shared'
-import type { AgentMessage, BubbleMessage } from './types'
-import { type __VkBubbleList, Role, roleMap } from '@vunk-plus/components/bubble-list'
+import type { AgentMessage, BubbleItem, BubbleMessage } from './types'
+
 import { useXAgent, useXChat } from 'ant-design-x-vue'
 import { consola } from 'consola'
 import { computed, inject, provide } from 'vue'
 import { agentRequest } from './api'
 import { ChatAgentInjectKey } from './const'
+import { Role, roleMap } from './const-roles'
 
 export function useAgent () {
   return useXAgent<AgentMessage>({
@@ -84,7 +85,7 @@ export function initAgentChat () {
         key: item.id,
         ...roleMap[item.message.role],
         ...item.message,
-      } as __VkBubbleList.Item
+      } as BubbleItem
     })
   })
 

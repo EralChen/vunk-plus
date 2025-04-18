@@ -1,7 +1,8 @@
 import type { App } from 'vue'
 import VkAgentChatProvider from './src/index.vue'
 
-export * from './src/types'
+export * from './src/const'
+export * from './src/const-roles'
 export * as __VkAgentChatProvider from './src/types'
 export { useAgentChat } from './src/use'
 
