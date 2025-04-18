@@ -82,6 +82,7 @@ export default defineComponent({
             if (props.data.start === 0) {
               window.speechSynthesis.cancel()
             }
+            // eslint-disable-next-line no-console
             console.log('start speaking')
             window.speechSynthesis.speak(utterThis)
           }

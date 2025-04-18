@@ -21,6 +21,8 @@ export default defineComponent({
   emits,
   setup (props, { emit }) {
     const _data = ref([]) as Ref<Paragraph[]>
+
+    // 经过的段落
     const theData = computed(() => {
       return props.data ?? _data.value
     })
@@ -35,14 +37,13 @@ export default defineComponent({
     // 阅读游标
     const currentIndex = ref(0)
     // 当前游标是否完成
-    const isFinished = ref(false)
+    const isFinished = computed(() => {
+      return currentIndex.value >= props.source.length
+    })
 
     const currentText = computed(() => {
       return props.source.substring(0, currentIndex.value)
     })
-
-    // 经过的段落
-    // const paragraphs = ref([]) as Ref<Paragraph[]>
 
     const fulfilledTextValue = computed(() => {
       if (theData.value.length === 0) {
@@ -72,7 +73,11 @@ export default defineComponent({
       })
     })
 
-    write()
+    // 如果未完成触发 写入
+    watch(isFinished, (val) => {
+      !val && write()
+    }, { immediate: true })
+
     function write () { // 写入
       const lastParagraph = theData.value.at(-1)
 
@@ -132,9 +137,14 @@ export default defineComponent({
         currentIndex.value++
         setTimeout(write, props.delay)
       }
-      else { // 游标完成阅读, 对最后一个段落进行处理
-        isFinished.value = true
+      else {
+        if (props.keepRead) {
+          // 如果没有完成阅读, 持续写入状态
+          setTimeout(write, props.delay)
+          return
+        }
 
+        // 游标完成阅读, 对最后一个段落进行处理
         if (lastParagraph?.end === currentIndex.value) {
           return
         }
@@ -171,15 +181,6 @@ export default defineComponent({
         }
       }
     }
-
-    watch(
-      () => isFinished.value
-        && currentIndex.value < props.source.length,
-      () => { // 说明source变化了
-        isFinished.value = false
-        write()
-      },
-    )
 
     return {
       theData,

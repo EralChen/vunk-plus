@@ -1,15 +1,18 @@
 <script lang="ts" setup>
+import { VkAgentChatProvider } from '@vunk-plus/components/agent-chat-provider'
 import { VkIndependent } from '@vunk-plus/components/independent'
 import MetahumanBackground from '_c/metahuman-background/index.vue'
 </script>
 
 <template>
   <div h-full w-full>
-    <VkIndependent class="home-independent">
-      <template #background>
-        <MetahumanBackground></MetahumanBackground>
-      </template>
-    </VkIndependent>
+    <VkAgentChatProvider>
+      <VkIndependent class="home-independent">
+        <template #background>
+          <MetahumanBackground></MetahumanBackground>
+        </template>
+      </VkIndependent>
+    </VkAgentChatProvider>
   </div>
 </template>
 
@@ -25,11 +28,11 @@ import MetahumanBackground from '_c/metahuman-background/index.vue'
 }
 .home-independent .vk-independent-main__bubbles{
 
-mask-image: linear-gradient(to bottom,
-  rgba(0, 0, 0, 0.4),
-  rgba(0, 0, 0, 1) 80%,
-  rgba(0, 0, 0, 1) 100%
-);
+  /* mask-image: linear-gradient(to bottom,
+    rgba(0, 0, 0, 0.4),
+    rgba(0, 0, 0, 1) 80%,
+    rgba(0, 0, 0, 1) 100%
+  ); */
 
 }
 </style>

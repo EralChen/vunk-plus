@@ -2,15 +2,17 @@ import type { NormalObject } from '@vunk/shared'
 import type { AgentMessage, BubbleMessage } from './types'
 import { type __VkBubbleList, Role, roleMap } from '@vunk-plus/components/bubble-list'
 import { useXAgent, useXChat } from 'ant-design-x-vue'
-import { computed } from 'vue'
+import { consola } from 'consola'
+import { computed, inject, provide } from 'vue'
 import { agentRequest } from './api'
-
-// http://localhost:3000/api/application/chat_message/b0ecc6e4-1a7f-11f0-80b2-005056c00008
+import { ChatAgentInjectKey } from './const'
 
 export function useAgent () {
   return useXAgent<AgentMessage>({
     request: (info, event) => {
       const { message } = info
+
+      // 向 useXChat 发送 AgentMessage 数据
       const { onSuccess, onUpdate } = event
 
       if (!message?.content) {
@@ -44,6 +46,7 @@ export function useAgent () {
           onSuccess({
             role: Role.Broadcasting,
             content: text,
+            seviceEnd: true,
           })
         }
       }, { message: message?.content })
@@ -51,7 +54,7 @@ export function useAgent () {
   })
 }
 
-export function useAgentChat () {
+export function initAgentChat () {
   const [agent] = useAgent()
   const chat = useXChat<AgentMessage, BubbleMessage>({
     agent: agent.value,
@@ -72,7 +75,11 @@ export function useAgentChat () {
     })
   }
   const items = computed(() => {
-    return chat.parsedMessages.value.map((item) => {
+    return chat.parsedMessages.value.map((item, index) => {
+      if (index === chat.parsedMessages.value.length - 1) {
+        consola.info('parsedMessages', item.message)
+      }
+
       return {
         key: item.id,
         ...roleMap[item.message.role],
@@ -85,10 +92,19 @@ export function useAgentChat () {
     onRequest,
     items,
   }
-
-  return {
+  const ctx = {
     agent,
     chat,
     simplicity,
   }
+  provide(ChatAgentInjectKey, ctx)
+  return ctx
+}
+
+export function useAgentChat () {
+  const ctx = inject(ChatAgentInjectKey, null)
+  if (!ctx) {
+    throw new Error('useAgentChat must be used within a provider')
+  }
+  return ctx as ReturnType<typeof initAgentChat>
 }

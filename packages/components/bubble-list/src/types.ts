@@ -7,6 +7,7 @@ export interface BubbleItem extends BubbleListItemProps {
   key?: string
   role: Role
 }
+
 export interface RoleMediaBasic extends Partial<BubbleItem>, Media {
   value: Role
 }

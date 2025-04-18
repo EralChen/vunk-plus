@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { useAgentChat } from '@vunk-plus/components/agent-chat-provider'
 import { VkBubbleList } from '@vunk-plus/components/bubble-list'
 import { VkRecorderButton } from '@vunk-plus/components/recorder-button'
 import { VkSender } from '@vunk-plus/components/sender'
@@ -7,7 +8,6 @@ import { VkVoiceAvatar } from '@vunk-plus/icons/voice'
 import { VkDuplex } from '@vunk/core'
 import { ref } from 'vue'
 import { InputType } from './const'
-import { useAgentChat } from './use'
 
 defineOptions({
   name: 'VkIndependent',
@@ -17,7 +17,6 @@ const inputType = ref<InputType>(InputType.Text)
 const content = ref<string>('') // 输入框数据
 
 const { simplicity } = useAgentChat()
-// const { messages, parsedMessages } = chat
 const { items: bubbleItems, onRequest } = simplicity
 
 function onSubmit (nextContent: string) {
