@@ -20,7 +20,7 @@ export function useAgent () {
       let text = ''
 
       onUpdate({
-        role: Role.Assistant,
+        role: Role.Broadcasting,
         content: text,
         seviceLoading: true,
       })
@@ -34,7 +34,7 @@ export function useAgent () {
         if (json.content) {
           text += json.content
           onUpdate({
-            role: Role.Assistant,
+            role: Role.Broadcasting,
             content: text,
             seviceLoading: false,
           })
@@ -42,7 +42,7 @@ export function useAgent () {
 
         if (json.is_end) {
           onSuccess({
-            role: Role.Assistant,
+            role: Role.Broadcasting,
             content: text,
           })
         }

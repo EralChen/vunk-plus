@@ -1,15 +1,21 @@
-<script lang="ts">
+<script lang="tsx">
 import type { Deferred } from '@vunk/shared/promise'
 import type { PropType } from 'vue'
 import type { Paragraph } from './types'
+import { CloseBold } from '@element-plus/icons-vue'
+import { ElIcon } from 'element-plus'
 import { computed, defineComponent, watch } from 'vue'
 import { Broadcast, defaultRender, ParagraphStatus } from './const'
 
 export default defineComponent({
+  components: {
+    ElIcon,
+    CloseBold,
+  },
   props: {
     voice: {
       type: null as unknown as PropType<SpeechSynthesisVoice>,
-      required: true,
+      required: false,
     },
     data: {
       type: Object as PropType<Paragraph>,
@@ -30,8 +36,8 @@ export default defineComponent({
     const theData = computed(() => {
       return props.data
     })
+
     if (!value.trim()) {
-      // 直接 resolve
       props.deferred.resolve(true)
       theData.value.broadcast = Broadcast.ended
       return () => null
@@ -56,7 +62,7 @@ export default defineComponent({
       window.speechSynthesis.cancel()
     }
 
-    utterThis.voice = props.voice
+    props.voice && (utterThis.voice = props.voice)
 
     watch(() => props.pause, (v) => {
       if (props.data.status === ParagraphStatus.pending) {
@@ -76,6 +82,7 @@ export default defineComponent({
             if (props.data.start === 0) {
               window.speechSynthesis.cancel()
             }
+            console.log('start speaking')
             window.speechSynthesis.speak(utterThis)
           }
           if (theData.value.broadcast === Broadcast.paused) {
@@ -85,7 +92,36 @@ export default defineComponent({
       }
     }, { immediate: true })
 
-    return () => null
+    return () => (
+      theData.value.status === ParagraphStatus.rejected && (
+        <>
+          <ElIcon
+            color="var(--el-color-danger)"
+            size="1.5em"
+            class="vk-broadcasting-markdown-web-speech-icon"
+          >
+
+            <CloseBold></CloseBold>
+          </ElIcon>
+          {' '}
+          <span style={
+            {
+              color: 'var(--el-color-danger)',
+            }
+          }
+          >
+            播报失败
+          </span>
+        </>
+      )
+
+    )
   },
 })
 </script>
+
+<style>
+.vk-broadcasting-markdown-web-speech-icon{
+  vertical-align: text-bottom;
+}
+</style>

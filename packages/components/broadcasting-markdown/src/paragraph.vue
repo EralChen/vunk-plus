@@ -40,7 +40,6 @@ function init () {
   }).catch((err) => {
     console.error(err)
     emit('update:status', ParagraphStatus.rejected)
-    init()
   })
   theDef.value = undefined
   nextTick(() => {

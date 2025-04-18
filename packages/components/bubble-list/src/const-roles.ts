@@ -3,6 +3,7 @@ import type { RoleMedia } from './types'
 export enum Role {
   User = 'user',
   Assistant = 'assistant',
+  Broadcasting = 'broadcasting',
 }
 
 export const roleOptions: RoleMedia[] = [
@@ -11,17 +12,24 @@ export const roleOptions: RoleMedia[] = [
     value: Role.User,
     isMarkdown: false,
     placement: 'end',
+    templateType: 'Typewriter',
   },
   {
     label: 'AI 助手',
     value: Role.Assistant,
     isMarkdown: true,
     placement: 'start',
-    // variant: 'borderless',
-    // noStyle: true,
     typing: true,
-
+    templateType: 'Typewriter',
   },
+
+  {
+    label: '播报',
+    value: Role.Broadcasting,
+    placement: 'start',
+    templateType: 'VkBroadcastingMarkdown',
+  },
+
 ]
 
 export const roleMap = roleOptions.reduce((acc, cur) => {

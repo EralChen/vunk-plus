@@ -18,3 +18,18 @@ export enum ParagraphStatus {
   /* 失败 */
   rejected = 'rejected',
 }
+
+export enum Broadcast {
+  /* 未开始的 */
+  initial = 'initial',
+  /* 播放中的 */
+  playing = 'playing',
+  /* 播放结束的 */
+  ended = 'ended',
+
+  /* 暂停的 */
+  paused = 'paused',
+
+  /* 播放失败的 */
+  failed = 'failed',
+}

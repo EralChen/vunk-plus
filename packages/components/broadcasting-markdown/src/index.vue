@@ -1,12 +1,13 @@
 <script lang="ts">
+import type { SetDataEvent } from '@vunk/core'
 import type { Ref } from 'vue'
 import type { Paragraph } from './types'
 import { VkTypingMarkdown } from '@vunk-plus/components/typing-markdown'
+import { setData } from '@vunk/core'
 import { computed, defineComponent, ref, watch } from 'vue'
 import { Broadcast, ParagraphStatus } from './const'
 import { emits, props } from './ctx'
 import ParagraphView from './paragraph.vue'
-import { useVoices } from './use'
 import WebSpeechView from './web-speech.vue'
 
 export default defineComponent({
@@ -19,11 +20,17 @@ export default defineComponent({
   props,
   emits,
   setup (props, { emit }) {
-    const { voices } = useVoices()
-    const defaultVoice = computed(() => {
-      return voices.value
-        .filter(voice => voice.lang === 'zh-CN')[3]
+    const _data = ref([]) as Ref<Paragraph[]>
+    const theData = computed(() => {
+      return props.data ?? _data.value
     })
+    const handleSetData = (e: SetDataEvent) => {
+      if (props.data === undefined) {
+        setData(_data.value, e)
+        return
+      }
+      emit('setData', e)
+    }
 
     // 阅读游标
     const currentIndex = ref(0)
@@ -38,19 +45,19 @@ export default defineComponent({
     // const paragraphs = ref([]) as Ref<Paragraph[]>
 
     const fulfilledTextValue = computed(() => {
-      if (props.data.length === 0) {
+      if (theData.value.length === 0) {
         return ''
       }
 
       // 首句未开始直接为空
       if (
-        props.data[0].broadcast === Broadcast.initial
-        || props.data[0].broadcast === Broadcast.failed
+        theData.value[0].broadcast === Broadcast.initial
+        || theData.value[0].broadcast === Broadcast.failed
       ) {
         return ''
       }
 
-      return props.data
+      return theData.value
         .filter(
           item => item.status !== ParagraphStatus.initial,
         )
@@ -67,7 +74,7 @@ export default defineComponent({
 
     write()
     function write () { // 写入
-      const lastParagraph = props.data.at(-1)
+      const lastParagraph = theData.value.at(-1)
 
       // 遇到标点符号 添加段落
       for (const separator of sortedSeparators.value) {
@@ -101,13 +108,7 @@ export default defineComponent({
               lastParagraph.separator = separator
             }
             else {
-              // paragraphs.value.push({
-              //   start: end - separatorLen,
-              //   separator,
-              //   end,
-              //   status: ParagraphStatus.initial,
-              //   value,
-              // })
+              // 上一段落已经在处理中, 无需合并 separator
             }
           }
           else {
@@ -119,8 +120,8 @@ export default defineComponent({
               value,
               broadcast: Broadcast.initial,
             }
-            emit('setData', {
-              k: props.data.length,
+            handleSetData({
+              k: theData.value.length,
               v: paragraph,
             })
           }
@@ -131,8 +132,43 @@ export default defineComponent({
         currentIndex.value++
         setTimeout(write, props.delay)
       }
-      else {
+      else { // 游标完成阅读, 对最后一个段落进行处理
         isFinished.value = true
+
+        if (lastParagraph?.end === currentIndex.value) {
+          return
+        }
+
+        // 有未完成的段落
+        const start = lastParagraph?.end ?? 0
+        const end = currentIndex.value
+        const value = props.source.slice(start, end)
+        if (
+          lastParagraph
+          && lastParagraph.status === ParagraphStatus.initial
+          && lastParagraph.separator === ''
+        ) {
+          lastParagraph.end = end
+          lastParagraph.value = props.source.slice(
+            lastParagraph.start,
+            end,
+          )
+          lastParagraph.separator = ''
+        }
+        else {
+          const paragraph = {
+            start,
+            separator: '',
+            end,
+            status: ParagraphStatus.initial,
+            value,
+            broadcast: Broadcast.initial,
+          }
+          handleSetData({
+            k: theData.value.length,
+            v: paragraph,
+          })
+        }
       }
     }
 
@@ -146,7 +182,7 @@ export default defineComponent({
     )
 
     return {
-      defaultVoice,
+      theData,
       ParagraphStatus,
       fulfilledTextValue,
     }
@@ -155,7 +191,7 @@ export default defineComponent({
 </script>
 
 <template>
-  <slot :paragraphs="data">
+  <slot :paragraphs="theData">
     <VkTypingMarkdown
       :source="fulfilledTextValue"
       :delay="200"
@@ -164,11 +200,11 @@ export default defineComponent({
   </slot>
 
   <ParagraphView
-    v-for="(item, index) of data"
+    v-for="(item, index) of theData"
     :key="item.value"
     v-model:status="item.status"
-    :enable="data[index - 1]
-      ? data[index - 1].status === ParagraphStatus.fulfilled
+    :enable="theData[index - 1]
+      ? theData[index - 1].status === ParagraphStatus.fulfilled
       : true
     "
   >
@@ -182,7 +218,6 @@ export default defineComponent({
           :pause="pause"
           :deferred="deferred"
           :data="item"
-          :voice="defaultVoice"
         ></WebSpeechView>
       </slot>
     </template>

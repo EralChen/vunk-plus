@@ -8,7 +8,7 @@ export const props = {
    */
   data: {
     type: Array<Paragraph>,
-    default: () => ([]),
+    default: undefined,
   },
 
   /**
@@ -48,7 +48,7 @@ export const props = {
    */
   pause: {
     type: Boolean,
-    default: true,
+    default: false,
   },
 
 }
