@@ -1,14 +1,14 @@
 <script lang="ts" setup>
 import type { __VkBubbleList } from '@vunk-plus/components/bubble-list'
-import { VkBubbleList } from '@vunk-plus/components/bubble-list'
+import { Role, VkBubbleList } from '@vunk-plus/components/bubble-list'
 
 const bubbleItems: __VkBubbleList.Item[] = [
   {
-    role: 'assistant',
+    role: Role.User,
     content: '123',
   },
   {
-    role: 'user',
+    role: Role.Assistant,
     content: '123',
   },
 ]

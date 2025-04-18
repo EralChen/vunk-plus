@@ -11,7 +11,6 @@ export const routes: Array<RouteRecordRaw> = [
   },
   {
     path: '/home',
-    component: SplitGrid,
     children: [
       {
         path: '',

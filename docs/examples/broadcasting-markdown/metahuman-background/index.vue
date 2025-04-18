@@ -1,9 +1,7 @@
 <script setup lang="ts">
 import { useModelComputed } from '@vunk/core/composables'
-import { ElAffix } from 'element-plus'
 import { computed, type PropType, ref } from 'vue'
 import { MetahumanStatus } from './const'
-import MetahumanSelect from './metahuman-select.vue'
 
 defineOptions({ name: 'MetahumanBackground' })
 
@@ -69,12 +67,6 @@ const videoSources = computed(() => [
   height: 100%;
   .video {
     position: absolute;
-    top: 0;
-    left: 0;
-    height: 100%;
-    transform: translate(-48%, -50%);
-    left: 50%;
-    top: 50%;
     z-index: 0;
     opacity: 0;
     &.active {

@@ -16,7 +16,15 @@ export function useAgent () {
       if (!message?.content) {
         return
       }
+
       let text = ''
+
+      onUpdate({
+        role: Role.Assistant,
+        content: text,
+        seviceLoading: true,
+      })
+
       agentRequest((e) => {
         let json: NormalObject = { content: '' }
         if (typeof e.data === 'string') {
@@ -28,6 +36,7 @@ export function useAgent () {
           onUpdate({
             role: Role.Assistant,
             content: text,
+            seviceLoading: false,
           })
         }
 
@@ -49,7 +58,10 @@ export function useAgentChat () {
 
     // Convert AgentMessage to BubbleMessage
     parser (message) {
-      return message
+      return {
+        ...message,
+        loading: message.seviceLoading,
+      }
     },
   })
 

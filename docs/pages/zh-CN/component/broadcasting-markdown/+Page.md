@@ -1,4 +1,4 @@
---- 
+---
 title: BroadcastingMarkdown
 lang: zh-CN
 ---
@@ -7,10 +7,9 @@ lang: zh-CN
 
 BroadcastingMarkdown
 
-
 ## Basic
 
-:::demo 
+:::demo
 broadcasting-markdown/basic
 :::
 

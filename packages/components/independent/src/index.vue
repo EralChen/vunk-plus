@@ -1,13 +1,11 @@
 <script lang="ts" setup>
-import type { __VkBubbleList } from '@vunk-plus/components/bubble-list'
-import { Role, VkBubbleList } from '@vunk-plus/components/bubble-list'
+import { VkBubbleList } from '@vunk-plus/components/bubble-list'
 import { VkRecorderButton } from '@vunk-plus/components/recorder-button'
 import { VkSender } from '@vunk-plus/components/sender'
 import { VkKeyboardAvatar } from '@vunk-plus/icons/keyboard'
 import { VkVoiceAvatar } from '@vunk-plus/icons/voice'
-import { VkDuplexCalc } from '@vunk/core'
-import { computed, ref } from 'vue'
-import { Bubble } from 'vue-element-plus-x'
+import { VkDuplex } from '@vunk/core'
+import { ref } from 'vue'
 import { InputType } from './const'
 import { useAgentChat } from './use'
 
@@ -33,7 +31,10 @@ function onSubmit (nextContent: string) {
 <template>
   <div class="vk-independent">
     <div ref="mainRef" class="vk-independent-main">
-      <VkDuplexCalc with-resize="one">
+      <VkDuplex
+        with-flex="one"
+        class="vk-independent-main__duplex"
+      >
         <template #one>
           <div class="vk-independent-main__bubbles">
             <VkBubbleList
@@ -69,21 +70,21 @@ function onSubmit (nextContent: string) {
             ></VkSender>
           </div>
         </template>
-      </VkDuplexCalc>
+      </VkDuplex>
     </div>
 
     <div class="vk-independent-background">
+      <slot name="background"></slot>
     </div>
   </div>
 </template>
 
 <style>
 .vk-independent-main__bubbles {
-   padding: var(--gap-s, 8px);
+   padding: 8px 8px 0 12px;
    height: 100%;
 }
 
-/* 去除边框 */
 .vk-independent-main .el-bubble-content-wrapper .el-bubble-content-borderless{
   border: none;
 }
@@ -91,6 +92,8 @@ function onSubmit (nextContent: string) {
 .vk-independent-footer{
   display: flex;
   align-items: center;
+  padding: var(--gap-s, 6px);
+  background: var(--el-fill-color);
 }
 .vk-independent-footer .vk-recorder-container{
   flex-basis: 100%;
@@ -114,6 +117,9 @@ function onSubmit (nextContent: string) {
   width: 100%;
   height: 100%;
   position: relative;
+}
+.vk-independent-main__duplex{
+  height: 100%;
 }
 .vk-independent-main{
   z-index: 1;

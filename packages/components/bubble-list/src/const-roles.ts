@@ -17,8 +17,8 @@ export const roleOptions: RoleMedia[] = [
     value: Role.Assistant,
     isMarkdown: true,
     placement: 'start',
-    variant: 'borderless',
-    noStyle: true,
+    // variant: 'borderless',
+    // noStyle: true,
     typing: true,
 
   },
