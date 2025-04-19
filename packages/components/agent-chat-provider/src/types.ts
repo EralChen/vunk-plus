@@ -2,6 +2,9 @@ import type { __VkBubbleTemplates } from '@vunk-plus/components/bubble-templates
 import type { Media } from '@vunk/shared'
 import type { BubbleListItemProps } from 'vue-element-plus-x/types/components/BubbleList/types'
 import type { Role } from './const-roles'
+import type { initAgentChat } from './use'
+
+export type AgentChatContext = ReturnType<typeof initAgentChat>
 
 /**
  * @description useXChat parser 解析数据

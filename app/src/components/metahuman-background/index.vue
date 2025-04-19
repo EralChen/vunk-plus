@@ -10,6 +10,7 @@ const props = defineProps({
     type: Number as PropType<MetahumanStatus>,
     default: MetahumanStatus.SILENT,
   },
+
   type: {
     type: String,
     default: undefined,
