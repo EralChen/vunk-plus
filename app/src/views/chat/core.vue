@@ -2,14 +2,14 @@
 import type { __VkAgentChatProvider } from '@vunk-plus/components/agent-chat-provider'
 import type { __VkBubbleList } from '@vunk-plus/components/bubble-list'
 import type { __VkIndependent } from '@vunk-plus/components/independent'
-import { speechToText } from '@/api/application'
+import { speechToText, textToSpeech } from '@/api/application'
 import { Role, VkAgentChatProvider } from '@vunk-plus/components/agent-chat-provider'
 import { VkIndependent } from '@vunk-plus/components/independent'
 import { setData } from '@vunk/core'
 import { useDeferred } from '@vunk/core/composables'
 import { useApplicationProfile } from '_c/authentication'
 import { MetahumanBackground, MetahumanStatus } from '_c/metahuman-background'
-import { computed, ref, shallowRef } from 'vue'
+import { computed, ref } from 'vue'
 
 const {
   stt_model_enable,
@@ -33,16 +33,26 @@ const broadcasting = computed(() => {
 /* chat 数据  END */
 
 /* 添加开场白 */
-agentChatContext.promise.then(({ chat }) => {
-  chat.setMessages([{
-    id: 'prologue',
-    message: {
-      role: Role.Broadcasting,
-      content: prologue,
-      seviceEnd: true,
-    },
-    status: 'success',
-  }])
+// agentChatContext.promise.then(({ chat }) => {
+//   chat.setMessages([{
+//     id: 'prologue',
+//     message: {
+//       role: Role.Broadcasting,
+//       content: prologue,
+//       seviceEnd: true,
+//     },
+//     status: 'success',
+//   }])
+// })
+
+const testUrl = ref('')
+textToSpeech({
+  application_id: applicationId,
+  text: prologue,
+  type: 'ai-chat',
+}).then((blob) => {
+  const res = URL.createObjectURL(blob)
+  testUrl.value = res
 })
 
 /* 添加开场白 END */
@@ -65,6 +75,12 @@ const speechToTextFn: __VkIndependent.SpeechToText = (blob) => {
   <div h-full w-full pos-relative>
     <div position-absolute left-0 top-0 z-10>
       {{ lastBubbleData }}
+      <audio
+        v-if="testUrl"
+        :src="testUrl"
+        autoplay
+        controls
+      ></audio>
     </div>
     <VkAgentChatProvider @load="agentChatContext.resolve">
       <VkIndependent
