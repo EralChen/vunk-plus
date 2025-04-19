@@ -8,7 +8,7 @@ import { CloudUploadOutlined, LinkOutlined, SendOutlined } from '@ant-design/ico
 import { useDeferred, useModelComputed } from '@vunk/core/composables'
 import { Button as AntButton, Tooltip } from 'ant-design-vue'
 import { Attachments, Sender } from 'ant-design-x-vue'
-import { defineComponent, nextTick, ref } from 'vue'
+import { computed, defineComponent, nextTick, ref } from 'vue'
 import { emits, props } from './ctx'
 import SenderHeader from './SenderHeader.vue'
 
@@ -24,6 +24,8 @@ export default defineComponent({
   props,
   emits,
   setup (props, { emit, slots }) {
+    const hasAttachments = computed(() => props.modules.includes('Attachments'))
+
     const loading = useModelComputed({
       key: 'loading',
       default: false,
@@ -129,6 +131,7 @@ export default defineComponent({
     /* FileList END */
 
     return {
+      hasAttachments,
       actionsRender,
       headerOpen,
       attachmentsPlaceholder,
@@ -156,6 +159,7 @@ export default defineComponent({
   >
     <template #header>
       <SenderHeader
+        v-if="hasAttachments"
         v-model="headerOpen"
         title="附件"
         :content-ref="attachmentWrapResolve"
@@ -172,6 +176,7 @@ export default defineComponent({
     </template>
     <template #prefix>
       <AntButton
+        v-if="hasAttachments"
         type="text"
         @click="headerOpen = !headerOpen"
       >

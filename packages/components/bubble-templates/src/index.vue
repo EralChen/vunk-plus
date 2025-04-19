@@ -27,18 +27,22 @@ const typed = (e: __VkBubbleList.Item) => e
     <template #default="{ props, emitSetData }">
       <VkBroadcastingMarkdown
         :source="props.content"
-        :keepRead="!props.seviceEnd"
-        @update:broadcasting="(v) => emitSetData({
-          k: [props.key, 'meta', 'broadcasting'],
-          v: v
-        })"
+        :keep-read="!props.seviceEnd"
         @vue:mounted="() => emitSetData({
           k: [props.key, 'templateType'],
-          v: 'VkBroadcastingMarkdown'
+          v: 'VkBroadcastingMarkdown',
+        })"
+        @update:broadcasting="(v) => emitSetData({
+          k: [props.key, 'meta', 'broadcasting'],
+          v,
         })"
         @update:completed="(v) => emitSetData({
           k: [props.key, 'completed'],
-          v: v
+          v,
+        })"
+        @update:error="(v) => emitSetData({
+          k: [props.key, 'error'],
+          v,
         })"
       ></VkBroadcastingMarkdown>
     </template>

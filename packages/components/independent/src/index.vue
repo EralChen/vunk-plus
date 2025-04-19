@@ -1,28 +1,32 @@
 <script lang="ts" setup>
+import type { __VkBubbleList } from '@vunk-plus/components/bubble-list'
 import { useAgentChat } from '@vunk-plus/components/agent-chat-provider'
-import { VkBubbleList, __VkBubbleList } from '@vunk-plus/components/bubble-list'
+import { VkBubbleList } from '@vunk-plus/components/bubble-list'
 import { VkRecorderButton } from '@vunk-plus/components/recorder-button'
 import { VkSender } from '@vunk-plus/components/sender'
 import { VkKeyboardAvatar } from '@vunk-plus/icons/keyboard'
 import { VkVoiceAvatar } from '@vunk-plus/icons/voice'
-import { setData, VkDuplex } from '@vunk/core'
-import { computed, ref } from 'vue'
-import { InputType } from './const'
+import { VkDuplex } from '@vunk/core'
 import { VkRendererData } from '@vunk/core/components/renderer-data'
-import { props as dProps, emits as dEmits } from './ctx'
-import { nextTick } from 'vue'
+import { useDataComputed } from '@vunk/core/composables'
+import { computed, nextTick, ref } from 'vue'
+import { InputType } from './const'
+import { emits as dEmits, props as dProps } from './ctx'
 
 defineOptions({
   name: 'VkIndependent',
 })
-defineProps(dProps)
-defineEmits(dEmits)
+const props = defineProps(dProps)
+const emit = defineEmits(dEmits)
+
+const [bubbleData, setBubbleData] = useDataComputed<
+  __VkBubbleList.RenderData
+>({}, props, emit)
 
 const mainRef = ref<HTMLElement>()
 const inputType = ref<InputType>(InputType.Text)
 const content = ref<string>('') // 输入框数据
 
-const bubbleData = ref({} as __VkBubbleList.RenderData)
 const { simplicity } = useAgentChat()
 const { items: bubbleItems, onRequest } = simplicity
 
@@ -34,22 +38,24 @@ const lastBubbleData = computed(() => {
   return {}
 })
 const senderDisabled = computed(() => {
-  return bubbleItems.value.at(-1)?.loading === true 
-  || lastBubbleData.value.completed === false
+  if (lastBubbleData.value.error === true) {
+    // 如果本条数据错误, 则开放输入
+    return false
+  }
+
+  return bubbleItems.value.at(-1)?.loading === true
+    || lastBubbleData.value.completed === false
 })
-
-
 
 function onSubmit (nextContent: string) {
   if (!nextContent)
     return
-  
+
   onRequest(nextContent)
 
   nextTick(() => {
     content.value = ''
   })
-
 }
 </script>
 
@@ -61,9 +67,9 @@ function onSubmit (nextContent: string) {
         class="vk-independent-main__duplex"
       >
         <template #one>
-          <VkRendererData 
-            :data="bubbleData" 
-            @setData="setData(bubbleData, $event)"
+          <VkRendererData
+            :data="bubbleData"
+            @set-data="setBubbleData"
           >
             <div class="vk-independent-main__bubbles">
               <VkBubbleList
@@ -72,7 +78,6 @@ function onSubmit (nextContent: string) {
               </VkBubbleList>
             </div>
           </VkRendererData>
-     
         </template>
 
         <template #two>
@@ -97,8 +102,8 @@ function onSubmit (nextContent: string) {
               v-model="content"
               :auto-size="true"
               placeholder="请输入内容"
-              @submit="onSubmit"
               :disabled="senderDisabled"
+              @submit="onSubmit"
             ></VkSender>
           </div>
         </template>

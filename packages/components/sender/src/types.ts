@@ -1,2 +1,1 @@
-
-export {}
+export type Module = 'Attachments'

@@ -27,11 +27,11 @@ importers:
         specifier: workspace:*
         version: link:packages/shared
       '@vunk/core':
-        specifier: 1.4.0
-        version: 1.4.0
+        specifier: 1.4.2
+        version: 1.4.2
       '@vunk/form':
-        specifier: ^1.4.12
-        version: 1.4.12
+        specifier: 2.9.0
+        version: 2.9.0
       '@vunk/plus':
         specifier: workspace:*
         version: link:packages/entry
@@ -2748,11 +2748,11 @@ packages:
   '@vueuse/shared@9.13.0':
     resolution: {integrity: sha512-UrnhU+Cnufu4S6JLCPZnkWh0WwZGUp72ktOF2DFptMlOs3TOdVv8xJN53zhHGARmVOsz5KqOls09+J1NR6sBKw==}
 
-  '@vunk/core@1.4.0':
-    resolution: {integrity: sha512-xNM2c2/u6TioTtNXuDfKI1xlVtTmfcbrJ8kruUMUFJX2H5iDLS7fB3GBgQfBDwuwhxmUqn3zGtI4RE/YLlpufQ==}
+  '@vunk/core@1.4.2':
+    resolution: {integrity: sha512-/xgvng17Hh0/anhgD0b/YW1egRChG6NXlTT06OKlSgKaBr4dHplKpo/zhbtIaXrWnNTUewabvS3arOWzU96sDA==}
 
-  '@vunk/form@1.4.12':
-    resolution: {integrity: sha512-R6l8ROFXhOLPCV6b9qfsIG32vTeZnr8hGIkTbVt3C++0lqcwXNbaa+KHqqsQ4rPM8EStgCGuPtif79AyghDfUA==}
+  '@vunk/form@2.9.0':
+    resolution: {integrity: sha512-v89Uy2Upk/3e6ycw7KffV2lBgN9lCGvdzRWe2ceL+Dd/NGrF3p8obemq0x8rFbeeEspRC/QNrxDI9EZ8XqU08g==}
 
   '@vunk/gsap@0.0.0-alpha.3':
     resolution: {integrity: sha512-UTyP4VmeAoMY+eab/OhFyyXrd21W4zgQuV2px4r/5x8iox187yf3AH42zuI//ub+loVTgE74iu9MQasTJ8NdMw==}
@@ -9415,9 +9415,9 @@ snapshots:
       - '@vue/composition-api'
       - vue
 
-  '@vunk/core@1.4.0': {}
+  '@vunk/core@1.4.2': {}
 
-  '@vunk/form@1.4.12': {}
+  '@vunk/form@2.9.0': {}
 
   '@vunk/gsap@0.0.0-alpha.3': {}
 

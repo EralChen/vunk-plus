@@ -1,13 +1,24 @@
 <script lang="ts" setup>
 import { VkAgentChatProvider } from '@vunk-plus/components/agent-chat-provider'
 import { VkIndependent } from '@vunk-plus/components/independent'
+import { setData } from '@vunk/core'
 import MetahumanBackground from '_c/metahuman-background/index.vue'
+import { ref } from 'vue'
+
+const bubbleData = ref({})
 </script>
 
 <template>
-  <div h-full w-full>
+  <div h-full w-full pos-relative>
+    <div position-absolute left-0 top-0 z-10>
+      {{ bubbleData }}
+    </div>
     <VkAgentChatProvider>
-      <VkIndependent class="home-independent">
+      <VkIndependent
+        class="home-independent"
+        :data="bubbleData"
+        @set-data="setData(bubbleData, $event)"
+      >
         <template #background>
           <MetahumanBackground></MetahumanBackground>
         </template>

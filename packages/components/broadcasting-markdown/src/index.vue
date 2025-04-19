@@ -185,7 +185,7 @@ export default defineComponent({
     /* 收集段落状态 */
     const isBroadcasting = computed(() => {
       return theData.value.some(
-        item => item.broadcast === Broadcast.playing
+        item => item.broadcast === Broadcast.playing,
       )
     })
     watchEffect(() => {
@@ -194,15 +194,22 @@ export default defineComponent({
 
     const isCompleted = computed(() => {
       return theData.value.every(
-        item => item.status === ParagraphStatus.fulfilled
+        item => item.status === ParagraphStatus.fulfilled,
       )
     })
 
     watchEffect(() => {
       emit('update:completed', isCompleted.value)
     })
-    
-  
+
+    const isError = computed(() => {
+      return theData.value.some(
+        item => item.status === ParagraphStatus.rejected,
+      )
+    })
+    watchEffect(() => {
+      emit('update:error', isError.value)
+    })
     /* 收集段落状态 END */
 
     return {
