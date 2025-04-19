@@ -4,18 +4,12 @@ import { createRouter, createWebHashHistory } from 'vue-router'
 
 export const routes: Array<RouteRecordRaw> = [
   {
-    path: '/',
-    redirect: {
-      name: 'home',
-    },
-  },
-  {
-    path: '/home',
+    path: '/chat',
     children: [
       {
-        path: '',
-        name: 'home',
-        component: () => import('_v/home/index.vue'),
+        path: ':accessToken',
+        props: true,
+        component: () => import('_v/chat/index.vue'),
       },
     ],
 
