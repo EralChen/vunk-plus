@@ -1,4 +1,7 @@
 import type { __VkAgentChatProvider } from '@vunk-plus/components/agent-chat-provider'
+import type { __VkRecorderButton } from '@vunk-plus/components/recorder-button'
+
+export type SpeechToText = __VkRecorderButton.SpeechToText
 
 /**
  * @description useXChat parser 解析数据

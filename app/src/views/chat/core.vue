@@ -1,12 +1,21 @@
 <script lang="ts" setup>
 import type { __VkAgentChatProvider } from '@vunk-plus/components/agent-chat-provider'
 import type { __VkBubbleList } from '@vunk-plus/components/bubble-list'
+import type { __VkIndependent } from '@vunk-plus/components/independent'
+import { speechToText } from '@/api/application'
 import { VkAgentChatProvider } from '@vunk-plus/components/agent-chat-provider'
 import { VkIndependent } from '@vunk-plus/components/independent'
 import { setData } from '@vunk/core'
+import { useApplicationProfile } from '_c/authentication'
 import { MetahumanBackground, MetahumanStatus } from '_c/metahuman-background'
 import { computed, ref, shallowRef } from 'vue'
 
+const {
+  stt_model_enable,
+  id: applicationId,
+} = useApplicationProfile()
+
+/* chat 数据  */
 const bubbleData = ref<__VkBubbleList.RenderData>({})
 const agentChatContext = shallowRef(
   {} as __VkAgentChatProvider.AgentChatContext,
@@ -21,6 +30,20 @@ const lastBubbleData = computed(() => {
 const broadcasting = computed(() => {
   return lastBubbleData.value.meta?.broadcasting === true
 })
+/* chat 数据  END */
+
+/* 语音输入 */
+const speechToTextFn: __VkIndependent.SpeechToText = (blob) => {
+  // blob to file
+  const file = new File([blob], 'audio.wav', {
+    type: 'audio/wav',
+  })
+  return speechToText({
+    application_id: applicationId,
+    file,
+  }).then(res => res.data)
+}
+/* 语音输入 END */
 </script>
 
 <template>
@@ -32,6 +55,9 @@ const broadcasting = computed(() => {
       <VkIndependent
         class="home-independent"
         :data="bubbleData"
+        :speech-to-text="stt_model_enable
+          ? speechToTextFn
+          : undefined"
         @set-data="setData(bubbleData, $event)"
       >
         <template #background>

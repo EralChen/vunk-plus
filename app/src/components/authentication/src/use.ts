@@ -1,12 +1,12 @@
 import type { ApplicationProfile } from './types'
-import { inject, type InjectionKey } from 'vue'
+import { inject, type InjectionKey, provide } from 'vue'
 
 const applicationProfileInjectKey = Symbol('applicationProfileInjectKey') as InjectionKey<ApplicationProfile>
 
 export function initApplicationProfile (
   profile: ApplicationProfile,
 ) {
-  inject(applicationProfileInjectKey, profile)
+  provide(applicationProfileInjectKey, profile)
 }
 
 export function useApplicationProfile () {

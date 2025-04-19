@@ -69,7 +69,7 @@ export default defineComponent({
     const isTextZone = ref(false) // 添加文本区域状态
     let isMouseDown = false // 添加这个变量来跟踪鼠标状态
 
-    // 处理停止录音的逻辑
+    // 处理停止录音的逻辑, 已排除 cancelZone
     const stopRecording = () => {
       const theTextZone = isTextZone.value
       rec.stop(async (blob) => {
@@ -83,7 +83,7 @@ export default defineComponent({
         })
 
         // 如果在文本按钮区域释放，则转换为文本
-        if (theTextZone) {
+        if (theTextZone || props.submitToText) {
           if (props.onTextZone) {
             props.onTextZone({
               blob,
@@ -92,7 +92,16 @@ export default defineComponent({
           }
           else {
             // ElMessage.info('正在转换为文字...')
-            speechToText(props.speenchToTextUrl, blob)
+            if (props.speechToText) {
+              props
+                .speechToText(blob)
+                .then((text) => {
+                  emit('submitText', text)
+                })
+              return
+            }
+
+            speechToText('/speech-to-text', blob)
               .then((text) => {
                 emit('submitText', text)
               })

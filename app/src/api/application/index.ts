@@ -6,10 +6,10 @@ export async function speechToText (
     file: File
   },
 ) {
-  return request({
+  return request<string>({
     method: 'POST',
     contentType: 'multipart/form-data',
-    url: `/application/${query.application_id}/speech-to-text`,
+    url: `/application/${query.application_id}/speech_to_text`,
     data: {
       file: query.file,
     },

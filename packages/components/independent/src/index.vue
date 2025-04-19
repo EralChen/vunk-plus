@@ -97,6 +97,9 @@ function onSubmit (nextContent: string) {
               v-show="inputType === InputType.Voice"
               :append-to="mainRef"
               :disabled="senderDisabled"
+              :speech-to-text="speechToText"
+              :submit-to-text="true"
+              @submit-text="onSubmit"
             ></VkRecorderButton>
             <VkSender
               v-show="inputType === InputType.Text"

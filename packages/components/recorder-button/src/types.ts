@@ -6,3 +6,5 @@ export interface SubmitRawEvent {
 }
 
 export type OnTextZone = (e: SubmitRawEvent) => ReturnVoid
+
+export type SpeechToText = (blob: Blob) => Promise<string>
