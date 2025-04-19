@@ -119,6 +119,9 @@ export default defineComponent({
 
     // 修改鼠标按下逻辑
     const onmousedown = (e: MouseEvent | TouchEvent) => {
+      if (props.disabled)
+        return
+
       e.preventDefault()
       isMouseDown = true
       const touch = 'touches' in e ? e.touches[0] : e
@@ -272,6 +275,7 @@ export default defineComponent({
     <!-- 录音按钮 -->
     <ElButton
       v-bind="$attrs"
+      :disabled="disabled"
       class="vk-recorder-button"
       :class="{
         'is-recording': recording,

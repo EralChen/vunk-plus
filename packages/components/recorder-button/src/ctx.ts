@@ -22,6 +22,11 @@ export const props = {
     type: null,
     default: 'body',
   },
+
+  disabled: {
+    type: Boolean,
+    default: false,
+  },
 }
 
 export const emits = {
