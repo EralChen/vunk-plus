@@ -3,9 +3,10 @@ import type { __VkAgentChatProvider } from '@vunk-plus/components/agent-chat-pro
 import type { __VkBubbleList } from '@vunk-plus/components/bubble-list'
 import type { __VkIndependent } from '@vunk-plus/components/independent'
 import { speechToText } from '@/api/application'
-import { VkAgentChatProvider } from '@vunk-plus/components/agent-chat-provider'
+import { Role, VkAgentChatProvider } from '@vunk-plus/components/agent-chat-provider'
 import { VkIndependent } from '@vunk-plus/components/independent'
 import { setData } from '@vunk/core'
+import { useDeferred } from '@vunk/core/composables'
 import { useApplicationProfile } from '_c/authentication'
 import { MetahumanBackground, MetahumanStatus } from '_c/metahuman-background'
 import { computed, ref, shallowRef } from 'vue'
@@ -13,15 +14,14 @@ import { computed, ref, shallowRef } from 'vue'
 const {
   stt_model_enable,
   id: applicationId,
+  prologue,
 } = useApplicationProfile()
 
 /* chat 数据  */
 const bubbleData = ref<__VkBubbleList.RenderData>({})
-const agentChatContext = shallowRef(
-  {} as __VkAgentChatProvider.AgentChatContext,
-)
+const agentChatContext = useDeferred<__VkAgentChatProvider.AgentChatContext>()
 const lastBubbleData = computed(() => {
-  const lastBubble = agentChatContext.value.simplicity?.items.value.at(-1)
+  const lastBubble = agentChatContext.value?.simplicity.items.value.at(-1)
   if (lastBubble?.key && bubbleData.value[lastBubble.key]) {
     return bubbleData.value[lastBubble.key]
   }
@@ -31,6 +31,21 @@ const broadcasting = computed(() => {
   return lastBubbleData.value.meta?.broadcasting === true
 })
 /* chat 数据  END */
+
+/* 添加开场白 */
+agentChatContext.promise.then(({ chat }) => {
+  chat.setMessages([{
+    id: 'prologue',
+    message: {
+      role: Role.Broadcasting,
+      content: prologue,
+      seviceEnd: true,
+    },
+    status: 'success',
+  }])
+})
+
+/* 添加开场白 END */
 
 /* 语音输入 */
 const speechToTextFn: __VkIndependent.SpeechToText = (blob) => {
@@ -51,7 +66,7 @@ const speechToTextFn: __VkIndependent.SpeechToText = (blob) => {
     <div position-absolute left-0 top-0 z-10>
       {{ lastBubbleData }}
     </div>
-    <VkAgentChatProvider @load="agentChatContext = $event">
+    <VkAgentChatProvider @load="agentChatContext.resolve">
       <VkIndependent
         class="home-independent"
         :data="bubbleData"
