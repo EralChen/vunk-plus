@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import type { __VkBubbleList } from '@vunk-plus/components/bubble-list'
+import type { BubbleList } from 'vue-element-plus-x'
 import { useAgentChat } from '@vunk-plus/components/agent-chat-provider'
 import { VkBubbleList } from '@vunk-plus/components/bubble-list'
 import { VkRecorderButton } from '@vunk-plus/components/recorder-button'
@@ -8,7 +9,7 @@ import { VkKeyboardAvatar } from '@vunk-plus/icons/keyboard'
 import { VkVoiceAvatar } from '@vunk-plus/icons/voice'
 import { VkDuplex } from '@vunk/core'
 import { VkRendererData } from '@vunk/core/components/renderer-data'
-import { useDataComputed } from '@vunk/core/composables'
+import { useDataComputed, useDeferred } from '@vunk/core/composables'
 import { computed, nextTick, ref } from 'vue'
 import { InputType } from './const'
 import { emits as dEmits, props as dProps } from './ctx'
@@ -26,6 +27,10 @@ const [bubbleData, setBubbleData] = useDataComputed<
 const mainRef = ref<HTMLElement>()
 const inputType = ref<InputType>(InputType.Text)
 const content = ref<string>('') // 输入框数据
+const bubbleListDef = useDeferred<{
+  scrollToBottom: () => void
+}>()
+const bubbleListReslove = bubbleListDef.resolve
 
 const { simplicity } = useAgentChat()
 const { items: bubbleItems, onRequest } = simplicity
@@ -56,6 +61,10 @@ function onSubmit (nextContent: string) {
   nextTick(() => {
     content.value = ''
   })
+
+  setTimeout(() => {
+    bubbleListDef.value?.scrollToBottom()
+  }, 400)
 }
 </script>
 
@@ -73,6 +82,7 @@ function onSubmit (nextContent: string) {
           >
             <div class="vk-independent-main__bubbles">
               <VkBubbleList
+                :el-ref="bubbleListReslove"
                 :items="bubbleItems"
               >
               </VkBubbleList>

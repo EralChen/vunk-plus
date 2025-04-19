@@ -116,11 +116,11 @@ const speechToTextFn: __VkIndependent.SpeechToText = (blob) => {
 }
 .home-independent .vk-independent-main__bubbles{
 
-  /* mask-image: linear-gradient(to bottom,
+   mask-image: linear-gradient(to bottom,
     rgba(0, 0, 0, 0.4),
     rgba(0, 0, 0, 1) 80%,
     rgba(0, 0, 0, 1) 100%
-  ); */
+  );
 
 }
 </style>

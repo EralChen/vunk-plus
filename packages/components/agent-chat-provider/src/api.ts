@@ -1,20 +1,13 @@
 import type { NormalObject } from '@vunk/shared'
 import type { RestFetchReaderOnmessage } from '@vunk/shared/fetch'
-import { RestFetch } from '@vunk/shared/fetch'
-import { ElementPlusRestFetchPlugin } from '@vunk/shared/fetch/ElementPlusRestFetchPlugin'
-
-export const restFetch = new RestFetch({
-  baseURL: 'http://localhost:3000',
-})
-
-restFetch.use(ElementPlusRestFetchPlugin)
+import { restFetch } from '@vunk/shared/fetch'
 
 export async function agentRequest (
   onmessage: RestFetchReaderOnmessage,
   data: NormalObject,
 ) {
   return restFetch.reader({
-    url: '/api/application/chat_message/231593fc-1b84-11f0-9ed6-10ffe00db574',
+    url: '/application/chat_message/231593fc-1b84-11f0-9ed6-10ffe00db574',
     onmessage,
   }, {
     headers: {

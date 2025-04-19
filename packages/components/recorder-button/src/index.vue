@@ -328,7 +328,7 @@ export default defineComponent({
   display: flex;
   justify-content: space-between;
   padding: 20px 40px;
-  margin-bottom: 10%;
+  margin-bottom: 24%;
 }
 
 .cancel-btn, .text-btn {
