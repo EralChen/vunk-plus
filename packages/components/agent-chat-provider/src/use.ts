@@ -1,4 +1,3 @@
-import type { NormalObject } from '@vunk/shared'
 import type { RequestFn } from 'ant-design-x-vue'
 
 import type { AgentMessage, BubbleItem, BubbleMessage } from './types'
@@ -35,6 +34,9 @@ export function initAgentChat (request: RequestFn<AgentMessage>) {
           seviceLoading: false,
           seviceEnd: true,
           loading: false,
+          meta: {
+            metahumanStatus: 2,
+          },
         })
       }
       return list
@@ -57,8 +59,6 @@ export function initAgentChat (request: RequestFn<AgentMessage>) {
         key: item.id,
         ...roleMap[item.message.role],
         ...item.message,
-        thinkingContent: item.message.thinkingContent,
-
       } as BubbleItem
     })
   })

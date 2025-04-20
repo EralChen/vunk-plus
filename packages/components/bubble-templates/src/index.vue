@@ -20,12 +20,22 @@ defineProps({
   },
 })
 
+function initRenderData (emitSetData, props) {
+  emitSetData({
+    k: [props.key, 'meta'],
+    v: props.meta ?? {},
+  })
+  emitSetData({
+    k: [props.key, 'templateType'],
+    v: 'VkBroadcastingMarkdown',
+  })
+}
 const typed = (e: __VkBubbleList.Item) => e
 </script>
 
 <template>
   <VkRendererTemplate type="Typewriter">
-    <template #default="{ props }">
+    <template #default="{ emitSetData, props }">
       <Thinking
         v-if="props.thinkingContent && modules?.includes('Thinking')"
         :content="props.thinkingContent"
@@ -37,6 +47,7 @@ const typed = (e: __VkBubbleList.Item) => e
         :typing="props.typing"
         :is-markdown="props.isMarkdown"
         :is-fog="props.isFog"
+        @vue:mounted="initRenderData(emitSetData, props)"
       ></Typewriter>
     </template>
   </VkRendererTemplate>
@@ -53,10 +64,7 @@ const typed = (e: __VkBubbleList.Item) => e
         :source="props.content"
         :keep-read="!props.seviceEnd"
         :text-to-speech="textToSpeech"
-        @vue:mounted="() => emitSetData({
-          k: [props.key, 'templateType'],
-          v: 'VkBroadcastingMarkdown',
-        })"
+        @vue:mounted="initRenderData(emitSetData, props)"
         @update:broadcasting="(v) => emitSetData({
           k: [props.key, 'meta', 'broadcasting'],
           v,

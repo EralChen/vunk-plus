@@ -1,5 +1,5 @@
 import type { __VkBubbleTemplates } from '@vunk-plus/components/bubble-templates'
-import type { Media } from '@vunk/shared'
+import type { Media, NormalObject } from '@vunk/shared'
 import type { RestFetchRequestOptions } from '@vunk/shared/fetch'
 import type { RequestFn } from 'ant-design-x-vue'
 import type { BubbleListItemProps } from 'vue-element-plus-x/types/components/BubbleList/types'
@@ -28,6 +28,8 @@ export type BubbleMessage = Partial<BubbleListItemProps> & {
 
   thinkingStatus?: 'start' | 'thinking' | 'end' | 'error'
   thinkingContent?: string
+
+  meta?: NormalObject
 
 }
 

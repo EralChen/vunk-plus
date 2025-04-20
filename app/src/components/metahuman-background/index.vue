@@ -20,7 +20,7 @@ const props = defineProps({
 const emit = defineEmits(['update:type'])
 
 const typeModel = useModelComputed({
-  default: 'F',
+  default: 'M',
   key: 'type',
 }, props, emit)
 
@@ -29,14 +29,20 @@ const videoRefs = ref<HTMLVideoElement[]>([])
 
 const videoSources = computed(() => [
   {
-    type: 'silent',
     status: MetahumanStatus.SILENT,
-    src: `${base}metahuman/${typeModel.value}_SLT.mp4`,
+    src: `${base}metahuman/${typeModel.value}_SILENT.mp4`,
   },
   {
-    type: 'speaking',
+    status: MetahumanStatus.THINKING,
+    src: `${base}metahuman/${typeModel.value}_THINKING.mp4`,
+  },
+  {
     status: MetahumanStatus.SPEAKING,
-    src: `${base}metahuman/${typeModel.value}_SPK.mp4`,
+    src: `${base}metahuman/${typeModel.value}_SPEAKING.mp4`,
+  },
+  {
+    status: MetahumanStatus.WELCOME,
+    src: `${base}metahuman/m_welcome.mp4`,
   },
 ])
 </script>
@@ -46,11 +52,10 @@ const videoSources = computed(() => [
     <slot></slot>
     <video
       v-for="videoSrc in videoSources"
-      :key="videoSrc.type"
+      :key="videoSrc.status"
       ref="videoRefs"
       class="video"
       :class="[
-        `${videoSrc.type}-video`,
         { active: status === videoSrc.status },
       ]"
       :src="videoSrc.src"

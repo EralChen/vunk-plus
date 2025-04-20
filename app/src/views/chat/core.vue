@@ -30,15 +30,30 @@ cChatId({
 /* chat 数据  */
 const bubbleData = ref<__VkBubbleList.RenderData>({})
 const agentChatContext = useDeferred<__VkAgentChatProvider.AgentChatContext>()
-const lastBubbleData = computed(() => {
-  const lastBubble = agentChatContext.value?.simplicity.items.value.at(-1)
-  if (lastBubble?.key && bubbleData.value[lastBubble.key]) {
-    return bubbleData.value[lastBubble.key]
+const bubbleItems = computed(() => {
+  return agentChatContext.value?.simplicity.items.value ?? []
+})
+function getBubbleDataAt (index: number) {
+  const bubble = bubbleItems.value.at(index)
+  if (bubble?.key && bubbleData.value[bubble.key]) {
+    return bubbleData.value[bubble.key]
   }
   return {}
+}
+const lastBubbleData = computed(() => {
+  return getBubbleDataAt(-1)
 })
-const broadcasting = computed(() => {
-  return lastBubbleData.value.meta?.broadcasting === true
+const currentBroadcasting = computed(() => {
+  // 有没有  meta?.broadcasting === true
+  return Object.values(bubbleData.value).find((bubble) => {
+    return bubble.meta?.broadcasting === true
+  })
+})
+const currentMetahumanStatus = computed(() => {
+  if (!currentBroadcasting.value) {
+    return MetahumanStatus.SILENT
+  }
+  return currentBroadcasting.value?.meta?.metahumanStatus ?? MetahumanStatus.SPEAKING
 })
 /* chat 数据  END */
 
@@ -50,6 +65,9 @@ agentChatContext.promise.then(({ chat }) => {
       role: Role.Broadcasting,
       content: prologue.split('\n')[0] || prologue,
       seviceEnd: true,
+      meta: {
+        metahumanStatus: MetahumanStatus.WELCOME,
+      },
     },
     status: 'success',
   }])
@@ -82,7 +100,7 @@ const speechToTextFn: __VkIndependent.SpeechToText = (blob) => {
 <template>
   <div h-full w-full pos-relative>
     <div position-absolute left-0 top-0 z-10>
-      {{ lastBubbleData }}
+      {{ currentBroadcasting }}
     </div>
     <VkAgentChatProvider
       v-if="request"
@@ -100,10 +118,7 @@ const speechToTextFn: __VkIndependent.SpeechToText = (blob) => {
       >
         <template #background>
           <MetahumanBackground
-            :status="broadcasting
-              ? MetahumanStatus.SPEAKING
-              : MetahumanStatus.SILENT
-            "
+            :status="currentMetahumanStatus"
           ></MetahumanBackground>
         </template>
       </VkIndependent>
