@@ -20,35 +20,63 @@ export function useAgent () {
         return
       }
 
-      let text = ''
+      let content = ''
+      const role = Role.Broadcasting
+      let thinkingContent = ''
+      let thinkingStatus: AgentMessage['thinkingStatus'] = 'start'
+      let seviceLoading = true
+      const update = () => {
+        onUpdate({
+          role,
+          content,
+          thinkingContent,
+          thinkingStatus,
+          seviceLoading,
+        })
+      }
+      const success = () => {
+        onSuccess({
+          role,
+          content,
+          thinkingContent,
+          thinkingStatus,
+          seviceLoading,
+          seviceEnd: true,
+        })
+      }
 
-      onUpdate({
-        role: Role.Broadcasting,
-        content: text,
-        seviceLoading: true,
-      })
+      update()
 
       agentRequest((e) => {
-        let json: NormalObject = { content: '' }
+        let json: NormalObject = {
+          content: '',
+          reasoning_content: '',
+        }
         if (typeof e.data === 'string') {
           json = JSON.parse(e.data)
         }
-
-        if (json.content) {
-          text += json.content
-          onUpdate({
-            role: Role.Broadcasting,
-            content: text,
-            seviceLoading: false,
-          })
+        if (json.is_end) {
+          success()
+          return
         }
 
-        if (json.is_end) {
-          onSuccess({
-            role: Role.Broadcasting,
-            content: text,
-            seviceEnd: true,
-          })
+        if (json.reasoning_content) {
+          thinkingContent += json.reasoning_content
+          thinkingStatus = 'thinking'
+          seviceLoading = false
+          update()
+        }
+
+        if (json.content) {
+          content += json.content
+          seviceLoading = false
+          update()
+        }
+        if (
+          thinkingContent && json.content
+        ) { // 思考完成
+          thinkingStatus = 'end'
+          update()
         }
       }, { message: message?.content })
     },
@@ -62,10 +90,22 @@ export function initAgentChat () {
 
     // Convert AgentMessage to BubbleMessage
     parser (message) {
-      return {
-        ...message,
-        loading: message.seviceLoading,
+      const list = [
+        {
+          ...message,
+          loading: message.seviceLoading,
+        },
+      ]
+      if (message.thinkingContent) {
+        list.unshift({
+          role: Role.Broadcasting,
+          content: '我在思考中，请稍等...',
+          seviceLoading: false,
+          seviceEnd: true,
+          loading: false,
+        })
       }
+      return list
     },
   })
 
@@ -85,6 +125,8 @@ export function initAgentChat () {
         key: item.id,
         ...roleMap[item.message.role],
         ...item.message,
+        thinkingContent: item.message.thinkingContent,
+
       } as BubbleItem
     })
   })

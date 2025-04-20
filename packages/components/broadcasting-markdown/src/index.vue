@@ -214,7 +214,7 @@ export default defineComponent({
     })
 
     const isCompleted = computed(() => {
-      return theData.value.every(
+      return props.keepRead === false && theData.value.every(
         item => item.status === ParagraphStatus.fulfilled,
       )
     })

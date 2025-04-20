@@ -7,20 +7,24 @@ import type { initAgentChat } from './use'
 export type AgentChatContext = ReturnType<typeof initAgentChat>
 
 /**
+ * @description   useXAgent request onSuccess 发送的数据
+ */
+export type AgentMessage = BubbleMessage & {
+  seviceLoading?: boolean
+  seviceEnd?: boolean
+}
+
+/**
  * @description useXChat parser 解析数据
  */
 export type BubbleMessage = Partial<BubbleListItemProps> & {
   role: Role
   content: string
   seviceEnd?: boolean
-}
 
-/**
- * @description   useXAgent request onSuccess 发送的数据
- */
-export type AgentMessage = BubbleMessage & {
-  seviceLoading?: boolean
-  seviceEnd?: boolean
+  thinkingStatus?: 'start' | 'thinking' | 'end' | 'error'
+  thinkingContent?: string
+
 }
 
 export type BubbleItem = BubbleItemBasic
@@ -29,8 +33,12 @@ export type BubbleItem = BubbleItemBasic
 export type RoleMedia = RoleMediaBasic
   & __VkBubbleTemplates.RenderItem
 
+export type BubbleItemModule = 'Thinking'
+
 interface BubbleItemBasic extends BubbleMessage {
   key: string
+  modules?: BubbleItemModule[]
+
 }
 interface RoleMediaBasic extends Partial<BubbleItemBasic>
   , Media {
