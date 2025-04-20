@@ -1,7 +1,6 @@
 import type { SetDataEvent } from '@vunk/core'
 import type { PropType } from 'vue'
 import type { Paragraph, TextToSpeech } from './types'
-import { text } from 'node:stream/consumers'
 
 export const props = {
 

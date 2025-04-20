@@ -70,15 +70,18 @@ export default defineComponent({
 
     const fulfilledTextValue = computed(() => {
       if (theData.value.length === 0) {
+        return '......'
+      }
+
+      if (theData.value[0].broadcast === Broadcast.failed) {
         return ''
       }
 
       // 首句未开始直接为空
       if (
         theData.value[0].broadcast === Broadcast.initial
-        || theData.value[0].broadcast === Broadcast.failed
       ) {
-        return ''
+        return '......'
       }
 
       return theData.value

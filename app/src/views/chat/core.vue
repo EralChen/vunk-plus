@@ -38,7 +38,7 @@ agentChatContext.promise.then(({ chat }) => {
     id: 'prologue',
     message: {
       role: Role.Broadcasting,
-      content: prologue,
+      content: prologue.split('\n')[0] || prologue,
       seviceEnd: true,
     },
     status: 'success',
