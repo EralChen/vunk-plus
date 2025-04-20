@@ -33,31 +33,29 @@ const broadcasting = computed(() => {
 /* chat 数据  END */
 
 /* 添加开场白 */
-// agentChatContext.promise.then(({ chat }) => {
-//   chat.setMessages([{
-//     id: 'prologue',
-//     message: {
-//       role: Role.Broadcasting,
-//       content: prologue,
-//       seviceEnd: true,
-//     },
-//     status: 'success',
-//   }])
-// })
-
-const testUrl = ref('')
-textToSpeech({
-  application_id: applicationId,
-  text: prologue,
-  type: 'ai-chat',
-}).then((blob) => {
-  const res = URL.createObjectURL(blob)
-  testUrl.value = res
+agentChatContext.promise.then(({ chat }) => {
+  chat.setMessages([{
+    id: 'prologue',
+    message: {
+      role: Role.Broadcasting,
+      content: prologue,
+      seviceEnd: true,
+    },
+    status: 'success',
+  }])
 })
-
 /* 添加开场白 END */
 
-/* 语音输入 */
+/* 语音输入输出 */
+function textToSpeechFn (text: string) {
+  return textToSpeech({
+    application_id: applicationId,
+    text,
+  }).then((blob) => {
+    const url = URL.createObjectURL(blob)
+    return url
+  })
+}
 const speechToTextFn: __VkIndependent.SpeechToText = (blob) => {
   // blob to file
   const file = new File([blob], 'audio.wav', {
@@ -68,19 +66,13 @@ const speechToTextFn: __VkIndependent.SpeechToText = (blob) => {
     file,
   }).then(res => res.data)
 }
-/* 语音输入 END */
+/* 语音输入输出 END */
 </script>
 
 <template>
   <div h-full w-full pos-relative>
     <div position-absolute left-0 top-0 z-10>
       {{ lastBubbleData }}
-      <audio
-        v-if="testUrl"
-        :src="testUrl"
-        autoplay
-        controls
-      ></audio>
     </div>
     <VkAgentChatProvider @load="agentChatContext.resolve">
       <VkIndependent
@@ -89,6 +81,7 @@ const speechToTextFn: __VkIndependent.SpeechToText = (blob) => {
         :speech-to-text="stt_model_enable
           ? speechToTextFn
           : undefined"
+        :text-to-speech="textToSpeechFn"
         @set-data="setData(bubbleData, $event)"
       >
         <template #background>

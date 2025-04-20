@@ -8,4 +8,14 @@ export interface Paragraph {
   separator: string
 
   broadcast: Broadcast
+
+  /**
+   * @description 语音合成的 url
+   */
+  url?: string
 }
+
+/**
+ * @returns Audio URL
+ */
+export type TextToSpeech = (text: string) => Promise<string>

@@ -4,7 +4,10 @@ import { VkRenderer } from '@vunk/core/components/renderer'
 import { VkRendererTemplateInstancesProvider } from '@vunk/core/components/renderer-template-instances-provider'
 import { ElAutoResizer } from 'element-plus'
 import { BubbleList } from 'vue-element-plus-x'
-import { emits as dEmits, props as dProps } from './ctx'
+import {
+  // emits as dEmits,
+  props as dProps,
+} from './ctx'
 
 defineOptions({
   name: 'VkBubbleList',
@@ -15,7 +18,9 @@ defineProps(dProps)
 
 <template>
   <VkRendererTemplateInstancesProvider>
-    <VkBubbleTemplates></VkBubbleTemplates>
+    <VkBubbleTemplates
+      :text-to-speech="textToSpeech"
+    ></VkBubbleTemplates>
 
     <ElAutoResizer>
       <template #default="{ height }">

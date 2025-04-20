@@ -1,6 +1,9 @@
 <script lang="ts" setup>
+import type { AnyFunc } from '@vunk/shared'
+import { useDeferred } from '@vunk/core/composables'
+import { noop } from '@vunk/shared/function'
 import { Deferred } from '@vunk/shared/promise'
-import { nextTick, type PropType, shallowRef, watch } from 'vue'
+import { nextTick, onMounted, type PropType, shallowRef, watch } from 'vue'
 import { ParagraphStatus } from './const'
 
 const props = defineProps({
@@ -16,24 +19,38 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  processing: {
+    type: Function as PropType<AnyFunc>,
+    default: noop,
+  },
+
 })
 const emit = defineEmits(['update:status'])
-
 const theDef = shallowRef<Deferred<any>>()
 
-watch(() => props.enable, (enable) => {
+const processingDef = useDeferred()
+onMounted(async () => {
+  emit('update:status', ParagraphStatus.processing)
+  await props.processing?.()
+  processingDef.resolve()
+})
+
+processingDef.promise.catch(() => {
+  emit('update:status', ParagraphStatus.rejected)
+})
+
+watch(() => props.enable, async (enable) => {
   if (enable) {
     init()
-    emit('update:status', ParagraphStatus.pending)
   }
   else {
     theDef.value = undefined
-    emit('update:status', ParagraphStatus.initial)
   }
 }, { immediate: true })
 
-function init () {
+async function init () {
   const deferred = new Deferred()
+  await processingDef.promise
   emit('update:status', ParagraphStatus.pending)
   deferred.promise.then(() => {
     emit('update:status', ParagraphStatus.fulfilled)
@@ -41,6 +58,7 @@ function init () {
     console.error(err)
     emit('update:status', ParagraphStatus.rejected)
   })
+
   theDef.value = undefined
   nextTick(() => {
     theDef.value = deferred

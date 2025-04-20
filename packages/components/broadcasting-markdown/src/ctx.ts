@@ -1,5 +1,7 @@
 import type { SetDataEvent } from '@vunk/core'
-import type { Paragraph } from './types'
+import type { PropType } from 'vue'
+import type { Paragraph, TextToSpeech } from './types'
+import { text } from 'node:stream/consumers'
 
 export const props = {
 
@@ -12,14 +14,6 @@ export const props = {
   },
 
   /**
-   * @description 是否使用 web speech api
-   */
-  webSpeech: {
-    type: Boolean,
-    default: true,
-  },
-
-  /**
    * @description md 文本
    */
   source: {
@@ -28,7 +22,7 @@ export const props = {
   },
 
   /**
-   *  @description 延迟
+   *  @description 游标阅读延迟
    */
   delay: {
     type: Number,
@@ -57,6 +51,22 @@ export const props = {
   keepRead: {
     type: Boolean,
     default: false,
+  },
+
+  /**
+   * @description 是否使用 web speech api
+   */
+  webSpeech: {
+    type: Boolean,
+    default: false,
+  },
+
+  /**
+   * @description 是否使用自定义语音合成
+   */
+  textToSpeech: {
+    type: Function as PropType<TextToSpeech>,
+    default: undefined,
   },
 
 }

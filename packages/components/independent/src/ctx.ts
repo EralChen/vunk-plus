@@ -2,6 +2,7 @@ import type { __VkRecorderButton } from '@vunk-plus/components/recorder-button'
 import type { SetDataEvent } from '@vunk/core'
 import type { NormalObject } from '@vunk/shared'
 import type { PropType } from 'vue'
+import type { SpeechToText, TextToSpeech } from './types'
 
 export const props = {
   data: {
@@ -10,7 +11,12 @@ export const props = {
   },
 
   speechToText: {
-    type: Function as PropType<__VkRecorderButton.SpeechToText>,
+    type: Function as PropType<SpeechToText>,
+    default: undefined,
+  },
+
+  textToSpeech: {
+    type: Function as PropType<TextToSpeech>,
     default: undefined,
   },
 

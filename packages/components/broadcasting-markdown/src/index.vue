@@ -7,6 +7,7 @@ import { setData } from '@vunk/core'
 import { computed, defineComponent, ref, watch, watchEffect } from 'vue'
 import { Broadcast, ParagraphStatus } from './const'
 import { emits, props } from './ctx'
+import CustomSpeechView from './custom-speech.vue'
 import ParagraphView from './paragraph.vue'
 import WebSpeechView from './web-speech.vue'
 
@@ -16,6 +17,7 @@ export default defineComponent({
     ParagraphView,
     VkTypingMarkdown,
     WebSpeechView,
+    CustomSpeechView,
   },
   props,
   emits,
@@ -32,6 +34,26 @@ export default defineComponent({
         return
       }
       emit('setData', e)
+    }
+
+    const addParagraph = (paragraph: Paragraph) => {
+      const k = theData.value.length
+      handleSetData({
+        k,
+        v: paragraph,
+      })
+    }
+
+    const processingParagraph = (
+      paragraph: Paragraph,
+    ) => {
+      if (!props.textToSpeech) {
+        return
+      }
+      return props.textToSpeech(paragraph.value)
+        .then((url) => {
+          paragraph.url = url
+        })
     }
 
     // 阅读游标
@@ -60,7 +82,8 @@ export default defineComponent({
 
       return theData.value
         .filter(
-          item => item.status !== ParagraphStatus.initial,
+          item => item.status === ParagraphStatus.fulfilled
+            || item.status === ParagraphStatus.pending,
         )
         .map(item => item.value)
         .join('')
@@ -125,10 +148,7 @@ export default defineComponent({
               value,
               broadcast: Broadcast.initial,
             }
-            handleSetData({
-              k: theData.value.length,
-              v: paragraph,
-            })
+            addParagraph(paragraph)
           }
         }
       }
@@ -174,10 +194,7 @@ export default defineComponent({
             value,
             broadcast: Broadcast.initial,
           }
-          handleSetData({
-            k: theData.value.length,
-            v: paragraph,
-          })
+          addParagraph(paragraph)
         }
       }
     }
@@ -210,12 +227,28 @@ export default defineComponent({
     watchEffect(() => {
       emit('update:error', isError.value)
     })
+
+    function isPrevParagraphFulfilled (currentIndex: number) {
+      return theData.value[currentIndex - 1]
+        ? [
+          ParagraphStatus.fulfilled,
+        ].includes(theData.value[currentIndex - 1].status)
+        : true
+    }
+    function isParagraphEnabled (currentIndex: number) {
+      // 上一段完成
+      const isPrevFulfilled = isPrevParagraphFulfilled(currentIndex)
+      return isPrevFulfilled
+    }
     /* 收集段落状态 END */
 
     return {
       theData,
       ParagraphStatus,
       fulfilledTextValue,
+      isPrevParagraphFulfilled,
+      isParagraphEnabled,
+      processingParagraph,
     }
   },
 })
@@ -223,6 +256,9 @@ export default defineComponent({
 
 <template>
   <slot :paragraphs="theData">
+    <!-- <ElButton @click="() => console.log(theData)">
+      log
+    </ElButton> -->
     <VkTypingMarkdown
       :source="fulfilledTextValue"
       :delay="200"
@@ -234,18 +270,23 @@ export default defineComponent({
     v-for="(item, index) of theData"
     :key="item.value"
     v-model:status="item.status"
-    :enable="theData[index - 1]
-      ? theData[index - 1].status === ParagraphStatus.fulfilled
-      : true
-    "
+    :enable="isParagraphEnabled(index)"
+    :processing="() => processingParagraph(item)"
   >
     <template #default="{ deferred }">
       <slot
-        name="paragraph"
-        :data="item"
-        :deferred="deferred"
+        name="paragraph" :data="item" :deferred="deferred"
       >
+        <CustomSpeechView
+          v-if="item.url"
+          :url="item.url"
+          :pause="pause"
+          :deferred="deferred"
+          :data="item"
+        >
+        </CustomSpeechView>
         <WebSpeechView
+          v-if="webSpeech"
           :pause="pause"
           :deferred="deferred"
           :data="item"

@@ -20,7 +20,6 @@ export async function textToSpeech (
   query: {
     application_id: string
     text: string
-    type: 'ai-chat'
   },
 ) {
   return request<never, Blob>({
@@ -29,7 +28,7 @@ export async function textToSpeech (
     url: `/application/${query.application_id}/text_to_speech`,
     data: {
       text: query.text,
-      type: query.type,
+      type: 'metahuman-chat',
     },
     responseThen (res) {
       return res.blob()

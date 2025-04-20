@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import type { __VkBubbleList } from '@vunk-plus/components/bubble-list'
 import type { BubbleList } from 'vue-element-plus-x'
+import { text } from 'node:stream/consumers'
 import { useAgentChat } from '@vunk-plus/components/agent-chat-provider'
 import { VkBubbleList } from '@vunk-plus/components/bubble-list'
 import { VkRecorderButton } from '@vunk-plus/components/recorder-button'
@@ -84,6 +85,7 @@ function onSubmit (nextContent: string) {
               <VkBubbleList
                 :el-ref="bubbleListReslove"
                 :items="bubbleItems"
+                :text-to-speech="textToSpeech"
               >
               </VkBubbleList>
             </div>

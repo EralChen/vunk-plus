@@ -1,11 +1,18 @@
 <script lang="ts" setup>
+import type { __VkBroadcastingMarkdown } from '@vunk-plus/components/broadcasting-markdown'
 import type { __VkBubbleList } from '@vunk-plus/components/bubble-list'
+import type { PropType } from 'vue'
 import { VkBroadcastingMarkdown } from '@vunk-plus/components/broadcasting-markdown'
 import { VkRendererTemplate } from '@vunk/core/components/renderer-template'
 import { Typewriter } from 'vue-element-plus-x'
 
 defineOptions({
   name: 'VkBubbleTemplates',
+})
+defineProps({
+  textToSpeech: {
+    type: Function as PropType<__VkBroadcastingMarkdown.TextToSpeech>,
+  },
 })
 
 const typed = (e: __VkBubbleList.Item) => e
@@ -28,6 +35,7 @@ const typed = (e: __VkBubbleList.Item) => e
       <VkBroadcastingMarkdown
         :source="props.content"
         :keep-read="!props.seviceEnd"
+        :text-to-speech="textToSpeech"
         @vue:mounted="() => emitSetData({
           k: [props.key, 'templateType'],
           v: 'VkBroadcastingMarkdown',

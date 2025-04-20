@@ -8,7 +8,7 @@ const tokenMiddleware: RestFetchMiddleware = async ({ req }, next) => {
   if (!requestOptions.headers) {
     requestOptions.headers = {}
   }
-  const token = sessionStorage.getItem('accessToken')
+  const token = localStorage.getItem('accessToken')
   if (token && !requestOptions.headers.Authorization) {
     requestOptions.headers.Authorization = token
   }

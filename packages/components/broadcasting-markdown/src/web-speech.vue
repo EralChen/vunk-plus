@@ -2,15 +2,13 @@
 import type { Deferred } from '@vunk/shared/promise'
 import type { PropType } from 'vue'
 import type { Paragraph } from './types'
-import { CloseBold } from '@element-plus/icons-vue'
-import { ElIcon } from 'element-plus'
 import { computed, defineComponent, watch } from 'vue'
 import { Broadcast, defaultRender, ParagraphStatus } from './const'
+import SpeechError from './speech-error.vue'
 
 export default defineComponent({
   components: {
-    ElIcon,
-    CloseBold,
+    SpeechError,
   },
   props: {
     voice: {
@@ -94,28 +92,8 @@ export default defineComponent({
     }, { immediate: true })
 
     return () => (
-      theData.value.status === ParagraphStatus.rejected && (
-        <>
-          <ElIcon
-            color="var(--el-color-danger)"
-            size="1.5em"
-            class="vk-broadcasting-markdown-web-speech-icon"
-          >
-
-            <CloseBold></CloseBold>
-          </ElIcon>
-          {' '}
-          <span style={
-            {
-              color: 'var(--el-color-danger)',
-            }
-          }
-          >
-            播报失败
-          </span>
-        </>
-      )
-
+      theData.value.status === ParagraphStatus.rejected
+      && <SpeechError></SpeechError>
     )
   },
 })

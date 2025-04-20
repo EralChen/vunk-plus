@@ -10,8 +10,12 @@ export function defaultRender (mdText: string) {
 
 export enum ParagraphStatus {
   initial = 'initial',
+  /**
+   * @description 处理中, 通常用于需要对段落进行异步处理
+   */
+  processing = 'processing',
 
-  /* 准备中 */
+  /* 悬挂状态 */
   pending = 'pending',
   /* 成功 */
   fulfilled = 'fulfilled',
