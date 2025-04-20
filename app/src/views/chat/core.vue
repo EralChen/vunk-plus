@@ -99,9 +99,6 @@ const speechToTextFn: __VkIndependent.SpeechToText = (blob) => {
 
 <template>
   <div h-full w-full pos-relative>
-    <div position-absolute left-0 top-0 z-10>
-      {{ currentBroadcasting }}
-    </div>
     <VkAgentChatProvider
       v-if="request"
       :request="request"

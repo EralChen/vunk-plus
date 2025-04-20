@@ -74,7 +74,7 @@ const videoSources = computed(() => [
   .video {
     position: absolute;
     height: 100%;
-    top: 0;
+    top: -50px;
     right: 0;
     bottom: 0;
     left: 50%;
