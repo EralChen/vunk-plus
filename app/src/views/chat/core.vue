@@ -2,20 +2,30 @@
 import type { __VkAgentChatProvider } from '@vunk-plus/components/agent-chat-provider'
 import type { __VkBubbleList } from '@vunk-plus/components/bubble-list'
 import type { __VkIndependent } from '@vunk-plus/components/independent'
-import { speechToText, textToSpeech } from '@/api/application'
+import { cChatId, speechToText, textToSpeech } from '@/api/application'
 import { Role, VkAgentChatProvider } from '@vunk-plus/components/agent-chat-provider'
 import { VkIndependent } from '@vunk-plus/components/independent'
 import { setData } from '@vunk/core'
 import { useDeferred } from '@vunk/core/composables'
 import { useApplicationProfile } from '_c/authentication'
 import { MetahumanBackground, MetahumanStatus } from '_c/metahuman-background'
-import { computed, ref } from 'vue'
+import { computed, ref, shallowRef } from 'vue'
+import { createRequest } from './createRequest'
 
 const {
   stt_model_enable,
   id: applicationId,
   prologue,
 } = useApplicationProfile()
+
+const request = shallowRef()
+cChatId({
+  application_id: applicationId,
+}).then((res) => {
+  request.value = createRequest({
+    chatId: res.data,
+  })
+})
 
 /* chat 数据  */
 const bubbleData = ref<__VkBubbleList.RenderData>({})
@@ -74,7 +84,11 @@ const speechToTextFn: __VkIndependent.SpeechToText = (blob) => {
     <div position-absolute left-0 top-0 z-10>
       {{ lastBubbleData }}
     </div>
-    <VkAgentChatProvider @load="agentChatContext.resolve">
+    <VkAgentChatProvider
+      v-if="request"
+      :request="request"
+      @load="agentChatContext.resolve"
+    >
       <VkIndependent
         class="home-independent"
         :data="bubbleData"

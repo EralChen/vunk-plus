@@ -1,10 +1,14 @@
 import type { __VkBubbleTemplates } from '@vunk-plus/components/bubble-templates'
 import type { Media } from '@vunk/shared'
+import type { RestFetchRequestOptions } from '@vunk/shared/fetch'
+import type { RequestFn } from 'ant-design-x-vue'
 import type { BubbleListItemProps } from 'vue-element-plus-x/types/components/BubbleList/types'
 import type { Role } from './const-roles'
 import type { initAgentChat } from './use'
 
 export type AgentChatContext = ReturnType<typeof initAgentChat>
+
+export type Request = RequestFn<AgentMessage>
 
 /**
  * @description   useXAgent request onSuccess 发送的数据

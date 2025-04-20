@@ -35,3 +35,17 @@ export async function textToSpeech (
     },
   })
 }
+
+/**
+ * @description: 新建聊天
+ */
+export async function cChatId (
+  query: {
+    application_id: string
+  },
+) {
+  return request<string>({
+    method: 'GET',
+    url: `/application/${query.application_id}/chat/open`,
+  })
+}
