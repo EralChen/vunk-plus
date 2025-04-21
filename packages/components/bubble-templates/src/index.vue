@@ -21,11 +21,11 @@ defineProps({
 })
 
 function initRenderData (emitSetData, props) {
-  emitSetData({
+  emitSetData?.({
     k: [props.key, 'meta'],
     v: props.meta ?? {},
   })
-  emitSetData({
+  emitSetData?.({
     k: [props.key, 'templateType'],
     v: 'VkBroadcastingMarkdown',
   })
@@ -35,7 +35,7 @@ const typed = (e: __VkBubbleList.Item) => e
 
 <template>
   <VkRendererTemplate type="Typewriter">
-    <template #default="{ emitSetData, props }">
+    <template #default="{ props, emitSetData }">
       <Thinking
         v-if="props.thinkingContent && modules?.includes('Thinking')"
         :content="props.thinkingContent"

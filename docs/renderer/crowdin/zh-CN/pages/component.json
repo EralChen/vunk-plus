@@ -76,8 +76,8 @@
         "text": "SpeechButton"
       },
       {
-        "link": "/chat-independent",
-        "text": "ChatIndependent"
+        "link": "/recorder-button",
+        "text": "RecorderButton"
       },
       {
         "link": "/bubble-list",
@@ -86,15 +86,10 @@
       {
         "link": "/agent-chat-provider",
         "text": "AgentChatProvider"
-      }
-    ]
-  },
-  "recorder": {
-    "text": "Recorder",
-    "children": [
+      },
       {
-        "link": "/recorder-button",
-        "text": "RecorderButton"
+        "link": "/chat-independent",
+        "text": "ChatIndependent"
       }
     ]
   }
