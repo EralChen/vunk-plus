@@ -55,7 +55,6 @@ export default defineConfig(async ({ mode }) => {
         '@vuesri-core/**',
         '@arcgis/core/**',
         '@vunk/skzz/**',
-        '@skzz/platform/**',
         'esri/**',
         '@vunk/gsap/**',
       ],

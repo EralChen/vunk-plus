@@ -1,5 +1,6 @@
 import type { UploadFile } from 'ant-design-vue'
 import type { PropType } from 'vue'
+import type { Module } from './types'
 
 export const props = {
 
@@ -32,6 +33,14 @@ export const props = {
   loading: {
     type: Boolean,
     default: undefined,
+  },
+
+  /**
+   * @description 模块
+   */
+  modules: {
+    type: Array<Module>,
+    default: () => [],
   },
 }
 

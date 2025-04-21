@@ -30,6 +30,10 @@
       {
         "link": "/typing-markdown",
         "text": "TypingMarkdown"
+      },
+      {
+        "link": "/broadcasting-markdown",
+        "text": "BroadcastingMarkdown"
       }
     ]
   },
@@ -70,15 +74,22 @@
       {
         "link": "/speech-button",
         "text": "SpeechButton"
-      }
-    ]
-  },
-  "recorder": {
-    "text": "Recorder",
-    "children": [
+      },
       {
         "link": "/recorder-button",
         "text": "RecorderButton"
+      },
+      {
+        "link": "/bubble-list",
+        "text": "BubbleList"
+      },
+      {
+        "link": "/agent-chat-provider",
+        "text": "AgentChatProvider"
+      },
+      {
+        "link": "/chat-independent",
+        "text": "ChatIndependent"
       }
     ]
   }

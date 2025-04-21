@@ -1,20 +1,19 @@
-import MarkdownIt  from 'markdown-it'
-import { highlight } from '@vunk/shared/markdown/shiki'
 import { noop } from '@vueuse/core'
+import { highlight as createHighlight } from '@vunk/shared/markdown/shiki'
+import MarkdownItAsync from 'markdown-it-async'
 
-const highlightPromise = highlight({
+const highlightInfo = createHighlight({
   dark: 'github-dark',
   light: 'github-light',
 }, {}, {
   warn: noop,
 })
 
-export const createMarkdownIt = async () => {
-  const highlight = await highlightPromise
-  const md = new MarkdownIt({
+export async function createMarkdownIt () {
+  const [highlight] = await highlightInfo
+  const md = MarkdownItAsync({
     highlight,
   })
-
 
   // 生成 token 之后，给最后一个 dom 元素添加 is-last class
   md.core.ruler.after('inline', 'add-is-last-class', (state) => {
@@ -33,10 +32,7 @@ export const createMarkdownIt = async () => {
     }
   })
 
-
-
   return md
 }
 
 export const markdownItPromise = createMarkdownIt()
-

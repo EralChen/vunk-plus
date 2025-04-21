@@ -69,7 +69,7 @@ export default defineComponent({
     const isTextZone = ref(false) // 添加文本区域状态
     let isMouseDown = false // 添加这个变量来跟踪鼠标状态
 
-    // 处理停止录音的逻辑
+    // 处理停止录音的逻辑, 已排除 cancelZone
     const stopRecording = () => {
       const theTextZone = isTextZone.value
       rec.stop(async (blob) => {
@@ -83,7 +83,7 @@ export default defineComponent({
         })
 
         // 如果在文本按钮区域释放，则转换为文本
-        if (theTextZone) {
+        if (theTextZone || props.submitToText) {
           if (props.onTextZone) {
             props.onTextZone({
               blob,
@@ -92,7 +92,16 @@ export default defineComponent({
           }
           else {
             // ElMessage.info('正在转换为文字...')
-            speechToText(props.speenchToTextUrl, blob)
+            if (props.speechToText) {
+              props
+                .speechToText(blob)
+                .then((text) => {
+                  emit('submitText', text)
+                })
+              return
+            }
+
+            speechToText('/speech-to-text', blob)
               .then((text) => {
                 emit('submitText', text)
               })
@@ -119,6 +128,9 @@ export default defineComponent({
 
     // 修改鼠标按下逻辑
     const onmousedown = (e: MouseEvent | TouchEvent) => {
+      if (props.disabled)
+        return
+
       e.preventDefault()
       isMouseDown = true
       const touch = 'touches' in e ? e.touches[0] : e
@@ -227,83 +239,83 @@ export default defineComponent({
 </script>
 
 <template>
-  <div class="sk-recorder-container">
+  <div class="vk-recorder-container">
     <!-- 遮罩层 -->
-    <div
-      v-if="isDragging"
-      class="recording-mask"
-    >
-      <!-- 录音提示区域移到上面 -->
-      <div class="recording-tip">
-        <div ref="recordingNode" class="wave-container"></div>
-        <div class="tip-text">
-          {{ cancelZone ? '松开手指，取消发送' : '松开发送，上滑取消' }}
+    <Teleport :to="appendTo">
+      <div
+        v-if="isDragging"
+        class="vk-recording-mask"
+      >
+        <!-- 录音提示区域移到上面 -->
+        <div class="recording-tip">
+          <div ref="recordingNode" class="wave-container"></div>
+          <div class="tip-text">
+            {{ cancelZone ? '松开手指，取消发送' : '松开发送，上滑取消' }}
+          </div>
         </div>
-      </div>
 
-      <!-- 操作按钮移到底部 -->
-      <div class="action-buttons">
-        <div
-          class="cancel-btn"
-          :class="{ active: cancelZone }"
-        >
-          <div class="btn-icon">
-            ×
+        <div class="action-buttons">
+          <div
+            class="cancel-btn"
+            :class="{ active: cancelZone }"
+          >
+            <div class="btn-icon">
+              ×
+            </div>
+            <div class="btn-text">
+              取消发送
+            </div>
           </div>
-          <div class="btn-text">
-            取消发送
-          </div>
-        </div>
-        <div
-          class="text-btn"
-          :class="{ active: isTextZone }"
-        >
-          <div class="btn-icon">
-            文
-          </div>
-          <div class="btn-text">
-            转为文字
+          <div
+            class="text-btn"
+            :class="{ active: isTextZone }"
+          >
+            <div class="btn-icon">
+              文
+            </div>
+            <div class="btn-text">
+              转为文字
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </Teleport>
 
     <!-- 录音按钮 -->
     <ElButton
       v-bind="$attrs"
-      class="sk-recorder-button"
+      :disabled="disabled"
+      class="vk-recorder-button"
       :class="{
         'is-recording': recording,
       }"
+      size="large"
       @touchstart="onmousedown"
       @touchmove="onmousemove"
       @touchend="onmouseup"
       @mousedown="onmousedown"
     >
-      <span class="sk-recorder-button-text">按住 说话</span>
+      <span class="vk-recorder-button-text">按住 说话</span>
     </ElButton>
   </div>
 </template>
 
 <style>
-.sk-recorder-container {
+.vk-recorder-container {
   position: relative;
 }
 
-.sk-recorder-button {
+.vk-recorder-button {
   position: relative;
   width: 100%;
   touch-action: none;
   user-select: none;
 }
 
-.recording-mask {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.6);
+.vk-recording-mask {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
   z-index: 1000;
   display: flex;
   flex-direction: column;
@@ -316,7 +328,7 @@ export default defineComponent({
   display: flex;
   justify-content: space-between;
   padding: 20px 40px;
-  margin-bottom: 100px;
+  margin-bottom: 24%;
 }
 
 .cancel-btn, .text-btn {

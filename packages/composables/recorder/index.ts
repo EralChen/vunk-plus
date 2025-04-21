@@ -1,4 +1,5 @@
 import { sleep } from '@vunk/shared/promise'
+import { consola } from 'consola'
 import { ElMessage } from 'element-plus'
 import Recorder from 'recorder-core'
 import { ref } from 'vue'
@@ -28,7 +29,7 @@ export function useRecorder () {
         () => {
           supported.value = true
           opening.value = false
-          console.log('recorder open success', recorder)
+          consola.info('recorder open success', recorder)
           resolve(recorder)
         },
         () => (msg, isUserNotAllow) => {
