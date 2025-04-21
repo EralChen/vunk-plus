@@ -7,6 +7,12 @@ lang: zh-CN
 
 AgentChatProvider 是一个对话代理提供者组件，用于处理聊天消息的请求、响应和状态管理。它支持流式响应处理、思考状态显示和多种角色支持。
 
+你可以查阅以下链接了解抽象数据流的工作细节:
+
+[useXAgent](https://antd-design-x-vue.netlify.app/component/use-x-agent.html)
+
+[useXChat](https://antd-design-x-vue.netlify.app/component/use-x-chat.html)
+
 ## 基本用法
 
 使用 AgentChatProvider 包裹聊天相关组件，为其提供上下文能力：
@@ -41,7 +47,7 @@ AgentChatProvider 是一个对话代理提供者组件，用于处理聊天消�
 | --- | --- | --- |
 | load | `(context: AgentChatContext)` | 组件加载完成时触发，返回代理聊天上下文 |
 
-## 角色类型
+## 内置角色类型
 
 组件支持三种角色类型：
 
@@ -133,7 +139,7 @@ export type AgentMessage = BubbleMessage & {
 
 // 气泡消息类型
 export type BubbleMessage = Partial<BubbleListItemProps> & {
-  role: Role
+  role: string
   content: string
   seviceEnd?: boolean
   thinkingStatus?: 'start' | 'thinking' | 'end' | 'error'
@@ -141,30 +147,3 @@ export type BubbleMessage = Partial<BubbleListItemProps> & {
   meta?: NormalObject
 }
 ```
-
-## 配合 ChatIndependent 使用
-
-结合 `ChatIndependent` 组件使用可以快速创建一个完整的聊天应用：
-
-```vue
-<template>
-  <VkAgentChatProvider
-    :request="request"
-    :parser="parser"
-    @load="agentChatContext.resolve"
-  >
-    <VkChatIndependent
-      :data="bubbleData"
-      :speech-to-text="speechToTextFn"
-      :text-to-speech="textToSpeechFn"
-      @set-data="setData(bubbleData, $event)"
-    >
-      <!-- 可自定义背景 -->
-      <template #background>
-        <MetahumanBackground
-          :status="currentMetahumanStatus"
-        ></MetahumanBackground>
-      </template>
-    </VkChatIndependent>
-  </VkAgentChatProvider>
-</template>

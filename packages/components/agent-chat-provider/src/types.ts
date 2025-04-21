@@ -1,9 +1,7 @@
 import type { __VkBubbleTemplates } from '@vunk-plus/components/bubble-templates'
 import type { Media, NormalObject } from '@vunk/shared'
-import type { RestFetchRequestOptions } from '@vunk/shared/fetch'
 import type { RequestFn } from 'ant-design-x-vue'
 import type { BubbleListItemProps } from 'vue-element-plus-x/types/components/BubbleList/types'
-import type { Role } from './const-roles'
 import type { initAgentChat } from './use'
 
 export type AgentChatContext = ReturnType<typeof initAgentChat>
@@ -24,7 +22,7 @@ export type AgentMessage = BubbleMessage & {
  * @description useXChat parser 解析数据
  */
 export type BubbleMessage = Partial<BubbleListItemProps> & {
-  role: Role
+  role: string
   content: string
   seviceEnd?: boolean
 
@@ -50,5 +48,5 @@ interface BubbleItemBasic extends BubbleMessage {
 }
 interface RoleMediaBasic extends Partial<BubbleItemBasic>
   , Media {
-  value: Role
+  value: string
 }
