@@ -1,6 +1,6 @@
 # Changelog 更新日志
 
-## 1.3.0
+## 1.3.1
 
 + [BroadcastingMarkdown] 新增 component [BroadcastingMarkdown](../../component/broadcasting-markdown/+Page.md): 随播报展示的 TypingMarkdown 组件
 + [Sender] 新增 component [Sender](../../component/sender/+Page.md): 发送器组件
