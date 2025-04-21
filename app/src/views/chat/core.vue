@@ -1,10 +1,10 @@
 <script lang="ts" setup>
 import type { __VkAgentChatProvider } from '@vunk-plus/components/agent-chat-provider'
 import type { __VkBubbleList } from '@vunk-plus/components/bubble-list'
-import type { __VkIndependent } from '@vunk-plus/components/independent'
+import type { __VkChatIndependent } from '@vunk-plus/components/chat-independent'
 import { cChatId, speechToText, textToSpeech } from '@/api/application'
 import { Role, VkAgentChatProvider } from '@vunk-plus/components/agent-chat-provider'
-import { VkIndependent } from '@vunk-plus/components/independent'
+import { VkChatIndependent } from '@vunk-plus/components/chat-independent'
 import { setData } from '@vunk/core'
 import { useDeferred } from '@vunk/core/composables'
 import { useApplicationProfile } from '_c/authentication'
@@ -84,7 +84,7 @@ function textToSpeechFn (text: string) {
     return url
   })
 }
-const speechToTextFn: __VkIndependent.SpeechToText = (blob) => {
+const speechToTextFn: __VkChatIndependent.SpeechToText = (blob) => {
   // blob to file
   const file = new File([blob], 'audio.wav', {
     type: 'audio/wav',
@@ -104,8 +104,8 @@ const speechToTextFn: __VkIndependent.SpeechToText = (blob) => {
       :request="request"
       @load="agentChatContext.resolve"
     >
-      <VkIndependent
-        class="home-independent"
+      <VkChatIndependent
+        class="home-chat-independent"
         :data="bubbleData"
         :speech-to-text="stt_model_enable
           ? speechToTextFn
@@ -118,22 +118,22 @@ const speechToTextFn: __VkIndependent.SpeechToText = (blob) => {
             :status="currentMetahumanStatus"
           ></MetahumanBackground>
         </template>
-      </VkIndependent>
+      </VkChatIndependent>
     </VkAgentChatProvider>
   </div>
 </template>
 
 <style>
-.home-independent{
+.home-chat-independent{
   overflow: hidden;
 }
-.home-independent .vk-independent-main__duplex{
+.home-chat-independent .vk-chat-independent-main__duplex{
   padding-top: 40vh;
 }
-.home-independent .el-bubble-list > .el-bubble:last-child {
+.home-chat-independent .el-bubble-list > .el-bubble:last-child {
   margin-bottom: 40px;
 }
-.home-independent .vk-independent-main__bubbles{
+.home-chat-independent .vk-chat-independent-main__bubbles{
 
    mask-image: linear-gradient(to bottom,
     rgba(0, 0, 0, 0.4),

@@ -76,8 +76,8 @@
         "text": "SpeechButton"
       },
       {
-        "link": "/independent",
-        "text": "Independent"
+        "link": "/chat-independent",
+        "text": "ChatIndependent"
       },
       {
         "link": "/bubble-list",

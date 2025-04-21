@@ -1,12 +1,12 @@
 <script lang="ts" setup>
 import { VkAgentChatProvider } from '@vunk-plus/components/agent-chat-provider'
-import { VkIndependent } from '@vunk-plus/components/independent'
+import { VkChatIndependent } from '@vunk-plus/components/chat-independent'
 </script>
 
 <template>
   <div h-500px w-350px>
     <VkAgentChatProvider>
-      <VkIndependent></VkIndependent>
+      <VkChatIndependent></VkChatIndependent>
     </VkAgentChatProvider>
   </div>
 </template>

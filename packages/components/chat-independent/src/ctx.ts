@@ -1,23 +1,22 @@
-import type { __VkRecorderButton } from '@vunk-plus/components/recorder-button'
+import type { __VkBubbleList } from '@vunk-plus/components/bubble-list'
 import type { SetDataEvent } from '@vunk/core'
-import type { NormalObject } from '@vunk/shared'
 import type { PropType } from 'vue'
 import type { SpeechToText, TextToSpeech } from './types'
 
 export const props = {
+  /**
+   * @description BubbleList渲染时数据, 受控于setData
+   */
   data: {
-    type: Object as PropType<NormalObject>,
-    default: undefined,
+    type: Object as PropType<__VkBubbleList.RenderData>,
   },
 
   speechToText: {
     type: Function as PropType<SpeechToText>,
-    default: undefined,
   },
 
   textToSpeech: {
     type: Function as PropType<TextToSpeech>,
-    default: undefined,
   },
 
 }
