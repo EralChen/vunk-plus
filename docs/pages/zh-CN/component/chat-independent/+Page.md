@@ -1,11 +1,6 @@
----
-title: ChatIndependent
-lang: zh-CN
----
-
 # ChatIndependent
 
-ChatIndependent
+对话样板间， 提供 AgentChatProvider 可快速创建一个对话APP
 
 ## Basic
 

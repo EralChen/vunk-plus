@@ -47,5 +47,5 @@ export async function cChatId (
   return request<string>({
     method: 'GET',
     url: `/application/${query.application_id}/chat/open`,
-  })
+  }).then(res => res.data)
 }

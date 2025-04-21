@@ -1,8 +1,11 @@
 import type { __VkAgentChatProvider } from '@vunk-plus/components/agent-chat-provider'
 import type { NormalObject } from '@vunk/shared'
 import type { RestFetchReaderOnmessage } from '@vunk/shared/fetch'
+import { cChatId } from '@/api/application'
+import { useApplicationProfile } from '@/components/authentication'
 import { Role } from '@vunk-plus/components/agent-chat-provider'
 import { restFetch } from '@vunk/shared/fetch'
+import { ref } from 'vue'
 
 async function agentRequest (
   onmessage: RestFetchReaderOnmessage,
@@ -24,9 +27,18 @@ async function agentRequest (
   })
 }
 
-export function createRequest (e: {
-  chatId: string
-}) {
+export function useRequest () {
+  const { id: applicationId } = useApplicationProfile()
+  const chatId = ref<string>('')
+  const ready = ref(false)
+
+  cChatId({
+    application_id: applicationId,
+  }).then((id) => {
+    chatId.value = id
+    ready.value = true
+  })
+
   const request: __VkAgentChatProvider.Request = (info, event) => {
     const { message } = info
     const { onSuccess, onUpdate } = event
@@ -93,7 +105,10 @@ export function createRequest (e: {
         thinkingStatus = 'end'
         update()
       }
-    }, { message: message?.content, chatId: e.chatId })
+    }, { message: message?.content, chatId: chatId.value })
   }
-  return request
+  return {
+    request,
+    ready,
+  }
 }

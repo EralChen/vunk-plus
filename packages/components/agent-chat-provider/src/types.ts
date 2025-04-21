@@ -10,6 +10,8 @@ export type AgentChatContext = ReturnType<typeof initAgentChat>
 
 export type Request = RequestFn<AgentMessage>
 
+export type Parser = (message: AgentMessage) => BubbleMessage | BubbleMessage[]
+
 /**
  * @description   useXAgent request onSuccess 发送的数据
  */

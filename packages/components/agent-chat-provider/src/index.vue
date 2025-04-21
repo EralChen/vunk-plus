@@ -1,7 +1,7 @@
 <script lang="ts">
 import type { AnyFunc, NormalObject } from '@vunk/shared'
 import type { PropType } from 'vue'
-import type { AgentChatContext, AgentMessage, Request } from './types'
+import type { AgentChatContext, AgentMessage, Parser, Request } from './types'
 import { defineComponent } from 'vue'
 import { agentRequest } from './api'
 import { Role } from './const-roles'
@@ -12,7 +12,9 @@ export default defineComponent({
   props: {
     request: {
       type: Function as PropType<AnyFunc>,
-
+    },
+    parser: {
+      type: Function as PropType<Parser>,
     },
   },
   emits: {
@@ -87,7 +89,32 @@ export default defineComponent({
         }
       }, { message: message?.content })
     }
-    const agentChat = initAgentChat(props.request ?? request)
+
+    const parser: Parser = (message) => {
+      const list = [
+        {
+          ...message,
+          loading: message.seviceLoading,
+        },
+      ]
+      if (message.thinkingContent) {
+        list.unshift({
+          role: Role.Broadcasting,
+          content: '您好，请让我先思考一下这个问题，再给您回答',
+          seviceLoading: false,
+          seviceEnd: true,
+          loading: false,
+          meta: {
+            metahumanStatus: 2,
+          },
+        })
+      }
+      return list
+    }
+    const agentChat = initAgentChat(
+      props.request ?? request,
+      props.parser ?? parser,
+    )
     emit('load', agentChat)
     return slots.default
   },

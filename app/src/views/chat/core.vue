@@ -2,15 +2,17 @@
 import type { __VkAgentChatProvider } from '@vunk-plus/components/agent-chat-provider'
 import type { __VkBubbleList } from '@vunk-plus/components/bubble-list'
 import type { __VkChatIndependent } from '@vunk-plus/components/chat-independent'
-import { cChatId, speechToText, textToSpeech } from '@/api/application'
+import { speechToText, textToSpeech } from '@/api/application'
 import { Role, VkAgentChatProvider } from '@vunk-plus/components/agent-chat-provider'
 import { VkChatIndependent } from '@vunk-plus/components/chat-independent'
 import { setData } from '@vunk/core'
 import { useDeferred } from '@vunk/core/composables'
 import { useApplicationProfile } from '_c/authentication'
 import { MetahumanBackground, MetahumanStatus } from '_c/metahuman-background'
-import { computed, ref, shallowRef } from 'vue'
-import { createRequest } from './createRequest'
+import { consola } from 'consola'
+import { computed, ref, watchEffect } from 'vue'
+import { parser } from './parser'
+import { useRequest } from './useRequest'
 
 const {
   stt_model_enable,
@@ -18,14 +20,7 @@ const {
   prologue,
 } = useApplicationProfile()
 
-const request = shallowRef()
-cChatId({
-  application_id: applicationId,
-}).then((res) => {
-  request.value = createRequest({
-    chatId: res.data,
-  })
-})
+const { ready, request } = useRequest()
 
 /* chat 数据  */
 const bubbleData = ref<__VkBubbleList.RenderData>({})
@@ -42,6 +37,9 @@ function getBubbleDataAt (index: number) {
 }
 const lastBubbleData = computed(() => {
   return getBubbleDataAt(-1)
+})
+watchEffect(() => {
+  consola.info('lastBubbleData', lastBubbleData.value)
 })
 const currentBroadcasting = computed(() => {
   // 有没有  meta?.broadcasting === true
@@ -100,8 +98,9 @@ const speechToTextFn: __VkChatIndependent.SpeechToText = (blob) => {
 <template>
   <div h-full w-full pos-relative>
     <VkAgentChatProvider
-      v-if="request"
+      v-if="ready"
       :request="request"
+      :parser="parser"
       @load="agentChatContext.resolve"
     >
       <VkChatIndependent
