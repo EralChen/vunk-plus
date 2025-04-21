@@ -8,6 +8,12 @@
 chat-independent/basic
 :::
 
+### 完整用例
+
+你可以参考 [聊天应用实现](../agent-chat-provider/+Page.md#完整用例) 来构建完整的用例
+
+![chat-independent](./chat-independent.gif)
+
 ## ChatIndependent Props
 
 :::props
