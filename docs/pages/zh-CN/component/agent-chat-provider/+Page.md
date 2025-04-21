@@ -97,9 +97,7 @@ const request: __VkAgentChatProvider.Request = (info, event) => {
 }
 ```
 
-### 完整实现示例
-
-下面是一个处理流式响应的完整示例：
+:::details 完整实现示例
 
 ```ts
 // 自定义请求函数
@@ -229,6 +227,8 @@ export function useRequest () {
 }
 ```
 
+:::
+
 ## 自定义消息解析
 
 可以通过自定义 `parser` 属性来实现自定义消息解析逻辑：
@@ -247,9 +247,7 @@ const parser: __VkAgentChatProvider.Parser = (message) => {
 }
 ```
 
-### 完整实现示例
-
-下面是一个包含思考状态处理的解析器示例：
+:::details 完整实现示例
 
 ```ts
 import { type __VkAgentChatProvider, Role } from '@vunk-plus/components/agent-chat-provider'
@@ -281,6 +279,7 @@ export const parser: __VkAgentChatProvider.Parser = (message) => {
 }
 ```
 
+:::
 这个示例展示了如何：
 1. 处理消息的加载状态
 2. 在有思考内容时添加额外的提示消息

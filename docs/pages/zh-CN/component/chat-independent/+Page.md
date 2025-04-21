@@ -1,6 +1,6 @@
 # ChatIndependent
 
-对话样板间， 提供 AgentChatProvider 可快速创建一个对话APP
+对话样板间， 提供 [AgentChatProvider](../agent-chat-provider/+Page.md) 可快速创建一个对话 APP
 
 ## Basic
 
