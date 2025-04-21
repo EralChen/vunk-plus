@@ -42,7 +42,7 @@ const videoSources = computed(() => [
   },
   {
     status: MetahumanStatus.WELCOME,
-    src: `${base}metahuman/m_welcome.mp4`,
+    src: `${base}metahuman/${typeModel.value}_WELCOME.mp4`,
   },
 ])
 </script>

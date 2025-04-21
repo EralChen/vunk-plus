@@ -30,7 +30,7 @@ export function initAgentChat (request: RequestFn<AgentMessage>) {
       if (message.thinkingContent) {
         list.unshift({
           role: Role.Broadcasting,
-          content: '我在思考中，请稍等...',
+          content: '您好，请让我先思考一下这个问题，再给您回答',
           seviceLoading: false,
           seviceEnd: true,
           loading: false,
