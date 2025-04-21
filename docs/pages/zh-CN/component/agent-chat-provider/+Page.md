@@ -8,4 +8,8 @@ AgentChatProvider
 agent-chat-provider/basic
 :::
 
-## AgentChatProvider 其他
+## AgentChatProvider Props
+
+:::props
+agent-chat-provider/src/ctx
+::
