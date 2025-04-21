@@ -33,4 +33,4 @@ src/avatar.ts: 是对 icon.ts 组件的 avatar 包装
 
 ## TODO
 
-- [ ] 实现 Icon
+- [x] 实现 Icon

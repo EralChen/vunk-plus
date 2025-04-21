@@ -82,6 +82,10 @@
       {
         "link": "/bubble-list",
         "text": "BubbleList"
+      },
+      {
+        "link": "/agent-chat-provider",
+        "text": "AgentChatProvider"
       }
     ]
   },
