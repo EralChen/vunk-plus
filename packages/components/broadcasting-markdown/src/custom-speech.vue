@@ -1,11 +1,11 @@
 <script lang="tsx">
+import type { Deferred } from '@vunk/shared/promise'
 import type { PropType } from 'vue'
-import type { Paragraph, TextToSpeech } from './types'
-import { useDeferred } from '@vunk/core/composables'
+import type { Paragraph } from './types'
 
-import { type Deferred, sleep } from '@vunk/shared/promise'
-import { computed, defineComponent, onBeforeUnmount, onMounted, ref, watch } from 'vue'
-import { Broadcast, defaultRender, ParagraphStatus } from './const'
+import { useDeferred } from '@vunk/core/composables'
+import { computed, defineComponent, onBeforeUnmount, onMounted, watch } from 'vue'
+import { Broadcast, ParagraphStatus } from './const'
 import SpeechError from './speech-error.vue'
 
 export default defineComponent({
