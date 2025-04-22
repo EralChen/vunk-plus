@@ -32,9 +32,13 @@ export default defineComponent({
       type: String,
       default: '',
     },
+    render: {
+      type: Function as PropType<(text: string) => string>,
+      required: true,
+    },
   },
   setup (props) {
-    const value = defaultRender(props.data.value).replace(/\n/g, '')
+    const value = props.render(props.data.value)
     const theData = computed(() => props.data)
     if (!value.trim()) {
       props.deferred.resolve(true)

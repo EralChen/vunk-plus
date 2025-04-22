@@ -5,7 +5,7 @@ import type { Paragraph } from './types'
 import { VkTypingMarkdown } from '@vunk-plus/components/typing-markdown'
 import { setData } from '@vunk/core'
 import { computed, defineComponent, ref, watch, watchEffect } from 'vue'
-import { Broadcast, defaultRender, ParagraphStatus } from './const'
+import { Broadcast, ParagraphStatus } from './const'
 import { emits, props } from './ctx'
 import CustomSpeechView from './custom-speech.vue'
 import ParagraphView from './paragraph.vue'
@@ -50,7 +50,10 @@ export default defineComponent({
       if (!props.textToSpeech) {
         return
       }
-      const value = defaultRender(paragraph.value)
+      const value = props.render(paragraph.value)
+      if (!value) {
+        return
+      }
       return props.textToSpeech(`${value}`)
         .then((url) => {
           paragraph.url = url
@@ -282,7 +285,7 @@ export default defineComponent({
         name="paragraph" :data="item" :deferred="deferred"
       >
         <CustomSpeechView
-          v-if="item.url"
+          :render="render"
           :url="item.url"
           :pause="pause"
           :deferred="deferred"
@@ -291,6 +294,7 @@ export default defineComponent({
         </CustomSpeechView>
         <WebSpeechView
           v-if="webSpeech"
+          :render="render"
           :pause="pause"
           :deferred="deferred"
           :data="item"

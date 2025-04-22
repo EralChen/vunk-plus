@@ -5,7 +5,7 @@ lang: zh-CN
 
 # BubbleList
 
-[BubbleList](https://antd-design-x-vue.netlify.app/component/bubble.html#%E8%87%AA%E5%AE%9A%E4%B9%89%E5%88%97%E8%A1%A8%E5%86%85%E5%AE%B9)
+[BubbleList](https://element-plus-x.com/components/bubbleList/)
 
 ## Basic
 
@@ -13,4 +13,8 @@ lang: zh-CN
 bubble-list/basic
 :::
 
-## BubbleList 其他
+## BubbleList Props
+
+:::props
+bubble-list/src/ctx
+:::

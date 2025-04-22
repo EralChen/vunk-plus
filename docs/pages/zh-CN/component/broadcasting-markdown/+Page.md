@@ -13,4 +13,8 @@ BroadcastingMarkdown
 broadcasting-markdown/basic
 :::
 
-## BroadcastingMarkdown 其他
+## BroadcastingMarkdown Props
+
+:::props
+broadcasting-markdown/src/ctx
+:::

@@ -1,11 +1,36 @@
-import markdownIt from 'markdown-it'
-
-const md = markdownIt()
+function markdownToPlainText (md: string) {
+  return (
+    md
+      // 移除图片 ![alt](url)
+      .replace(/!\[.*?\]\(.*?\)/g, '')
+      // 移除链接 [text](url)
+      .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+      // 移除 Markdown 标题符号 (#, ##, ###)
+      .replace(/^#{1,6}\s+/gm, '')
+      // 移除加粗 **text** 或 __text__
+      .replace(/\*\*(.*?)\*\*/g, '$1')
+      .replace(/__(.*?)__/g, '$1')
+      // 移除斜体 *text* 或 _text_
+      .replace(/\*(.*?)\*/g, '$1')
+      .replace(/_(.*?)_/g, '$1')
+      // 移除行内代码 `code`
+      .replace(/`(.*?)`/g, '$1')
+      // 移除代码块 ```code```
+      .replace(/```[\s\S]*?```/g, '')
+      // 移除多余的换行符
+      .replace(/\n{2,}/g, '\n')
+      // --- 移除水平线
+      .replace(/-{3,}/g, '')
+      // - 移除无序列表
+      .replace(/^\s*-\s+/gm, '')
+      // | 移除分隔线
+      .replace(/\|/g, '')
+      .trim()
+  )
+}
 
 export function defaultRender (mdText: string) {
-  const html = md.render(mdText)
-  const doc = new DOMParser().parseFromString(html, 'text/html')
-  return doc.body.textContent || ''
+  return markdownToPlainText(mdText)
 }
 
 export enum ParagraphStatus {

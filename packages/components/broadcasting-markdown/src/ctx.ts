@@ -1,8 +1,17 @@
 import type { SetDataEvent } from '@vunk/core'
 import type { PropType } from 'vue'
 import type { Paragraph, TextToSpeech } from './types'
+import { defaultRender } from './const'
 
 export const props = {
+
+  /**
+   * @description md文本转纯文本的函数
+   */
+  render: {
+    type: Function as PropType<(text: string) => string>,
+    default: defaultRender,
+  },
 
   /**
    *  @description 段落详情

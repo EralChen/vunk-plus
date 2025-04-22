@@ -1,7 +1,5 @@
 <script lang="ts" setup>
 import type { __VkBubbleList } from '@vunk-plus/components/bubble-list'
-import type { BubbleList } from 'vue-element-plus-x'
-import { text } from 'node:stream/consumers'
 import { useAgentChat } from '@vunk-plus/components/agent-chat-provider'
 import { VkBubbleList } from '@vunk-plus/components/bubble-list'
 import { VkRecorderButton } from '@vunk-plus/components/recorder-button'
@@ -94,25 +92,28 @@ function onSubmit (nextContent: string) {
 
         <template #two>
           <div class="vk-chat-independent-footer">
-            <VkKeyboardAvatar
-              v-show="inputType === InputType.Voice"
-              :size="40"
-              @click="inputType = InputType.Text"
-            ></VkKeyboardAvatar>
-            <VkVoiceAvatar
-              v-show="inputType === InputType.Text"
-              :size="40"
-              @click="inputType = InputType.Voice"
-            ></VkVoiceAvatar>
+            <template v-if="speechToText">
+              <VkKeyboardAvatar
+                v-show="inputType === InputType.Voice"
+                :size="40"
+                @click="inputType = InputType.Text"
+              ></VkKeyboardAvatar>
+              <VkRecorderButton
+                v-show="inputType === InputType.Voice"
+                :append-to="mainRef"
+                :disabled="senderDisabled"
+                :speech-to-text="speechToText"
+                :submit-to-text="true"
+                @submit-text="onSubmit"
+              ></VkRecorderButton>
 
-            <VkRecorderButton
-              v-show="inputType === InputType.Voice"
-              :append-to="mainRef"
-              :disabled="senderDisabled"
-              :speech-to-text="speechToText"
-              :submit-to-text="true"
-              @submit-text="onSubmit"
-            ></VkRecorderButton>
+              <VkVoiceAvatar
+                v-show="inputType === InputType.Text"
+                :size="40"
+                @click="inputType = InputType.Voice"
+              ></VkVoiceAvatar>
+            </template>
+
             <VkSender
               v-show="inputType === InputType.Text"
               v-model="content"
