@@ -23,10 +23,15 @@ const props = defineProps({
     type: Function as PropType<AnyFunc>,
     default: noop,
   },
-
+  retryTimes: {
+    type: Number,
+    default: 3,
+  },
 })
 const emit = defineEmits(['update:status'])
 const theDef = shallowRef<Deferred<any>>()
+
+let retryTimes = props.retryTimes
 
 const processingDef = useDeferred()
 onMounted(async () => {
@@ -56,6 +61,11 @@ async function init () {
     emit('update:status', ParagraphStatus.fulfilled)
   }).catch((err) => {
     console.error(err)
+    if (retryTimes > 0) {
+      retryTimes--
+      init()
+      return
+    }
     emit('update:status', ParagraphStatus.rejected)
   })
 
