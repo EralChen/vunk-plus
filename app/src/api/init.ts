@@ -1,7 +1,7 @@
 import type { RestFetchMiddleware } from '@vunk/shared/fetch'
 import { restFetch } from '@vunk/shared/fetch'
 
-restFetch.baseURL = 'http://192.168.110.165:3000/api'
+restFetch.baseURL = 'http://192.168.111.41:3000/api'
 
 const tokenMiddleware: RestFetchMiddleware = async ({ req }, next) => {
   const { requestOptions } = req

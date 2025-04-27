@@ -78,6 +78,7 @@ function textToSpeechFn (text: string) {
     application_id: applicationId,
     text,
   }).then((blob) => {
+    consola.info('textToSpeech', blob)
     const url = URL.createObjectURL(blob)
     return url
   })

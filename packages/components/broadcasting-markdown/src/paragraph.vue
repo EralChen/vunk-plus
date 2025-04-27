@@ -3,6 +3,7 @@ import type { AnyFunc } from '@vunk/shared'
 import { useDeferred } from '@vunk/core/composables'
 import { noop } from '@vunk/shared/function'
 import { Deferred } from '@vunk/shared/promise'
+import { consola } from 'consola'
 import { nextTick, onMounted, type PropType, shallowRef, watch } from 'vue'
 import { ParagraphStatus } from './const'
 
@@ -25,7 +26,7 @@ const props = defineProps({
   },
   retryTimes: {
     type: Number,
-    default: 3,
+    default: 10,
   },
 })
 const emit = defineEmits(['update:status'])
@@ -59,10 +60,12 @@ async function init () {
   emit('update:status', ParagraphStatus.pending)
   deferred.promise.then(() => {
     emit('update:status', ParagraphStatus.fulfilled)
-  }).catch((err) => {
-    console.error(err)
+  }).catch(async (err) => {
+    consola.error('error', err)
     if (retryTimes > 0) {
       retryTimes--
+      await props.processing?.()
+      consola.info('retryTimes', retryTimes)
       init()
       return
     }
