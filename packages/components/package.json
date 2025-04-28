@@ -8,6 +8,7 @@
     "build": "gulp -f gulpfile.ts"
   },
   "dependencies": {
+    "howler": "^2.2.4",
     "markdown-it-async": "^2.2.0",
     "vue-element-plus-x": "^1.1.6"
   },
