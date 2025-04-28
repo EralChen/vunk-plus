@@ -1,8 +1,8 @@
 <script lang="ts">
 import type { Ref } from 'vue'
+import { useRecorder } from '@vunk-plus/composables/recorder'
 import { ElButton, ElMessage } from 'element-plus'
-import Recorder from 'recorder-core'
-import { defineComponent, onUnmounted, ref, shallowRef } from 'vue'
+import { defineComponent, onUnmounted, ref } from 'vue'
 import { emits, props } from './ctx'
 import { speechToText } from './speech-to-text'
 import 'recorder-core/src/engine/mp3'
@@ -21,49 +21,37 @@ export default defineComponent({
   props,
   emits,
   setup (props, { emit }) {
-    const supported = ref(false)
-
-    const recording = ref(false)
     const recordingNode = ref() as Ref<HTMLSpanElement>
-    const wave = shallowRef()
-    const blobUrl = ref('')
-    let pressTimer: any = null
-
-    const rec = new Recorder({
-      // mp3格式，指定采样率hz、比特率kbps
-      type: 'wav',
-      sampleRate: 16000,
-      bitRate: 16,
-      onProcess,
+    const { openOrStart, recording, recorder, wave } = useRecorder({
+      waveViewRef: recordingNode,
+      defaultOptions: {
+        onProcess,
+      },
     })
 
-    const recOpen = () => {
-      return new Promise((resolve, reject) => {
-        rec.open(() => {
-          supported.value = true
-          if (Recorder.WaveView) {
-            wave.value = Recorder.WaveView({
-              elem: recordingNode.value,
-            })
-          }
-          resolve(true)
-        }, (msg, isUserNotAllow) => {
-          ElMessage.error(`${isUserNotAllow ? '用户未授权, ' : ''}无法录音:${msg}`)
-          reject(new Error(msg))
-        })
-      })
-    }
+    const blobUrl = ref('')
+    let pressTimer: null | ReturnType<typeof setTimeout> = null
 
+    const isDragging = ref(false)
     // 处理开始录音的逻辑
     const startRecording = async () => {
-      await recOpen()
-      if (!supported.value)
+      try {
+        await openOrStart({
+          // 授权时, 取消弹窗
+          openThen: () => {
+            isDragging.value = false
+            return false
+          },
+        })
+      }
+      catch (e) {
+        ElMessage.error(`录音失败:${e}`)
         return
-      rec.start()
+      }
+
       recording.value = true
     }
 
-    const isDragging = ref(false)
     const dragPosition = ref({ x: 0, y: 0 })
     const cancelZone = ref(false)
     const isTextZone = ref(false) // 添加文本区域状态
@@ -72,9 +60,9 @@ export default defineComponent({
     // 处理停止录音的逻辑, 已排除 cancelZone
     const stopRecording = () => {
       const theTextZone = isTextZone.value
-      rec.stop(async (blob) => {
+      recorder.stop(async (blob) => {
         blobUrl.value = (window.URL || webkitURL).createObjectURL(blob)
-        rec.close() // 关闭录音
+        recorder.close() // 关闭录音
         recording.value = false
 
         emit('submit', {
@@ -185,10 +173,10 @@ export default defineComponent({
     // 修改释放逻辑
     function onmouseup (e: MouseEvent | TouchEvent) {
       isMouseDown = false
-      clearTimeout(pressTimer)
+      clearTimeout(pressTimer as never)
       if (isDragging.value) {
         if (cancelZone.value) {
-          rec.close()
+          recorder.close()
         }
         else {
           stopRecording()

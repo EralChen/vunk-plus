@@ -56,20 +56,20 @@ const currentMetahumanStatus = computed(() => {
 /* chat 数据  END */
 
 /* 添加开场白 */
-agentChatContext.promise.then(({ chat }) => {
-  chat.setMessages([{
-    id: 'prologue',
-    message: {
-      role: Role.Broadcasting,
-      content: prologue.split('\n')[0] || prologue,
-      seviceEnd: true,
-      meta: {
-        metahumanStatus: MetahumanStatus.WELCOME,
-      },
-    },
-    status: 'success',
-  }])
-})
+// agentChatContext.promise.then(({ chat }) => {
+//   chat.setMessages([{
+//     id: 'prologue',
+//     message: {
+//       role: Role.Broadcasting,
+//       content: prologue.split('\n')[0] || prologue,
+//       seviceEnd: true,
+//       meta: {
+//         metahumanStatus: MetahumanStatus.WELCOME,
+//       },
+//     },
+//     status: 'success',
+//   }])
+// })
 /* 添加开场白 END */
 
 /* 语音输入输出 */
