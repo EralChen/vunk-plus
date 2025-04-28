@@ -64,7 +64,7 @@ export default defineComponent({
       // 创建新的Howl实例
       return new Howl({
         src: [url],
-        html5: true, // 使用HTML5 Audio，对于流媒体很重要
+        html5: true,
         format: ['mp3', 'wav', 'aac'],
         // 事件处理
         onplay: () => {
@@ -75,6 +75,13 @@ export default defineComponent({
         },
         onend: () => {
           theData.value.broadcast = Broadcast.ended
+          // 销毁实例
+          setTimeout(() => {
+            if (sound.value) {
+              sound.value.unload()
+              sound.value = null
+            }
+          }, 400)
           props.deferred.resolve(true)
         },
         onloaderror: (_, error) => {
@@ -83,6 +90,7 @@ export default defineComponent({
         },
         onplayerror: (_, error) => {
           theData.value.broadcast = Broadcast.failed
+          console.error('Failed to play audio', error)
           props.deferred.reject(error || new Error('Failed to play audio'))
         },
       })
