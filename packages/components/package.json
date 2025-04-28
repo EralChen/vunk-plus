@@ -13,6 +13,7 @@
     "vue-element-plus-x": "^1.1.6"
   },
   "devDependencies": {
+    "@types/howler": "^2.2.12",
     "vue-router": "^4.4.5"
   }
 }

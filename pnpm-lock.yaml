@@ -292,6 +292,9 @@ importers:
         specifier: ^1.1.6
         version: 1.1.6(typescript@5.8.3)
     devDependencies:
+      '@types/howler':
+        specifier: ^2.2.12
+        version: 2.2.12
       vue-router:
         specifier: ^4.4.5
         version: 4.5.0(vue@3.5.13(typescript@5.8.3))
@@ -2233,6 +2236,9 @@ packages:
 
   '@types/hast@3.0.4':
     resolution: {integrity: sha512-WPs+bbQw5aCj+x6laNGWLH3wviHtoCv/P3+otBhbOhJgG8qtpdAMlTCxLtsTWA7LH1Oh/bFCHsBn0TPS5m30EQ==}
+
+  '@types/howler@2.2.12':
+    resolution: {integrity: sha512-hy769UICzOSdK0Kn1FBk4gN+lswcj1EKRkmiDtMkUGvFfYJzgaDXmVXkSShS2m89ERAatGIPnTUlp2HhfkVo5g==}
 
   '@types/json-schema@7.0.15':
     resolution: {integrity: sha512-5+fP8P8MFNC+AyZCDxrB2pkZFPGzqQWUzpSeuuVLvm8VMcorNYavBqoFcxK8bQz4Qsbn4oUEEem4wDLfcysGHA==}
@@ -8769,6 +8775,8 @@ snapshots:
   '@types/hast@3.0.4':
     dependencies:
       '@types/unist': 3.0.3
+
+  '@types/howler@2.2.12': {}
 
   '@types/json-schema@7.0.15': {}
 

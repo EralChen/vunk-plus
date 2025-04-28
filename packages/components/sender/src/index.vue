@@ -48,17 +48,10 @@ export default defineComponent({
       }
       const sendRender = () => {
         return (
-          <Tooltip title={
-            props.modelValue
-              ? '点击发送'
-              : '请输入内容'
-          }
-          >
-            <SendButton
-              type="text"
-              icon={<SendOutlined />}
-            />
-          </Tooltip>
+          <SendButton
+            type="text"
+            icon={<SendOutlined />}
+          />
         )
       }
 

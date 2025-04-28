@@ -26,7 +26,7 @@ const props = defineProps({
   },
   retryTimes: {
     type: Number,
-    default: 10,
+    default: 3,
   },
 })
 const emit = defineEmits(['update:status'])

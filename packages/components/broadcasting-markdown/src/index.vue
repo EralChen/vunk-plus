@@ -7,7 +7,8 @@ import { setData } from '@vunk/core'
 import { computed, defineComponent, ref, watch, watchEffect } from 'vue'
 import { Broadcast, ParagraphStatus } from './const'
 import { emits, props } from './ctx'
-import CustomSpeechView from './custom-speech.vue'
+// import CustomSpeechView from './custom-speech.vue'
+import HowlerSpeechView from './howler-speech.vue'
 import ParagraphView from './paragraph.vue'
 import WebSpeechView from './web-speech.vue'
 
@@ -17,7 +18,8 @@ export default defineComponent({
     ParagraphView,
     VkTypingMarkdown,
     WebSpeechView,
-    CustomSpeechView,
+    // CustomSpeechView,
+    HowlerSpeechView,
   },
   props,
   emits,
@@ -284,14 +286,14 @@ export default defineComponent({
       <slot
         name="paragraph" :data="item" :deferred="deferred"
       >
-        <CustomSpeechView
+        <HowlerSpeechView
           :render="render"
           :url="item.url"
           :pause="pause"
           :deferred="deferred"
           :data="item"
         >
-        </CustomSpeechView>
+        </HowlerSpeechView>
         <WebSpeechView
           v-if="webSpeech"
           :render="render"
