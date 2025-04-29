@@ -46,6 +46,7 @@ export default defineComponent({
       }
       catch (e) {
         ElMessage.error(`录音失败:${e}`)
+        isDragging.value = false
         return
       }
 
@@ -147,8 +148,8 @@ export default defineComponent({
       dragPosition.value = { x: touch.clientX, y: touch.clientY }
 
       // 检查是否在取消区域或文本区域
-      const cancelBtn = document.querySelector('.cancel-btn')
-      const textBtn = document.querySelector('.text-btn')
+      const cancelBtn = document.querySelector('.cancel-btn-x')
+      const textBtn = document.querySelector('.text-btn-x')
 
       if (cancelBtn && textBtn) {
         const cancelRect = cancelBtn.getBoundingClientRect()
@@ -231,7 +232,7 @@ export default defineComponent({
     <!-- 遮罩层 -->
     <Teleport :to="appendTo">
       <div
-        v-if="isDragging"
+        v-show="isDragging"
         class="vk-recording-mask"
       >
         <!-- 录音提示区域移到上面 -->
@@ -243,26 +244,31 @@ export default defineComponent({
         </div>
 
         <div class="action-buttons">
-          <div
-            class="cancel-btn"
-            :class="{ active: cancelZone }"
-          >
-            <div class="btn-icon">
-              ×
-            </div>
-            <div class="btn-text">
-              取消发送
+          <div class="cancel-btn-x">
+            <div
+              class="cancel-btn"
+              :class="{ active: cancelZone }"
+            >
+              <div class="btn-icon">
+                ×
+              </div>
+              <div class="btn-text">
+                取消发送
+              </div>
             </div>
           </div>
-          <div
-            class="text-btn"
-            :class="{ active: isTextZone }"
-          >
-            <div class="btn-icon">
-              文
-            </div>
-            <div class="btn-text">
-              转为文字
+
+          <div class="text-btn-x">
+            <div
+              class="text-btn"
+              :class="{ active: isTextZone }"
+            >
+              <div class="btn-icon">
+                文
+              </div>
+              <div class="btn-text">
+                转为文字
+              </div>
             </div>
           </div>
         </div>
