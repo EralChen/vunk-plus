@@ -67,9 +67,7 @@ export default defineConfig(async ({ mode }) => {
     plugins: [
       vueDevTools(),
 
-      vike({
-        prerender: true,
-      }),
+      vike(),
 
       vue({
         include: [/\.vue$/, /\.md$/],

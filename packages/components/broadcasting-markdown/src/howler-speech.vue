@@ -1,13 +1,22 @@
 <script lang="tsx">
+import type { NormalObject } from '@vunk/shared'
 import type { Deferred } from '@vunk/shared/promise'
 import type { PropType } from 'vue'
-import type { Paragraph } from './types'
 
+import type { Paragraph } from './types'
 import { Howl } from 'howler'
 import { computed, defineComponent, onBeforeUnmount, onMounted, shallowRef, watch } from 'vue'
 import { Broadcast, ParagraphStatus } from './const'
 import SpeechError from './speech-error.vue'
 
+const originalPlay = Howl.prototype.play
+Howl.prototype.play = function (this: Howl, soundId?: number) {
+  const WeixinJSBridge = (window as NormalObject).WeixinJSBridge
+  WeixinJSBridge && WeixinJSBridge.invoke('getNetworkType', {}, () => {
+    originalPlay.call(this, soundId)
+  }, false)
+  return originalPlay.call(this, soundId)
+}
 export default defineComponent({
   components: {
     SpeechError,
@@ -64,7 +73,6 @@ export default defineComponent({
       // 创建新的Howl实例
       return new Howl({
         src: [url],
-        html5: true,
         format: ['mp3', 'wav', 'aac'],
         // 事件处理
         onplay: () => {
