@@ -1,7 +1,9 @@
 <script lang="ts" setup>
+import type { VNode } from 'vue'
 import { VkBubbleTemplates } from '@vunk-plus/components/bubble-templates'
 import { VkRenderer } from '@vunk/core/components/renderer'
 import { VkRendererTemplateInstancesProvider } from '@vunk/core/components/renderer-template-instances-provider'
+import { VkSpreadTo } from '@vunk/core/components/spread-to'
 import { ElAutoResizer } from 'element-plus'
 import { BubbleList } from 'vue-element-plus-x'
 import {
@@ -14,6 +16,9 @@ defineOptions({
   inheritAttrs: false,
 })
 defineProps(dProps)
+function getContentWraper (e: VNode) {
+  return e.el
+}
 </script>
 
 <template>
@@ -46,6 +51,13 @@ defineProps(dProps)
 
           <template #content="{ item }">
             <VkRenderer :source="[item]"></VkRenderer>
+            <VkSpreadTo
+              :target="getContentWraper"
+              type="class"
+              :data="{
+                [`is-${item.role}`]: true,
+              }"
+            ></VkSpreadTo>
           </template>
         </BubbleList>
       </template>
