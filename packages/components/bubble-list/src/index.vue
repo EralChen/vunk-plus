@@ -31,6 +31,19 @@ defineProps(dProps)
           :list="items"
           v-bind="$attrs"
         >
+          <template v-if="$slots.avatar" #avatar="e">
+            <slot v-bind="e" name="avatar"></slot>
+          </template>
+          <template v-if="$slots.header" #header="e">
+            <slot v-bind="e" name="header"></slot>
+          </template>
+          <template v-if="$slots.loading" #loading="e">
+            <slot v-bind="e" name="loading"></slot>
+          </template>
+          <template v-if="$slots.footer" #footer="e">
+            <slot v-bind="e" name="footer"></slot>
+          </template>
+
           <template #content="{ item }">
             <VkRenderer :source="[item]"></VkRenderer>
           </template>
