@@ -5,11 +5,6 @@ import { ElButton, ElMessage } from 'element-plus'
 import { defineComponent, onUnmounted, ref } from 'vue'
 import { emits, props } from './ctx'
 import { speechToText } from './speech-to-text'
-import 'recorder-core/src/engine/mp3'
-import 'recorder-core/src/engine/wav'
-import 'recorder-core/src/engine/mp3-engine'
-import 'recorder-core/src/extensions/waveview'
-import 'recorder-core/src/app-support/app'
 
 const LONG_PRESS_DURATION = 100 // 长按阈值，单位毫秒 (0.1秒)
 
@@ -45,7 +40,8 @@ export default defineComponent({
         })
       }
       catch (e) {
-        ElMessage.error(`录音失败:${e}`)
+        console.error('录音失败:', e)
+        emit('error', e)
         isDragging.value = false
         return
       }

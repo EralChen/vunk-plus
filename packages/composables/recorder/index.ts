@@ -1,11 +1,11 @@
 import type { AnyFunc } from '@vunk/shared'
 import type { Ref } from 'vue'
 import { noop } from '@vunk/shared/function'
-import { sleep } from '@vunk/shared/promise'
+import { sleep, waiting } from '@vunk/shared/promise'
 import { consola } from 'consola'
 // import { ElMessage } from 'element-plus'
 import Recorder from 'recorder-core'
-import { ref, shallowRef } from 'vue'
+import { ref, shallowRef, unref } from 'vue'
 import 'recorder-core/src/engine/mp3'
 import 'recorder-core/src/engine/wav'
 import 'recorder-core/src/engine/mp3-engine'
@@ -53,13 +53,18 @@ export function useRecorder (options?: {
   }
 
   function start () {
+    const waveView = unref(waveViewRef)
     if (
       Recorder.WaveView
-      && waveViewRef
+      && waveView
+      && !wave.value
     ) {
-      wave.value = Recorder.WaveView({
-        elem: waveViewRef.value,
-      })
+      waiting(() => waveView.clientWidth > 0)
+        .then(() => {
+          wave.value = Recorder.WaveView({
+            elem: waveView,
+          })
+        })
     }
 
     recorder.start()
