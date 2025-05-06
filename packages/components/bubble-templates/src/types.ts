@@ -36,4 +36,8 @@ export interface RenderDataRecord {
    */
   error?: boolean
 
+  /**
+   * @description 组件实例
+   */
+  elRef?: any
 }

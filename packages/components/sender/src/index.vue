@@ -41,9 +41,7 @@ export default defineComponent({
 
       const loadingRender = () => {
         return (
-          <Tooltip title="点击取消">
-            <LoadingButton />
-          </Tooltip>
+          <LoadingButton />
         )
       }
       const sendRender = () => {

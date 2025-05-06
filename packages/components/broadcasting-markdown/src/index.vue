@@ -23,7 +23,7 @@ export default defineComponent({
   },
   props,
   emits,
-  setup (props, { emit }) {
+  setup (props, { emit, expose }) {
     const _data = ref([]) as Ref<Paragraph[]>
 
     // 经过的段落
@@ -208,6 +208,17 @@ export default defineComponent({
       }
     }
 
+    /* 打断当前播报 */
+    const isInterrupted = ref(false)
+    const thePause = computed(() => {
+      return isInterrupted.value || props.pause
+    })
+    function interrupt () {
+      isInterrupted.value = true
+      emit('interrupt')
+    }
+    /* 打断当前播报 END */
+
     /* 收集段落状态 */
     const isBroadcasting = computed(() => {
       return theData.value.some(
@@ -251,6 +262,10 @@ export default defineComponent({
     }
     /* 收集段落状态 END */
 
+    expose({
+      interrupt,
+    })
+
     return {
       theData,
       ParagraphStatus,
@@ -258,6 +273,7 @@ export default defineComponent({
       isPrevParagraphFulfilled,
       isParagraphEnabled,
       processingParagraph,
+      thePause,
     }
   },
 })
@@ -265,13 +281,10 @@ export default defineComponent({
 
 <template>
   <slot :paragraphs="theData">
-    <!-- <ElButton @click="() => console.log(theData)">
-      log
-    </ElButton> -->
     <VkTypingMarkdown
       :source="fulfilledTextValue"
       :delay="200"
-      :pause="pause"
+      :pause="thePause"
     ></VkTypingMarkdown>
   </slot>
 
@@ -289,7 +302,7 @@ export default defineComponent({
         <HowlerSpeechView
           :render="render"
           :url="item.url"
-          :pause="pause"
+          :pause="thePause"
           :deferred="deferred"
           :data="item"
         >
@@ -297,7 +310,7 @@ export default defineComponent({
         <WebSpeechView
           v-if="webSpeech"
           :render="render"
-          :pause="pause"
+          :pause="thePause"
           :deferred="deferred"
           :data="item"
         ></WebSpeechView>

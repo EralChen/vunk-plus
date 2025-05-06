@@ -3,7 +3,7 @@ import type { __VkAgentChatProvider } from '@vunk-plus/components/agent-chat-pro
 import type { __VkBubbleList } from '@vunk-plus/components/bubble-list'
 import type { __VkChatIndependent } from '@vunk-plus/components/chat-independent'
 import { speechToText, textToSpeech } from '@/api/application'
-import { Role, VkAgentChatProvider } from '@vunk-plus/components/agent-chat-provider'
+import { VkAgentChatProvider } from '@vunk-plus/components/agent-chat-provider'
 import { VkChatIndependent } from '@vunk-plus/components/chat-independent'
 import { setData } from '@vunk/core'
 import { useDeferred } from '@vunk/core/composables'
@@ -17,7 +17,6 @@ import { useRequest } from './useRequest'
 const {
   stt_model_enable,
   id: applicationId,
-  prologue,
 } = useApplicationProfile()
 
 const { ready, request } = useRequest()
@@ -134,12 +133,10 @@ const speechToTextFn: __VkChatIndependent.SpeechToText = (blob) => {
   margin-bottom: 40px;
 }
 .home-chat-independent .vk-chat-independent-main__bubbles{
-
    mask-image: linear-gradient(to bottom,
     rgba(0, 0, 0, 0.4),
     rgba(0, 0, 0, 1) 80%,
     rgba(0, 0, 0, 1) 100%
   );
-
 }
 </style>

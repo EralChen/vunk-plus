@@ -24,6 +24,10 @@ export type AgentMessage = BubbleMessage & {
 export type BubbleMessage = Partial<BubbleListItemProps> & {
   role: string
   content: string
+
+  /**
+   * @description 服务端请求是否完成
+   */
   seviceEnd?: boolean
 
   thinkingStatus?: 'start' | 'thinking' | 'end' | 'error'
@@ -31,6 +35,9 @@ export type BubbleMessage = Partial<BubbleListItemProps> & {
 
   meta?: NormalObject
 
+  abortController?: AbortController
+
+  [key: string]: any
 }
 
 export type BubbleItem = BubbleItemBasic

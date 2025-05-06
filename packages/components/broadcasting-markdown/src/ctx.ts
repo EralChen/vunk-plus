@@ -81,6 +81,7 @@ export const props = {
 
 export const emits = {
   'setData': (e: SetDataEvent) => e,
+  'interrupt': null,
   'update:broadcasting': (_: boolean) => true,
   'update:completed': (_: boolean) => true,
   'update:error': (_: boolean) => true,

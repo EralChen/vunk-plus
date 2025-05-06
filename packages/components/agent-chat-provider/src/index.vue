@@ -14,7 +14,7 @@ export default defineComponent({
       type: Function as PropType<AnyFunc>,
     },
     parser: {
-      type: Function as PropType<Parser>,
+      type: Function as PropType<AnyFunc>,
     },
   },
   emits: {
