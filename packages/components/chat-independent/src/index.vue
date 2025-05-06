@@ -119,7 +119,7 @@ function onSubmit (nextContent: string) {
               v-model="content"
               :auto-size="true"
               placeholder="请输入内容"
-              :disabled="senderDisabled"
+              :send-disabled="senderDisabled"
               @submit="onSubmit"
             ></VkSender>
           </div>

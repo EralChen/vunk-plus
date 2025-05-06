@@ -42,6 +42,12 @@ export const props = {
     type: Array<Module>,
     default: () => [],
   },
+
+  sendDisabled: {
+    type: Boolean,
+    default: false,
+  },
+
 }
 
 export const emits = {

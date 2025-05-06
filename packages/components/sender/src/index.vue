@@ -51,6 +51,7 @@ export default defineComponent({
           <SendButton
             type="text"
             icon={<SendOutlined />}
+            disabled={props.sendDisabled}
           />
         )
       }
@@ -145,7 +146,9 @@ export default defineComponent({
     :loading="loading"
     :allow-speech="true"
     :actions="actionsRender"
-    :on-submit="(e) => $emit('submit', e)"
+    :on-submit="(e) => {
+      !sendDisabled && $emit('submit', e)
+    }"
     :on-cancel="() => $emit('cancel')"
     @update:value="$emit('update:modelValue', $event)"
     @paste-file="handlePasteFile"

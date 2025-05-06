@@ -63,7 +63,7 @@ export default defineConfig(({ mode }) => {
         symbolId: 'icon-[dir]-[name]',
       }),
 
-      // mkcert(),
+      mkcert(),
 
     ],
 
