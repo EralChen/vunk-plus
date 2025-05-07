@@ -52,7 +52,7 @@ export function useRequest () {
     const abortController = new AbortController()
 
     let content = ''
-    const role = Role.Assistant
+    const role = Role.Broadcasting
     let thinkingContent = ''
     let thinkingStatus: __VkAgentChatProvider.AgentMessage['thinkingStatus'] = 'start'
     let seviceLoading = true
@@ -71,8 +71,8 @@ export function useRequest () {
         role,
         content,
         thinkingContent,
-        thinkingStatus,
-        seviceLoading,
+        thinkingStatus: 'end',
+        seviceLoading: false,
         seviceEnd: true,
         abortController,
       })

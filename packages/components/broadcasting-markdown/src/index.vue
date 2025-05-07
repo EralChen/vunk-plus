@@ -1,13 +1,11 @@
 <script lang="ts">
-import type { SetDataEvent } from '@vunk/core'
-import type { Ref } from 'vue'
 import type { Paragraph } from './types'
 import { VkTypingMarkdown } from '@vunk-plus/components/typing-markdown'
 import { setData } from '@vunk/core'
+import { useDataComputed } from '@vunk/core/composables'
 import { computed, defineComponent, ref, watch, watchEffect } from 'vue'
 import { Broadcast, ParagraphStatus } from './const'
 import { emits, props } from './ctx'
-// import CustomSpeechView from './custom-speech.vue'
 import HowlerSpeechView from './howler-speech.vue'
 import ParagraphView from './paragraph.vue'
 import WebSpeechView from './web-speech.vue'
@@ -18,25 +16,15 @@ export default defineComponent({
     ParagraphView,
     VkTypingMarkdown,
     WebSpeechView,
-    // CustomSpeechView,
     HowlerSpeechView,
   },
   props,
   emits,
   setup (props, { emit, expose }) {
-    const _data = ref([]) as Ref<Paragraph[]>
-
     // 经过的段落
-    const theData = computed(() => {
-      return props.data ?? _data.value
-    })
-    const handleSetData = (e: SetDataEvent) => {
-      if (props.data === undefined) {
-        setData(_data.value, e)
-        return
-      }
-      emit('setData', e)
-    }
+    const [theData, handleSetData] = useDataComputed({
+      default: [] as Paragraph[],
+    }, props, emit)
 
     const addParagraph = (paragraph: Paragraph) => {
       const k = theData.value.length
@@ -274,6 +262,7 @@ export default defineComponent({
       isParagraphEnabled,
       processingParagraph,
       thePause,
+      setData,
     }
   },
 })
@@ -297,14 +286,17 @@ export default defineComponent({
   >
     <template #default="{ deferred }">
       <slot
-        name="paragraph" :data="item" :deferred="deferred"
+        name="paragraph"
+        :data="item"
+        :deferred="deferred"
+        :pause="thePause"
       >
         <HowlerSpeechView
           :render="render"
-          :url="item.url"
           :pause="thePause"
           :deferred="deferred"
           :data="item"
+          @set-data="setData(item, $event)"
         >
         </HowlerSpeechView>
         <WebSpeechView

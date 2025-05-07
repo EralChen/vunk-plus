@@ -1,4 +1,5 @@
 import type { SetDataEvent } from '@vunk/core'
+import type { Deferred } from '@vunk/shared/promise'
 import type { PropType } from 'vue'
 import type { Paragraph, TextToSpeech } from './types'
 import { defaultRender } from './const'
@@ -85,4 +86,27 @@ export const emits = {
   'update:broadcasting': (_: boolean) => true,
   'update:completed': (_: boolean) => true,
   'update:error': (_: boolean) => true,
+}
+
+export const paragraphProps = {
+  data: {
+    type: Object as PropType<Paragraph>,
+    default: () => ({}),
+  },
+  deferred: {
+    type: Object as PropType<Deferred<any>>,
+    required: true as const,
+  },
+  pause: {
+    type: Boolean,
+    default: false,
+  },
+  render: {
+    type: Function as PropType<(text: string) => string>,
+    default: defaultRender,
+  },
+}
+
+export const paragraphEmits = {
+  setData: (e: SetDataEvent<keyof Paragraph>) => e,
 }

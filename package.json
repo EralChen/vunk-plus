@@ -59,6 +59,7 @@
     "mri": "^1.2.0",
     "pinia": "^2.1.7",
     "pinia-plugin-persist": "^1.0.0",
+    "pixi.js": "^8.9.2",
     "rollup": "^4.13.0",
     "sass": "^1.71.1",
     "sucrase": "^3.35.0",

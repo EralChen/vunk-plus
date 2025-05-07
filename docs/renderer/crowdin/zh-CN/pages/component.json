@@ -90,6 +90,19 @@
       {
         "link": "/chat-independent",
         "text": "ChatIndependent"
+      },
+      {
+        "link": "/metahuman-broadcasting",
+        "text": "MetahumanBroadcasting"
+      }
+    ]
+  },
+  "pixi": {
+    "text": "Pixi",
+    "children": [
+      {
+        "link": "/pixi-frame",
+        "text": "PixiFrame"
       }
     ]
   }
