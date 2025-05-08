@@ -16,10 +16,6 @@ const props = defineProps({
     type: String as PropType<ParagraphStatus>,
     default: ParagraphStatus.initial,
   },
-  pause: {
-    type: Boolean,
-    default: false,
-  },
   processing: {
     type: Function as PropType<AnyFunc>,
     default: noop,

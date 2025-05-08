@@ -26,11 +26,10 @@ export default defineComponent({
     :text-to-speech="textToSpeech"
     :source="source"
   >
-    <template #paragraph="{ deferred, data, pause }">
+    <template #paragraph="{ deferred, data }">
       <Paragraph
         :deferred="deferred"
         :data="data"
-        :pause="pause"
         :send="send"
         @set-data="setData(data, $event)"
       ></Paragraph>

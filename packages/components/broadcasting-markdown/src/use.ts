@@ -3,8 +3,8 @@ import type { } from '@vunk/shared/enum'
 import type { Deferred } from '@vunk/shared/promise'
 import type { Paragraph } from './types'
 import { Howl } from 'howler'
-import { computed, onBeforeUnmount, onMounted, shallowRef, watch } from 'vue'
-import { Broadcast, ParagraphStatus } from './const'
+import { computed, onBeforeUnmount, onMounted, shallowRef, watch, watchEffect } from 'vue'
+import { Broadcast } from './const'
 
 /* init Howl */
 const originalPlay = Howl.prototype.play
@@ -24,15 +24,9 @@ export function useHowlerParagraph (
   props: {
     data: Paragraph
     deferred: Deferred<any>
-    pause: boolean
   },
   emit: (e: 'setData', data: SetDataEvent<keyof Paragraph>) => void,
-
-  options?: {
-    autoPlay?: boolean
-  },
 ) {
-  const autoPlay = options?.autoPlay ?? true
   // 使用ref保存Howl实例
   const sound = shallowRef<Howl | null>(null)
 
@@ -80,6 +74,12 @@ export function useHowlerParagraph (
         }, 400)
         props.deferred.resolve(true)
       },
+      onstop: () => {
+        emit('setData', {
+          k: 'broadcast',
+          v: Broadcast.stopped,
+        })
+      },
       onloaderror: (_, error) => {
         // theData.value.broadcast = Broadcast.failed
         emit('setData', {
@@ -100,7 +100,6 @@ export function useHowlerParagraph (
   }
 
   const url = computed(() => props.data.url)
-
   const broadcast = computed(() => props.data.broadcast)
 
   // URL变化时重新创建Howl实例
@@ -118,27 +117,16 @@ export function useHowlerParagraph (
     }
   })
 
-  watch(() => props.pause, (isPaused) => {
-    if (props.data.status !== ParagraphStatus.pending)
-      return
+  watchEffect(() => {
+    if (broadcast.value === Broadcast.play) {
+      sound.value?.play()
+    } else if (broadcast.value === Broadcast.pause) {
+      sound.value?.pause()
+    } else if (broadcast.value === Broadcast.stop) {
+      sound.value?.stop()
+    }
+  })
 
-    if (isPaused) {
-      // 暂停播放
-      if (sound.value && sound.value.playing()) {
-        sound.value.pause()
-      }
-    }
-    else {
-      // 开始或恢复播放
-      if (
-        props.data.broadcast === Broadcast.failed
-        || props.data.broadcast === Broadcast.pending
-        || props.data.broadcast === Broadcast.paused
-      ) {
-        autoPlay && sound.value?.play()
-      }
-    }
-  }, { immediate: true })
 
   return {
     url,

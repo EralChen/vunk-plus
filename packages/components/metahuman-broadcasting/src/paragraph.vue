@@ -28,9 +28,7 @@ export default defineComponent({
       return () => null
     }
 
-    const { url, sound } = useHowlerParagraph(props, emit, {
-      autoPlay: true,
-    })
+    const { url, sound } = useHowlerParagraph(props, emit)
     watchEffect(() => {
       if (sound.value) {
         emit('setData', {

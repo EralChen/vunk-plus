@@ -80,7 +80,6 @@ function play () {
     startFrameLoop()
   }
 }
-
 // 停止动画
 function pause () {
   emit('update:status', TickerStatus.paused)

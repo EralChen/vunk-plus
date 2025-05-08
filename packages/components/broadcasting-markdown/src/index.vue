@@ -3,19 +3,18 @@ import type { Paragraph } from './types'
 import { VkTypingMarkdown } from '@vunk-plus/components/typing-markdown'
 import { setData } from '@vunk/core'
 import { useDataComputed } from '@vunk/core/composables'
+import { TickerStatus } from '@vunk/shared/enum'
 import { computed, defineComponent, ref, watch, watchEffect } from 'vue'
 import { Broadcast, ParagraphStatus } from './const'
 import { emits, props } from './ctx'
 import HowlerSpeechView from './howler-speech.vue'
 import ParagraphView from './paragraph.vue'
-import WebSpeechView from './web-speech.vue'
 
 export default defineComponent({
   name: 'VkBroadcastingMarkdown',
   components: {
     ParagraphView,
     VkTypingMarkdown,
-    WebSpeechView,
     HowlerSpeechView,
   },
   props,
@@ -198,11 +197,11 @@ export default defineComponent({
 
     /* 打断当前播报 */
     const isInterrupted = ref(false)
-    const thePause = computed(() => {
-      return isInterrupted.value || props.pause
-    })
     function interrupt () {
       isInterrupted.value = true
+      theData.value.forEach((item) => {
+        item.broadcast = Broadcast.stop
+      })
       emit('interrupt')
     }
     /* 打断当前播报 END */
@@ -215,16 +214,19 @@ export default defineComponent({
     })
     watchEffect(() => {
       emit('update:broadcasting', isBroadcasting.value)
+      emit('update:status', TickerStatus.playing)
     })
 
     const isCompleted = computed(() => {
       return props.keepRead === false && theData.value.every(
-        item => item.status === ParagraphStatus.fulfilled,
+        item => item.broadcast === TickerStatus.stopped
+          || item.broadcast === TickerStatus.paused,
       )
     })
 
     watchEffect(() => {
       emit('update:completed', isCompleted.value)
+      emit('update:status', TickerStatus.stopped)
     })
 
     const isError = computed(() => {
@@ -234,6 +236,7 @@ export default defineComponent({
     })
     watchEffect(() => {
       emit('update:error', isError.value)
+      emit('update:status', TickerStatus.failed)
     })
 
     function isPrevParagraphFulfilled (currentIndex: number) {
@@ -261,8 +264,9 @@ export default defineComponent({
       isPrevParagraphFulfilled,
       isParagraphEnabled,
       processingParagraph,
-      thePause,
+      isInterrupted,
       setData,
+      Broadcast,
     }
   },
 })
@@ -272,8 +276,8 @@ export default defineComponent({
   <slot :paragraphs="theData">
     <VkTypingMarkdown
       :source="fulfilledTextValue"
-      :delay="100"
-      :pause="thePause"
+      :delay="180"
+      :pause="isInterrupted"
     ></VkTypingMarkdown>
   </slot>
 
@@ -289,23 +293,14 @@ export default defineComponent({
         name="paragraph"
         :data="item"
         :deferred="deferred"
-        :pause="thePause"
       >
         <HowlerSpeechView
           :render="render"
-          :pause="thePause"
           :deferred="deferred"
           :data="item"
           @set-data="setData(item, $event)"
         >
         </HowlerSpeechView>
-        <WebSpeechView
-          v-if="webSpeech"
-          :render="render"
-          :pause="thePause"
-          :deferred="deferred"
-          :data="item"
-        ></WebSpeechView>
       </slot>
     </template>
   </ParagraphView>

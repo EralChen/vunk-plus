@@ -3,9 +3,9 @@ import type { Deferred } from '@vunk/shared/promise'
 import type { PropType } from 'vue'
 import type { Paragraph, TextToSpeech } from './types'
 import { defaultRender } from './const'
+import { TickerStatus } from '@vunk/shared/enum'
 
 export const props = {
-
   /**
    * @description md文本转纯文本的函数
    */
@@ -46,26 +46,15 @@ export const props = {
     default: () => ['\n\n', '\n'],
   },
 
-  /**
-   * @description 暂停的
-   */
-  pause: {
-    type: Boolean,
-    default: false,
-  },
 
+  status: {
+    type: String as PropType<TickerStatus>,
+    default: TickerStatus.pending,
+  },
   /**
    * @description 组件内会根据当前游标是否和 source 长度一致来判断，是否持续阅读, 当一致时，会关闭阅读状态。但若设置为 true，则会持续阅读, 这在动态接收数据时会有用
    */
   keepRead: {
-    type: Boolean,
-    default: false,
-  },
-
-  /**
-   * @description 是否使用 web speech api
-   */
-  webSpeech: {
     type: Boolean,
     default: false,
   },
@@ -82,6 +71,8 @@ export const props = {
 
 export const emits = {
   'setData': (e: SetDataEvent) => e,
+  'update:status': (_: TickerStatus) => true,
+
   'interrupt': null,
   'update:broadcasting': (_: boolean) => true,
   'update:completed': (_: boolean) => true,
@@ -97,10 +88,6 @@ export const paragraphProps = {
     type: Object as PropType<Deferred<any>>,
     required: true as const,
   },
-  pause: {
-    type: Boolean,
-    default: false,
-  },
   render: {
     type: Function as PropType<(text: string) => string>,
     default: defaultRender,
@@ -109,4 +96,5 @@ export const paragraphProps = {
 
 export const paragraphEmits = {
   setData: (e: SetDataEvent<keyof Paragraph>) => e,
+
 }
