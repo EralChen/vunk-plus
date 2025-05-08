@@ -2,8 +2,8 @@ import type { SetDataEvent } from '@vunk/core'
 import type { Deferred } from '@vunk/shared/promise'
 import type { PropType } from 'vue'
 import type { Paragraph, TextToSpeech } from './types'
+import { noop } from '@vunk/shared/function'
 import { defaultRender } from './const'
-import { TickerStatus } from '@vunk/shared/enum'
 
 export const props = {
   /**
@@ -46,11 +46,6 @@ export const props = {
     default: () => ['\n\n', '\n'],
   },
 
-
-  status: {
-    type: String as PropType<TickerStatus>,
-    default: TickerStatus.pending,
-  },
   /**
    * @description 组件内会根据当前游标是否和 source 长度一致来判断，是否持续阅读, 当一致时，会关闭阅读状态。但若设置为 true，则会持续阅读, 这在动态接收数据时会有用
    */
@@ -67,12 +62,17 @@ export const props = {
     default: undefined,
   },
 
+  processing: {
+    type: Function as PropType<
+      (paragraph: Paragraph) => void
+    >,
+    default: noop,
+  },
+
 }
 
 export const emits = {
   'setData': (e: SetDataEvent) => e,
-  'update:status': (_: TickerStatus) => true,
-
   'interrupt': null,
   'update:broadcasting': (_: boolean) => true,
   'update:completed': (_: boolean) => true,

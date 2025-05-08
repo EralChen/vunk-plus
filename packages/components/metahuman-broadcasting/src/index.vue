@@ -30,7 +30,7 @@ export default defineComponent({
       <Paragraph
         :deferred="deferred"
         :data="data"
-        :send="send"
+        @load="$emit('paragraphLoad', $event)"
         @set-data="setData(data, $event)"
       ></Paragraph>
     </template>

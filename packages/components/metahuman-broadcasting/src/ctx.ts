@@ -1,5 +1,6 @@
+import type { Deferred } from '@vunk/shared/promise'
 import type { PropType } from 'vue'
-import type { TextToSpeech } from './types'
+import type { Paragraph, TextToSpeech } from './types'
 import { TickerStatus } from '@vunk/shared/enum'
 
 export const props = {
@@ -7,17 +8,10 @@ export const props = {
     type: Function as PropType<TextToSpeech>,
     required: true as const,
   },
-
   source: {
     type: String,
     default: '',
   },
-
-  send: {
-    type: Function as PropType<(dataUrl: string) => void>,
-    required: true as const,
-  },
-
   status: {
     type: String as PropType<TickerStatus>,
     default: TickerStatus.pending,
@@ -25,4 +19,9 @@ export const props = {
 }
 
 export const emits = {
+  'update:status': null,
+  'paragraphLoad': (e: {
+    data: Paragraph
+    deferred: Deferred<any>
+  }) => e,
 }

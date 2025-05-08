@@ -3,7 +3,6 @@ import type { Paragraph } from './types'
 import { VkTypingMarkdown } from '@vunk-plus/components/typing-markdown'
 import { setData } from '@vunk/core'
 import { useDataComputed } from '@vunk/core/composables'
-import { TickerStatus } from '@vunk/shared/enum'
 import { computed, defineComponent, ref, watch, watchEffect } from 'vue'
 import { Broadcast, ParagraphStatus } from './const'
 import { emits, props } from './ctx'
@@ -46,6 +45,9 @@ export default defineComponent({
       return props.textToSpeech(`${value}`)
         .then((url) => {
           paragraph.url = url
+        })
+        .then(async () => {
+          await props.processing?.(paragraph)
         })
     }
 
@@ -214,19 +216,16 @@ export default defineComponent({
     })
     watchEffect(() => {
       emit('update:broadcasting', isBroadcasting.value)
-      emit('update:status', TickerStatus.playing)
     })
 
     const isCompleted = computed(() => {
       return props.keepRead === false && theData.value.every(
-        item => item.broadcast === TickerStatus.stopped
-          || item.broadcast === TickerStatus.paused,
+        item => item.status === ParagraphStatus.fulfilled,
       )
     })
 
     watchEffect(() => {
       emit('update:completed', isCompleted.value)
-      emit('update:status', TickerStatus.stopped)
     })
 
     const isError = computed(() => {
@@ -236,7 +235,6 @@ export default defineComponent({
     })
     watchEffect(() => {
       emit('update:error', isError.value)
-      emit('update:status', TickerStatus.failed)
     })
 
     function isPrevParagraphFulfilled (currentIndex: number) {

@@ -2,7 +2,7 @@
 import type { Texture } from 'pixi.js'
 import { TickerStatus } from '@vunk/shared/enum'
 import { Assets, Sprite } from 'pixi.js'
-import { ref, watchEffect } from 'vue'
+import { nextTick, ref, watchEffect } from 'vue'
 import { props as dProps, emits } from './ctx'
 import { usePixiApp } from './use'
 
@@ -61,6 +61,8 @@ function startFrameLoop () {
 
     const currentTexture = textureMap.get(props.data[index.value])
 
+    console.log('currentTexture', index.value, currentTexture)
+
     if (currentTexture) {
       sprite.texture = currentTexture
       resizeSprite()
@@ -75,9 +77,10 @@ function startFrameLoop () {
 // 开始播放动画
 function play () {
   if (props.data.length > 0) {
-    emit('update:status', TickerStatus.playing)
-    index.value = 0
-    startFrameLoop()
+    nextTick(() => {
+      emit('update:status', TickerStatus.playing)
+      startFrameLoop()
+    })
   }
 }
 // 停止动画

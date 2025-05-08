@@ -2,6 +2,4 @@ import type { __VkBroadcastingMarkdown } from '@vunk-plus/components/broadcastin
 
 export type TextToSpeech = __VkBroadcastingMarkdown.TextToSpeech
 
-export interface Paragraph extends __VkBroadcastingMarkdown.Paragraph {
-  sound?: Howl
-}
+export type Paragraph = __VkBroadcastingMarkdown.Paragraph
