@@ -18,7 +18,7 @@ export default defineComponent({
     // 如果文本为空，则直接结束
     if (!value.trim()) {
       props.deferred.resolve(true)
-      theData.value.broadcast = Broadcast.ended
+      theData.value.broadcast = Broadcast.stopped
       return () => null
     }
 

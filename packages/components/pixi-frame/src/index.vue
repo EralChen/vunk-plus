@@ -1,4 +1,5 @@
 <script lang="ts">
+import type { } from '@vunk/shared/enum'
 import { defineComponent } from 'vue'
 import AppView from './app.vue'
 import CoreView from './core.vue'
@@ -12,7 +13,7 @@ export default defineComponent({
   },
   props,
   emits,
-  setup (props, { emit }) {
+  setup () {
     return {}
   },
 })
@@ -21,8 +22,8 @@ export default defineComponent({
 <template>
   <AppView>
     <CoreView
-      :data="data"
-      :loop="loop"
+      v-bind="$props"
+      @update:status="$emit('update:status', $event)"
     ></CoreView>
   </AppView>
 </template>

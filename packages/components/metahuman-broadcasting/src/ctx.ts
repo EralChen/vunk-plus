@@ -1,5 +1,6 @@
 import type { PropType } from 'vue'
 import type { TextToSpeech } from './types'
+import { TickerStatus } from '@vunk/shared/enum'
 
 export const props = {
   textToSpeech: {
@@ -15,6 +16,11 @@ export const props = {
   send: {
     type: Function as PropType<(dataUrl: string) => void>,
     required: true as const,
+  },
+
+  status: {
+    type: String as PropType<TickerStatus>,
+    default: TickerStatus.pending,
   },
 }
 

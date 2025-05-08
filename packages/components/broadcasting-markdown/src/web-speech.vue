@@ -3,7 +3,7 @@ import type { Deferred } from '@vunk/shared/promise'
 import type { PropType } from 'vue'
 import type { Paragraph } from './types'
 import { computed, defineComponent, watch } from 'vue'
-import { Broadcast, defaultRender, ParagraphStatus } from './const'
+import { Broadcast, ParagraphStatus } from './const'
 import SpeechError from './speech-error.vue'
 
 export default defineComponent({
@@ -37,7 +37,7 @@ export default defineComponent({
     const theData = computed(() => props.data)
     if (!value.trim()) {
       props.deferred.resolve(true)
-      theData.value.broadcast = Broadcast.ended
+      theData.value.broadcast = Broadcast.stopped
       return () => null
     }
 
@@ -45,7 +45,7 @@ export default defineComponent({
 
     utterThis.onend = function () {
       props.deferred.resolve(true)
-      theData.value.broadcast = Broadcast.ended
+      theData.value.broadcast = Broadcast.stopped
     }
 
     utterThis.onstart = function () {
@@ -75,7 +75,7 @@ export default defineComponent({
 
           if (
             theData.value.broadcast === Broadcast.failed
-            || theData.value.broadcast === Broadcast.initial
+            || theData.value.broadcast === Broadcast.pending
           ) {
             if (props.data.start === 0) {
               window.speechSynthesis.cancel()

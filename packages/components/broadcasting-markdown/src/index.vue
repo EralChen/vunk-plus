@@ -72,7 +72,7 @@ export default defineComponent({
 
       // 首句未开始直接为空
       if (
-        theData.value[0].broadcast === Broadcast.initial
+        theData.value[0].broadcast === Broadcast.pending
       ) {
         return '......'
       }
@@ -143,7 +143,7 @@ export default defineComponent({
               end,
               status: ParagraphStatus.initial,
               value,
-              broadcast: Broadcast.initial,
+              broadcast: Broadcast.pending,
             }
             addParagraph(paragraph)
           }
@@ -189,7 +189,7 @@ export default defineComponent({
             end,
             status: ParagraphStatus.initial,
             value,
-            broadcast: Broadcast.initial,
+            broadcast: Broadcast.pending,
           }
           addParagraph(paragraph)
         }
@@ -272,7 +272,7 @@ export default defineComponent({
   <slot :paragraphs="theData">
     <VkTypingMarkdown
       :source="fulfilledTextValue"
-      :delay="200"
+      :delay="100"
       :pause="thePause"
     ></VkTypingMarkdown>
   </slot>

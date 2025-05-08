@@ -1,4 +1,5 @@
 import type { PropType } from 'vue'
+import { TickerStatus } from '@vunk/shared/enum'
 
 export const props = {
   data: {
@@ -11,9 +12,16 @@ export const props = {
    */
   loop: {
     type: Boolean,
-    default: false, // 默认循环
+    default: false,
+  },
+
+  status: {
+    type: String as PropType<TickerStatus>,
+    default: TickerStatus.pending,
   },
 }
 
 export const emits = {
+  'update:status': null,
+  'update:data': null,
 }

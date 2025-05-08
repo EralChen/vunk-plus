@@ -1,4 +1,5 @@
 import type { NormalObject, SetDataEvent } from '@vunk/core'
+import type { } from '@vunk/shared/enum'
 import type { Deferred } from '@vunk/shared/promise'
 import type { Paragraph } from './types'
 import { Howl } from 'howler'
@@ -28,10 +29,10 @@ export function useHowlerParagraph (
   emit: (e: 'setData', data: SetDataEvent<keyof Paragraph>) => void,
 
   options?: {
-    immediate: boolean
+    autoPlay?: boolean
   },
 ) {
-  const immediate = options?.immediate ?? true
+  const autoPlay = options?.autoPlay ?? true
   // 使用ref保存Howl实例
   const sound = shallowRef<Howl | null>(null)
 
@@ -68,7 +69,7 @@ export function useHowlerParagraph (
         // theData.value.broadcast = Broadcast.ended
         emit('setData', {
           k: 'broadcast',
-          v: Broadcast.ended,
+          v: Broadcast.stopped,
         })
         // 销毁实例
         setTimeout(() => {
@@ -131,13 +132,13 @@ export function useHowlerParagraph (
       // 开始或恢复播放
       if (
         props.data.broadcast === Broadcast.failed
-        || props.data.broadcast === Broadcast.initial
+        || props.data.broadcast === Broadcast.pending
         || props.data.broadcast === Broadcast.paused
       ) {
-        sound.value?.play()
+        autoPlay && sound.value?.play()
       }
     }
-  }, { immediate })
+  }, { immediate: true })
 
   return {
     url,

@@ -1,4 +1,5 @@
-import type { Broadcast, ParagraphStatus } from './const'
+import type { TickerStatus } from '@vunk/shared/enum'
+import type { ParagraphStatus } from './const'
 
 export interface Paragraph {
   value: string
@@ -7,7 +8,7 @@ export interface Paragraph {
   end: number
   separator: string
 
-  broadcast: Broadcast
+  broadcast: TickerStatus
 
   /**
    * @description 语音合成的 url

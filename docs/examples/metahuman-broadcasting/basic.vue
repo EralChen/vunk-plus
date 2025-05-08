@@ -3,9 +3,8 @@ import type { __VkMetahumanBroadcasting } from '@vunk-plus/components/metahuman-
 import { authentication, textToSpeech } from '#/api/application'
 import { useWebSocket } from '@vueuse/core'
 import { VkMetahumanBroadcasting } from '@vunk-plus/components/metahuman-broadcasting'
-import { VkPixiFrame } from '@vunk-plus/components/pixi-frame'
+import { TickerStatus, VkPixiFrame } from '@vunk-plus/components/pixi-frame'
 import { reactive, ref, watchEffect } from 'vue'
-import PixiFrame from './pixi-frame.vue'
 
 function blobToDataURL (blob: Blob): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -15,7 +14,17 @@ function blobToDataURL (blob: Blob): Promise<string> {
     reader.readAsDataURL(blob)
   })
 }
-const text = `下面是一篇约 800 字的童话故事，适合儿童阅读:《月光下的小狐狸》`
+const text = `
+
+大自然里，草长莺飞，莺歌燕舞，她生活在一个美好的世界里。
+
+然而，当她经过茧里的痛苦与挣扎，终于破茧而出时，却不是一只在空中轻盈飞舞的花蝴蝶，而是蜕变成为了一只灰色的小飞蛾。
+
+在同伴的叹息中，她笑着流下了激动的泪水，微笑着说：“上帝给了我生命，就是宝贵的，渺小的我也依然能够在这个美丽的世界中划上一抹绚丽的色彩，做一只用于扑火的飞蛾，又何乐而不为呢？”
+
+没有翅膀的飞翔更接近天堂，有些美丽是不需要书写的。
+
+`
 
 const authenticationPromise = authentication({
   access_token: '859436e6e5fe3e63',
@@ -35,8 +44,9 @@ const textToSpeechFn: __VkMetahumanBroadcasting.TextToSpeech = async (text) => {
 }
 
 const pause = ref(true)
+const frameStatus = ref(TickerStatus.pending)
 
-const { status, data, send, open, close } = useWebSocket('ws://localhost:8001/ws', {
+const { data, send } = useWebSocket('ws://localhost:8001/ws', {
   autoReconnect: true,
 })
 
@@ -47,8 +57,14 @@ watchEffect(() => {
     const url = `data:image/jpeg;base64,${json.frame_data}`
     frameUrls.push(url)
   }
-  else if (json?.type === 'streaming_complete') {
-    pause.value = false
+  else if (
+    (json?.type === 'progress' && json.frame === 60)
+    || json?.type === 'streaming_complete'
+  ) {
+    if (frameStatus.value === TickerStatus.pending) {
+      frameStatus.value = TickerStatus.play
+      pause.value = false
+    }
   }
 })
 
@@ -74,7 +90,7 @@ function audioSend (dataUrl: string) {
     <ElButton @click="pause = false">
       play
     </ElButton>
-
+    {{ frameStatus }}
     <ElButton @click="() => console.log(frameUrls)">
       log
     </ElButton>
@@ -82,7 +98,7 @@ function audioSend (dataUrl: string) {
 
   <div h-600px w-400px>
     <VkPixiFrame
-      v-if="!pause"
+      v-model:status="frameStatus"
       :data="frameUrls"
     ></VkPixiFrame>
   </div>

@@ -1,3 +1,5 @@
+import { TickerStatus } from '@vunk/shared/enum'
+
 function markdownToPlainText (md: string) {
   return (
     md
@@ -48,17 +50,4 @@ export enum ParagraphStatus {
   rejected = 'rejected',
 }
 
-export enum Broadcast {
-  /* 未开始的 */
-  initial = 'initial',
-  /* 播放中的 */
-  playing = 'playing',
-  /* 播放结束的 */
-  ended = 'ended',
-
-  /* 暂停的 */
-  paused = 'paused',
-
-  /* 播放失败的 */
-  failed = 'failed',
-}
+export const Broadcast = TickerStatus

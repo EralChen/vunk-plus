@@ -36,8 +36,8 @@ importers:
         specifier: workspace:*
         version: link:packages/entry
       '@vunk/shared':
-        specifier: 0.8.4
-        version: 0.8.4
+        specifier: 0.8.7
+        version: 0.8.7
       ant-design-vue:
         specifier: ^4.2.6
         version: 4.2.6(vue@3.5.13(typescript@5.8.3))
@@ -2772,8 +2772,8 @@ packages:
   '@vunk/gsap@0.0.0-alpha.3':
     resolution: {integrity: sha512-UTyP4VmeAoMY+eab/OhFyyXrd21W4zgQuV2px4r/5x8iox187yf3AH42zuI//ub+loVTgE74iu9MQasTJ8NdMw==}
 
-  '@vunk/shared@0.8.4':
-    resolution: {integrity: sha512-dZonT9eVw7wTd67Io3c20LG+X0N6Tj3GSpz3jaHOusVVM3cX7Eh3rWtprr5KBAWFbgcEuLMD40T+wNnIDPUnRg==}
+  '@vunk/shared@0.8.7':
+    resolution: {integrity: sha512-Ou9qgOEdXp1S1VgsWSqoRuWeHJp8VdAaa5iHQYiUjmRVpN83Th0fDT6Z3bUaqjA+h0GXGE/elzKH8O52Mb/ZZA==}
 
   '@webgpu/types@0.1.60':
     resolution: {integrity: sha512-8B/tdfRFKdrnejqmvq95ogp8tf52oZ51p3f4QD5m5Paey/qlX4Rhhy5Y8tgFMi7Ms70HzcMMw3EQjH/jdhTwlA==}
@@ -9492,7 +9492,7 @@ snapshots:
 
   '@vunk/gsap@0.0.0-alpha.3': {}
 
-  '@vunk/shared@0.8.4': {}
+  '@vunk/shared@0.8.7': {}
 
   '@webgpu/types@0.1.60': {}
 

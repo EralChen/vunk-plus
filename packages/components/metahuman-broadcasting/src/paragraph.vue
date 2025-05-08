@@ -1,6 +1,8 @@
 <script lang="tsx">
+import type { SetDataEvent } from '@vunk/core'
+import type { Paragraph } from './types'
 import { _VkBroadcastingMarkdownCtx, Broadcast, useHowlerParagraph } from '@vunk-plus/components/broadcasting-markdown'
-import { defineComponent } from 'vue'
+import { defineComponent, watchEffect } from 'vue'
 
 export default defineComponent({
   props: {
@@ -11,7 +13,8 @@ export default defineComponent({
     },
   },
   emits: {
-    ..._VkBroadcastingMarkdownCtx.paragraphEmits,
+    // ..._VkBroadcastingMarkdownCtx.paragraphEmits,
+    setData: (e: SetDataEvent<keyof Paragraph>) => e,
   },
   setup (props, { emit }) {
     const value = props.render(props.data.value)
@@ -20,14 +23,24 @@ export default defineComponent({
       props.deferred.resolve(true)
       emit('setData', {
         k: 'broadcast',
-        v: Broadcast.ended,
+        v: Broadcast.stopped,
       })
       return () => null
     }
 
-    const { broadcast, url } = useHowlerParagraph(props, emit)
+    const { url, sound } = useHowlerParagraph(props, emit, {
+      autoPlay: true,
+    })
+    watchEffect(() => {
+      if (sound.value) {
+        emit('setData', {
+          k: 'sound',
+          v: sound.value,
+        })
+      }
+    })
 
-    props.send(url.value)
+    props.send?.(url.value)
 
     return () => null
   },
