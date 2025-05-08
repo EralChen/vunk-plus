@@ -77,10 +77,8 @@ function startFrameLoop () {
 // 开始播放动画
 function play () {
   if (props.data.length > 0) {
-    nextTick(() => {
-      emit('update:status', TickerStatus.playing)
-      startFrameLoop()
-    })
+    emit('update:status', TickerStatus.playing)
+    startFrameLoop()
   }
 }
 // 停止动画

@@ -62,6 +62,12 @@ watchEffect(() => {
     || json?.type === 'streaming_complete'
   ) {
     if (
+      frameStatus.value === TickerStatus.playing
+    ) {
+      return
+    }
+
+    if (
       frameStatus.value === TickerStatus.pending
     ) {
       console.log('image play')
