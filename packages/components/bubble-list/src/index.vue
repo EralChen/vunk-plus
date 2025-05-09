@@ -27,6 +27,8 @@ function getContentWraper (e: VNode) {
       :text-to-speech="textToSpeech"
     ></VkBubbleTemplates>
 
+    <slot name="renderer"></slot>
+
     <ElAutoResizer>
       <template #default="{ height }">
         <BubbleList

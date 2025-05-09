@@ -2,7 +2,6 @@
 import type { __VkBubbleList } from '@vunk-plus/components/bubble-list'
 import { useAgentChat } from '@vunk-plus/components/agent-chat-provider'
 import { VkBubbleList } from '@vunk-plus/components/bubble-list'
-// import { VkRecorderButton } from '@vunk-plus/components/recorder-button'
 import { VkSender } from '@vunk-plus/components/sender'
 import { VkKeyboardAvatar } from '@vunk-plus/icons/keyboard'
 import { VkVoiceAvatar } from '@vunk-plus/icons/voice'
@@ -110,6 +109,9 @@ function getBubbleDataAt (index: number) {
                 :items="bubbleItems"
                 :text-to-speech="textToSpeech"
               >
+                <template #renderer>
+                  <slot name="bubble_renderer"></slot>
+                </template>
                 <template #footer="e">
                   <slot v-bind="e" name="bubble_footer"></slot>
                 </template>

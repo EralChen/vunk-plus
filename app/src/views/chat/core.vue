@@ -7,8 +7,10 @@ import { VkAgentChatProvider } from '@vunk-plus/components/agent-chat-provider'
 import { VkChatIndependent } from '@vunk-plus/components/chat-independent'
 import { setData } from '@vunk/core'
 import { useDeferred } from '@vunk/core/composables'
+import { blobToDataURL } from '@vunk/shared/data'
 import { useApplicationProfile } from '_c/authentication'
 import { MetahumanBackground, MetahumanStatus } from '_c/metahuman-background'
+import { MetahumanBroadcastingRendererTemplate } from '_c/metahuman-broadcasting'
 import { consola } from 'consola'
 import { computed, ref, watchEffect } from 'vue'
 import { parser } from './parser'
@@ -34,11 +36,8 @@ function getBubbleDataAt (index: number) {
   }
   return {}
 }
-const lastBubbleData = computed(() => {
+const _lastBubbleData = computed(() => {
   return getBubbleDataAt(-1)
-})
-watchEffect(() => {
-  consola.info('lastBubbleData', lastBubbleData.value)
 })
 const currentBroadcasting = computed(() => {
   // 有没有  meta?.broadcasting === true
@@ -77,9 +76,7 @@ function textToSpeechFn (text: string) {
     application_id: applicationId,
     text,
   }).then((blob) => {
-    consola.info('textToSpeech', blob)
-    const url = URL.createObjectURL(blob)
-    return url
+    return blobToDataURL(blob)
   })
 }
 const speechToTextFn: __VkChatIndependent.SpeechToText = (blob) => {
@@ -112,6 +109,11 @@ const speechToTextFn: __VkChatIndependent.SpeechToText = (blob) => {
         :text-to-speech="textToSpeechFn"
         @set-data="setData(bubbleData, $event)"
       >
+        <template #bubble_renderer>
+          <MetahumanBroadcastingRendererTemplate
+            :text-to-speech="textToSpeechFn"
+          />
+        </template>
         <template #background>
           <MetahumanBackground
             :status="currentMetahumanStatus"

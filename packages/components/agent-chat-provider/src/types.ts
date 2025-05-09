@@ -37,6 +37,8 @@ export type BubbleMessage = Partial<BubbleListItemProps> & {
 
   abortController?: AbortController
 
+  templateType?: string
+
   [key: string]: any
 }
 
@@ -51,9 +53,8 @@ export type BubbleItemModule = 'Thinking'
 interface BubbleItemBasic extends BubbleMessage {
   key: string
   modules?: BubbleItemModule[]
-
 }
-interface RoleMediaBasic extends Partial<BubbleItemBasic>
+export interface RoleMediaBasic extends Partial<BubbleItemBasic>
   , Media {
   value: string
 }

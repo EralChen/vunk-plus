@@ -22,7 +22,7 @@ export const props = {
 
   frameRate: {
     type: Number,
-    default: 25,
+    default: 24,
   },
 }
 

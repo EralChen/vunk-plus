@@ -1,12 +1,15 @@
 import { type __VkAgentChatProvider, Role } from '@vunk-plus/components/agent-chat-provider'
+import { roleMap } from './static-roles'
 
 export const parser: __VkAgentChatProvider.Parser = (message) => {
   const list = [
     {
       ...message,
+      ...roleMap[message.role],
       loading: message.seviceLoading,
     },
-  ]
+  ] as __VkAgentChatProvider.AgentMessage[]
+
   if (message.thinkingContent) {
     list.unshift({
       role: Role.Broadcasting,

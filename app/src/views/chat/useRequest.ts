@@ -3,9 +3,9 @@ import type { NormalObject } from '@vunk/shared'
 import type { RestFetchReaderOnmessage } from '@vunk/shared/fetch'
 import { cChatId } from '@/api/application'
 import { useApplicationProfile } from '@/components/authentication'
-import { Role } from '@vunk-plus/components/agent-chat-provider'
 import { restFetch } from '@vunk/shared/fetch'
 import { ref } from 'vue'
+import { Role } from './static-roles'
 
 async function agentRequest (
   onmessage: RestFetchReaderOnmessage,
@@ -52,7 +52,7 @@ export function useRequest () {
     const abortController = new AbortController()
 
     let content = ''
-    const role = Role.Broadcasting
+    const role = Role.Metahuman
     let thinkingContent = ''
     let thinkingStatus: __VkAgentChatProvider.AgentMessage['thinkingStatus'] = 'start'
     let seviceLoading = true

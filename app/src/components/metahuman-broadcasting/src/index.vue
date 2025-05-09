@@ -1,38 +1,13 @@
 <script lang="ts" setup>
 import type { __VkBroadcastingMarkdown } from '@vunk-plus/components/broadcasting-markdown'
 import type { Ref } from 'vue'
-import { authentication, textToSpeech } from '#/api/application'
 import { useWebSocket } from '@vueuse/core'
 import { ParagraphStatus, VkBroadcastingMarkdown } from '@vunk-plus/components/broadcasting-markdown'
-import { TickerStatus, VkPixiFrame } from '@vunk-plus/components/pixi-frame'
+import { TickerStatus } from '@vunk-plus/components/pixi-frame'
 import { setData } from '@vunk/core'
-import { blobToDataURL } from '@vunk/shared/data'
 import { waiting } from '@vunk/shared/promise'
 import { consola } from 'consola'
 import { computed, onBeforeUnmount, reactive, ref, watchEffect } from 'vue'
-
-const text = `大自然里，草长莺飞，莺歌燕舞，她生活在一个美好的世界里。
-
-然而，当她经过茧里的痛苦与挣扎，终于破茧而出时，却不是一只在空中轻盈飞舞的花蝴蝶，而是蜕变成为了一只灰色的小飞蛾。
-
-在同伴的叹息中，她笑着流下了激动的泪水。`
-
-const authenticationPromise = authentication({
-  access_token: '859436e6e5fe3e63',
-}).then((res) => {
-  localStorage.setItem('accessToken', res)
-})
-
-const textToSpeechFn: __VkBroadcastingMarkdown.TextToSpeech = async (text) => {
-  await authenticationPromise
-  return textToSpeech({
-    application_id: '1df6fc34-0483-11f0-ab5c-8e5d3c122c24',
-    text,
-  }).then((res) => {
-    // blob 转 data url
-    return blobToDataURL(res)
-  })
-}
 
 const frameStatus = ref(TickerStatus.pending)
 const paragraphData = ref([]) as Ref<__VkBroadcastingMarkdown.Paragraph[]>
@@ -91,6 +66,7 @@ watchEffect(() => {
 function processingParagraph (
   item: __VkBroadcastingMarkdown.Paragraph,
 ) {
+  consola.info('Processing Paragraph', item)
   if (!item.url) {
     return
   }
@@ -129,29 +105,10 @@ function paragraphCompleted (v: boolean) {
 <template>
   <VkBroadcastingMarkdown
     :data="paragraphData"
-    :text-to-speech="textToSpeechFn"
-    :source="text"
     :processing="processingParagraph"
     @set-data="setData(paragraphData, $event)"
     @paragraph-load="paragraphLoad"
     @update:completed="paragraphCompleted"
   >
   </VkBroadcastingMarkdown>
-
-  <p>
-    <ElButton @click="() => console.log(paragraphData)">
-      paragraphData
-    </ElButton>
-    {{ frameStatus }}
-    <ElButton @click="() => console.log(frameUrls)">
-      frameUrls
-    </ElButton>
-  </p>
-
-  <div h-600px w-400px>
-    <VkPixiFrame
-      v-model:status="frameStatus"
-      :data="frameUrls"
-    ></VkPixiFrame>
-  </div>
 </template>
