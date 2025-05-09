@@ -1,4 +1,6 @@
 import type { App } from 'vue'
+import VkPixiFrameWrapper from './src/app.vue'
+import VkPixiFrameCore from './src/core.vue'
 import VkPixiFrame from './src/index.vue'
 
 export * as __VkPixiFrame from './src/types'
@@ -9,5 +11,7 @@ VkPixiFrame.install = (app: App): void => {
 }
 export {
   VkPixiFrame,
+  VkPixiFrameCore,
+  VkPixiFrameWrapper,
 }
 export default VkPixiFrame

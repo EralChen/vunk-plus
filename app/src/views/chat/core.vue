@@ -2,9 +2,11 @@
 import type { __VkAgentChatProvider } from '@vunk-plus/components/agent-chat-provider'
 import type { __VkBubbleList } from '@vunk-plus/components/bubble-list'
 import type { __VkChatIndependent } from '@vunk-plus/components/chat-independent'
+import type { AnyFunc, NormalObject } from '@vunk/shared'
 import { speechToText, textToSpeech } from '@/api/application'
 import { VkAgentChatProvider } from '@vunk-plus/components/agent-chat-provider'
 import { VkChatIndependent } from '@vunk-plus/components/chat-independent'
+import { VkPixiFrameWrapper } from '@vunk-plus/components/pixi-frame'
 import { setData } from '@vunk/core'
 import { useDeferred } from '@vunk/core/composables'
 import { blobToDataURL } from '@vunk/shared/data'
@@ -12,7 +14,7 @@ import { useApplicationProfile } from '_c/authentication'
 import { MetahumanBackground, MetahumanStatus } from '_c/metahuman-background'
 import { MetahumanBroadcastingRendererTemplate } from '_c/metahuman-broadcasting'
 import { consola } from 'consola'
-import { computed, ref, watchEffect } from 'vue'
+import { computed, ref, VNode, watchEffect } from 'vue'
 import { parser } from './parser'
 import { useRequest } from './useRequest'
 
@@ -20,6 +22,9 @@ const {
   stt_model_enable,
   id: applicationId,
 } = useApplicationProfile()
+
+const backgroundDef = useDeferred<HTMLDivElement>()
+const backgroundResolve: AnyFunc = node => backgroundDef.resolve(node.$el)
 
 const { ready, request } = useRequest()
 
@@ -100,26 +105,31 @@ const speechToTextFn: __VkChatIndependent.SpeechToText = (blob) => {
       :parser="parser"
       @load="agentChatContext.resolve"
     >
-      <VkChatIndependent
-        class="home-chat-independent"
-        :data="bubbleData"
-        :speech-to-text="stt_model_enable
-          ? speechToTextFn
-          : undefined"
-        :text-to-speech="textToSpeechFn"
-        @set-data="setData(bubbleData, $event)"
+      <VkPixiFrameWrapper
+        :append-to="backgroundDef.value"
       >
-        <template #bubble_renderer>
-          <MetahumanBroadcastingRendererTemplate
-            :text-to-speech="textToSpeechFn"
-          />
-        </template>
-        <template #background>
-          <MetahumanBackground
-            :status="currentMetahumanStatus"
-          ></MetahumanBackground>
-        </template>
-      </VkChatIndependent>
+        <VkChatIndependent
+          class="home-chat-independent"
+          :data="bubbleData"
+          :speech-to-text="stt_model_enable
+            ? speechToTextFn
+            : undefined"
+          :text-to-speech="textToSpeechFn"
+          @set-data="setData(bubbleData, $event)"
+        >
+          <template #bubble_renderer>
+            <MetahumanBroadcastingRendererTemplate
+              :text-to-speech="textToSpeechFn"
+            />
+          </template>
+          <template #background>
+            <MetahumanBackground
+              :ref="backgroundResolve"
+              :status="currentMetahumanStatus"
+            ></MetahumanBackground>
+          </template>
+        </VkChatIndependent>
+      </VkPixiFrameWrapper>
     </VkAgentChatProvider>
   </div>
 </template>

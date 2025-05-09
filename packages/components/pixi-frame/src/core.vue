@@ -100,6 +100,7 @@ function stop () {
 
 onBeforeUnmount(() => {
   stop()
+  app.stage.removeChild(sprite)
 })
 
 watchEffect(() => {

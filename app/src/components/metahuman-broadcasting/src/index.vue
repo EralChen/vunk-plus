@@ -3,11 +3,16 @@ import type { __VkBroadcastingMarkdown } from '@vunk-plus/components/broadcastin
 import type { Ref } from 'vue'
 import { useWebSocket } from '@vueuse/core'
 import { ParagraphStatus, VkBroadcastingMarkdown } from '@vunk-plus/components/broadcasting-markdown'
-import { TickerStatus } from '@vunk-plus/components/pixi-frame'
+import { TickerStatus, VkPixiFrameCore } from '@vunk-plus/components/pixi-frame'
 import { setData } from '@vunk/core'
 import { waiting } from '@vunk/shared/promise'
 import { consola } from 'consola'
 import { computed, onBeforeUnmount, reactive, ref, watchEffect } from 'vue'
+
+defineOptions({
+  name: 'MetahumanBroadcasting',
+  inheritAttrs: false,
+})
 
 const frameStatus = ref(TickerStatus.pending)
 const paragraphData = ref([]) as Ref<__VkBroadcastingMarkdown.Paragraph[]>
@@ -104,6 +109,7 @@ function paragraphCompleted (v: boolean) {
 
 <template>
   <VkBroadcastingMarkdown
+    v-bind="$attrs"
     :data="paragraphData"
     :processing="processingParagraph"
     @set-data="setData(paragraphData, $event)"
@@ -111,4 +117,8 @@ function paragraphCompleted (v: boolean) {
     @update:completed="paragraphCompleted"
   >
   </VkBroadcastingMarkdown>
+  <VkPixiFrameCore
+    v-model:status="frameStatus"
+    :data="frameUrls"
+  ></VkPixiFrameCore>
 </template>
