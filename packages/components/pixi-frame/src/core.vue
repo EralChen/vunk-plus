@@ -78,6 +78,9 @@ function play () {
     emit('update:status', TickerStatus.playing)
     startFrameLoop()
   }
+  else {
+    emit('update:status', TickerStatus.stopped)
+  }
 }
 // 停止动画
 function pause () {
