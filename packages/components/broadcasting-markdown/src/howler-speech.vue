@@ -24,14 +24,19 @@ export default defineComponent({
       return () => null
     }
 
-     useHowlerParagraph(props, emit)
+    useHowlerParagraph(props, emit)
 
-     onMounted(() => {
-        emit('setData', {
-          k: 'broadcast',
-          v: Broadcast.play,
-        })
-     })
+    onMounted(() => {
+      emit('setData', {
+        k: 'broadcast',
+        v: Broadcast.play,
+      })
+
+      emit('load', {
+        data: props.data,
+        deferred: props.deferred,
+      })
+    })
 
     return () => (
       <>

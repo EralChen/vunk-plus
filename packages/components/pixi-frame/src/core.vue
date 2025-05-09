@@ -1,8 +1,9 @@
 <script lang="ts" setup>
 import type { Texture } from 'pixi.js'
 import { TickerStatus } from '@vunk/shared/enum'
+import { consola } from 'consola'
 import { Assets, Sprite } from 'pixi.js'
-import { nextTick, ref, watchEffect } from 'vue'
+import { onBeforeUnmount, ref, watchEffect } from 'vue'
 import { props as dProps, emits } from './ctx'
 import { usePixiApp } from './use'
 
@@ -43,7 +44,6 @@ watchEffect(() => {
 })
 
 const index = ref(0)
-const frameRate = ref(25) // 每秒帧数
 
 let timer: number | null = null
 
@@ -60,9 +60,7 @@ function startFrameLoop () {
     }
 
     const currentTexture = textureMap.get(props.data[index.value])
-
-    console.log('currentTexture', index.value, currentTexture)
-
+    consola.info('Frame Index', index.value, currentTexture)
     if (currentTexture) {
       sprite.texture = currentTexture
       resizeSprite()
@@ -71,7 +69,7 @@ function startFrameLoop () {
     else {
       emit('update:status', TickerStatus.paused)
     }
-  }, 1000 / frameRate.value) // 每 40ms 一帧
+  }, 1000 / props.frameRate) // 每 40ms 一帧
 }
 
 // 开始播放动画
@@ -96,6 +94,10 @@ function stop () {
   textureMap.clear()
   index.value = 0
 }
+
+onBeforeUnmount(() => {
+  stop()
+})
 
 watchEffect(() => {
   if (props.status === TickerStatus.play) {

@@ -1,7 +1,7 @@
 import type { SetDataEvent } from '@vunk/core'
 import type { Deferred } from '@vunk/shared/promise'
 import type { PropType } from 'vue'
-import type { Paragraph, TextToSpeech } from './types'
+import type { Paragraph, ParagraphLoadEvent, TextToSpeech } from './types'
 import { noop } from '@vunk/shared/function'
 import { defaultRender } from './const'
 
@@ -62,6 +62,9 @@ export const props = {
     default: undefined,
   },
 
+  /**
+   * @description 段落处理函数
+   */
   processing: {
     type: Function as PropType<
       (paragraph: Paragraph) => void
@@ -77,6 +80,7 @@ export const emits = {
   'update:broadcasting': (_: boolean) => true,
   'update:completed': (_: boolean) => true,
   'update:error': (_: boolean) => true,
+  'paragraphLoad': (_: ParagraphLoadEvent) => true,
 }
 
 export const paragraphProps = {
@@ -96,5 +100,5 @@ export const paragraphProps = {
 
 export const paragraphEmits = {
   setData: (e: SetDataEvent<keyof Paragraph>) => e,
-
+  load: (_: ParagraphLoadEvent) => true,
 }

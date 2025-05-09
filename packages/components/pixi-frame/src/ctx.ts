@@ -19,6 +19,11 @@ export const props = {
     type: String as PropType<TickerStatus>,
     default: TickerStatus.pending,
   },
+
+  frameRate: {
+    type: Number,
+    default: 25,
+  },
 }
 
 export const emits = {

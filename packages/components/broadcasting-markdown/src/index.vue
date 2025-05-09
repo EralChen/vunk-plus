@@ -209,6 +209,13 @@ export default defineComponent({
     /* 打断当前播报 END */
 
     /* 收集段落状态 */
+
+    const isPaused = computed(() => {
+      return theData.value.some(
+        item => item.status === ParagraphStatus.pending
+          && item.broadcast === Broadcast.paused,
+      )
+    })
     const isBroadcasting = computed(() => {
       return theData.value.some(
         item => item.broadcast === Broadcast.playing,
@@ -265,6 +272,7 @@ export default defineComponent({
       isInterrupted,
       setData,
       Broadcast,
+      isPaused,
     }
   },
 })
@@ -274,8 +282,8 @@ export default defineComponent({
   <slot :paragraphs="theData">
     <VkTypingMarkdown
       :source="fulfilledTextValue"
-      :delay="180"
-      :pause="isInterrupted"
+      :delay="120"
+      :pause="isInterrupted || isPaused"
     ></VkTypingMarkdown>
   </slot>
 
@@ -297,6 +305,7 @@ export default defineComponent({
           :deferred="deferred"
           :data="item"
           @set-data="setData(item, $event)"
+          @load="$emit('paragraphLoad', $event)"
         >
         </HowlerSpeechView>
       </slot>
