@@ -11,9 +11,12 @@ import { waiting } from '@vunk/shared/promise'
 import { consola } from 'consola'
 import { computed, onBeforeUnmount, reactive, ref, watchEffect } from 'vue'
 
-const text = `在同伴的叹息中，她笑着流下了激动的泪水，微笑着说：“上帝给了我生命，就是宝贵的，渺小的我也依然能够在这个美丽的世界中划上一抹绚丽的色彩，做一只用于扑火的飞蛾，又何乐而不为呢？”
+const text = `
+大自然里，草长莺飞，莺歌燕舞，她生活在一个美好的世界里。
 
-大自然里，草长莺飞，莺歌燕舞，她生活在一个美好的世界里。然而，当她经过茧里的痛苦与挣扎，终于破茧而出时，却不是一只在空中轻盈飞舞的花蝴蝶，而是蜕变成为了一只灰色的小飞蛾。`
+然而，当她经过茧里的痛苦与挣扎，终于破茧而出时，却不是一只在空中轻盈飞舞的花蝴蝶，而是蜕变成为了一只灰色的小飞蛾。
+
+在同伴的叹息中，她笑着流下了激动的泪水。`
 
 const authenticationPromise = authentication({
   access_token: '859436e6e5fe3e63',
@@ -69,7 +72,10 @@ watchEffect(() => {
     (json.type === 'progress' && json.frame === 120)
     || json.type === 'streaming_complete'
   ) {
-    if (frameStatus.value === TickerStatus.playing) {
+    if (
+      frameStatus.value === TickerStatus.playing
+      || frameUrls.length === 0
+    ) {
       return
     }
 
@@ -78,7 +84,6 @@ watchEffect(() => {
       || frameStatus.value === TickerStatus.stopped
       || isParagraphUnplayed.value
     ) {
-      consola.info('Frame Play', Date.now())
       frameStatus.value = TickerStatus.play
     }
   }
