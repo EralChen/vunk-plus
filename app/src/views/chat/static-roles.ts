@@ -12,7 +12,7 @@ export enum Role {
 type RoleMedia = __VkAgentChatProvider.RoleMediaBasic
   & (
   __VkBubbleTemplates.RenderItem
-  | MetahumanBroadcastingSource
+  | Partial<MetahumanBroadcastingSource>
 )
 
 export const roleOptions: RoleMedia[] = [
