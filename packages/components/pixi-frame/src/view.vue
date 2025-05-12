@@ -2,18 +2,16 @@
 import type { ApplicationOptions } from 'pixi.js'
 import type { PropType, Ref } from 'vue'
 import { onMounted, ref } from 'vue'
-import { initPixiApp } from './use'
+import { usePixiApp } from './use'
 
 const props = defineProps({
-  appendTo: null,
   defaultOptions: {
     type: Object as PropType<Partial<ApplicationOptions>>,
     default: () => ({}),
   },
 })
-const app = initPixiApp()
+const app = usePixiApp()
 const appRef = ref() as Ref<HTMLDivElement>
-const ready = ref(false)
 
 onMounted(async () => {
   await app.init({
@@ -22,18 +20,11 @@ onMounted(async () => {
     ...props.defaultOptions,
   })
   appRef.value.appendChild(app.canvas)
-  ready.value = true
 })
 </script>
 
 <template>
-  <Teleport
-    :to="appendTo"
-    :disabled="!appendTo"
-  >
-    <div ref="appRef" class="vk-pixi-frame"></div>
-  </Teleport>
-  <slot v-if="ready"></slot>
+  <div ref="appRef" class="vk-pixi-frame"></div>
 </template>
 
 <style>
