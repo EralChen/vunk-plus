@@ -1,10 +1,15 @@
 <script lang="ts" setup>
-import type { Ref } from 'vue'
+import type { ApplicationOptions } from 'pixi.js'
+import type { PropType, Ref } from 'vue'
 import { onMounted, ref } from 'vue'
 import { initPixiApp } from './use'
 
-defineProps({
+const props = defineProps({
   appendTo: null,
+  defaultOptions: {
+    type: Object as PropType<Partial<ApplicationOptions>>,
+    default: () => ({}),
+  },
 })
 const app = initPixiApp()
 const appRef = ref() as Ref<HTMLDivElement>
@@ -14,6 +19,7 @@ onMounted(async () => {
   await app.init({
     resizeTo: appRef.value,
     background: '#1099bb',
+    ...props.defaultOptions,
   })
   appRef.value.appendChild(app.canvas)
   ready.value = true

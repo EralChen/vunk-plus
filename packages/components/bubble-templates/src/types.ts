@@ -41,3 +41,10 @@ export interface RenderDataRecord {
    */
   elRef?: any
 }
+
+export interface Interruptable {
+  /**
+   * @description 中断
+   */
+  interrupt?: () => void
+}

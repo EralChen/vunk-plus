@@ -1,18 +1,28 @@
 <script lang="ts" setup>
+import type { UseWebSocketReturn } from '@vueuse/core'
 import type { __VkBroadcastingMarkdown } from '@vunk-plus/components/broadcasting-markdown'
-import type { Ref } from 'vue'
-import { useWebSocket } from '@vueuse/core'
+import type { __VkBubbleTemplates } from '@vunk-plus/components/bubble-templates'
+import type { PropType, Ref } from 'vue'
 import { ParagraphStatus, VkBroadcastingMarkdown } from '@vunk-plus/components/broadcasting-markdown'
 import { TickerStatus, VkPixiFrameCore } from '@vunk-plus/components/pixi-frame'
 import { setData } from '@vunk/core'
+import { useDeferred } from '@vunk/core/composables'
 import { waiting } from '@vunk/shared/promise'
 import { consola } from 'consola'
-import { computed, onBeforeUnmount, reactive, ref, watchEffect } from 'vue'
+import { computed, nextTick, reactive, ref, watchEffect } from 'vue'
 
 defineOptions({
   name: 'MetahumanBroadcasting',
   inheritAttrs: false,
 })
+
+const props = defineProps({
+  webSocket: {
+    type: Object as PropType<UseWebSocketReturn<any>>,
+    required: true,
+  },
+})
+const broadcastingMarkdownDef = useDeferred<__VkBubbleTemplates.Interruptable>()
 
 const frameStatus = ref(TickerStatus.pending)
 const paragraphData = ref([]) as Ref<__VkBroadcastingMarkdown.Paragraph[]>
@@ -24,14 +34,9 @@ const isParagraphUnplayed = computed(() => {
   )
 })
 
-const { data, send, close } = useWebSocket('ws://localhost:8001/ws', {
-  autoReconnect: true,
-})
+const { data, send } = props.webSocket
 
-onBeforeUnmount(() => {
-  close()
-})
-
+const frameShow = ref(true)
 const frameUrls = reactive<string[]>([])
 
 watchEffect(() => {
@@ -43,12 +48,11 @@ watchEffect(() => {
   if (json.type === 'frame') { // 添加帧数据
     const url = `data:image/jpeg;base64,${json.frame_data}`
     frameUrls.push(url)
-    consola.info('Frame Data', json, frameUrls.length)
     return
   }
 
   if ( // 选择一个合适的时机（有足够的缓冲帧）开始播放
-    (json.type === 'progress' && json.frame === 120)
+    (json.type === 'progress' && json.frame === 60)
     || json.type === 'streaming_complete'
   ) {
     if (
@@ -101,15 +105,32 @@ function paragraphLoad ({ data }: {
 }
 function paragraphCompleted (v: boolean) {
   if (v && paragraphData.value.length) {
-    frameStatus.value = TickerStatus.stop
-    frameUrls.length = 0
+    frameStop()
   }
 }
+
+function frameStop () {
+  frameStatus.value = TickerStatus.stop
+  frameUrls.length = 0
+  nextTick(() => {
+    frameShow.value = false
+  })
+}
+
+async function interrupt () {
+  const broadcastingMarkdown = await broadcastingMarkdownDef.promise
+  broadcastingMarkdown.interrupt?.()
+  frameStop()
+}
+defineExpose({
+  interrupt,
+})
 </script>
 
 <template>
   <VkBroadcastingMarkdown
     v-bind="$attrs"
+    :ref="broadcastingMarkdownDef.resolve"
     :data="paragraphData"
     :processing="processingParagraph"
     @set-data="setData(paragraphData, $event)"
@@ -118,6 +139,7 @@ function paragraphCompleted (v: boolean) {
   >
   </VkBroadcastingMarkdown>
   <VkPixiFrameCore
+    v-if="frameShow"
     v-model:status="frameStatus"
     :data="frameUrls"
   ></VkPixiFrameCore>

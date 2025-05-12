@@ -2,8 +2,9 @@
 import type { __VkBroadcastingMarkdown } from '@vunk-plus/components/broadcasting-markdown'
 import type { __VkBubbleList } from '@vunk-plus/components/bubble-list'
 import type { SetDataEvent } from '@vunk/core'
+import { useWebSocket } from '@vueuse/core'
 import { VkRendererTemplate } from '@vunk/core/components/renderer-template'
-import { markRaw, type PropType } from 'vue'
+import { markRaw, onBeforeUnmount, type PropType } from 'vue'
 import { Thinking } from 'vue-element-plus-x'
 import MetahumanBroadcasting from './index.vue'
 
@@ -11,6 +12,13 @@ defineProps({
   textToSpeech: {
     type: Function as PropType<__VkBroadcastingMarkdown.TextToSpeech>,
   },
+})
+
+const webSocket = useWebSocket('ws://localhost:8001/ws', {
+  autoReconnect: true,
+})
+onBeforeUnmount(() => {
+  webSocket.close()
 })
 
 function setRef (
@@ -50,6 +58,7 @@ function initRenderData (
       </Thinking>
       <MetahumanBroadcasting
         :ref="(el) => setRef(emitSetData, props, el)"
+        :web-socket="webSocket"
         :source="props.content"
         :keep-read="!props.seviceEnd"
         :text-to-speech="textToSpeech"
