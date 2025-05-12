@@ -1,15 +1,19 @@
 <script lang="ts" setup>
 import type { Texture } from 'pixi.js'
 import { TickerStatus } from '@vunk/shared/enum'
+import { sleep } from '@vunk/shared/promise'
+
 import { consola } from 'consola'
-import { Assets, Sprite } from 'pixi.js'
-import { onBeforeUnmount, ref, watchEffect } from 'vue'
+import { Assets, CanvasSource, ImageSource, Sprite, TextureSource } from 'pixi.js'
+import { onBeforeUnmount, ref, useId, watchEffect } from 'vue'
 import { props as dProps, emits } from './ctx'
 import { usePixiApp } from './use'
 
 const props = defineProps(dProps)
 const emit = defineEmits(emits)
 const app = usePixiApp()
+const compId = useId()
+const getAlias = (key: string | number) => `${compId}-${key}`
 // 创建精灵并将其添加到舞台
 const sprite = new Sprite()
 app.stage.addChild(sprite)
@@ -29,12 +33,25 @@ const textureMap = new Map<string, Texture>()
 
 watchEffect(() => {
   for (const key in props.data) {
+    const alias = `${compId}-${key}`
     const url = props.data[key]
-    if (textureMap.has(url)) {
+
+    if (textureMap.has(alias)) {
       continue
     }
-    Assets.load(url).then((res) => {
-      textureMap.set(url, res)
+
+    consola.info(
+      `加载纹理 ${alias}`,
+    )
+
+    Assets.add({
+      alias,
+      src: url,
+    })
+    textureMap.set(alias, undefined as never)
+
+    Assets.load(alias).then((res) => {
+      textureMap.set(alias, res)
       if (key === '0') {
         sprite.texture = res
         resizeSprite()
@@ -59,10 +76,36 @@ function startFrameLoop () {
       return
     }
 
-    const currentTexture = textureMap.get(props.data[index.value])
-    consola.info('Frame Index', index.value, currentTexture)
+    const currentTexture = textureMap.get(
+      getAlias(index.value),
+    )
     if (currentTexture) {
+      /* 清理上一帧 */
+      const originTexture = sprite.texture
+      const originIndex = index.value - 1
+      if (originTexture && originIndex >= 0) {
+        // 卸载上一个纹理
+
+        Promise
+          .resolve(sleep(500))
+          .then(() => Assets.unload(
+            getAlias(originIndex),
+          ))
+          .then(() => {
+            textureMap.set(
+              getAlias(originIndex),
+              undefined as never,
+            )
+            emit('setData', {
+              k: originIndex,
+              v: '',
+            })
+          })
+      }
+      /* 清理上一帧 END */
+
       sprite.texture = currentTexture
+
       resizeSprite()
       index.value = index.value + 1
     }

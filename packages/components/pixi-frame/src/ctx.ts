@@ -24,9 +24,11 @@ export const props = {
     type: Number,
     default: 24,
   },
+
 }
 
 export const emits = {
   'update:status': null,
   'update:data': null,
+  'setData': null,
 }

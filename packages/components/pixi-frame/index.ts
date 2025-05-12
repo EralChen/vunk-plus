@@ -11,6 +11,7 @@ VkPixiFrame.install = (app: App): void => {
   app.component(VkPixiFrame.name || 'VkPixiFrame', VkPixiFrame)
 }
 export {
+  VkPixiFrame,
   VkPixiFrameCore,
   VkPixiFrameProvider,
   VkPixiFrameView,

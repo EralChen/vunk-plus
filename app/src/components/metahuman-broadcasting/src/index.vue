@@ -8,7 +8,6 @@ import { TickerStatus, VkPixiFrameCore } from '@vunk-plus/components/pixi-frame'
 import { setData } from '@vunk/core'
 import { useDeferred } from '@vunk/core/composables'
 import { waiting } from '@vunk/shared/promise'
-import { consola } from 'consola'
 import { computed, nextTick, reactive, ref, watchEffect } from 'vue'
 
 defineOptions({
@@ -22,6 +21,7 @@ const props = defineProps({
     required: true,
   },
 })
+
 const broadcastingMarkdownDef = useDeferred<__VkBubbleTemplates.Interruptable>()
 
 const frameStatus = ref(TickerStatus.pending)
@@ -52,7 +52,7 @@ watchEffect(() => {
   }
 
   if ( // 选择一个合适的时机（有足够的缓冲帧）开始播放
-    (json.type === 'progress' && json.frame === 60)
+    (json.type === 'progress' && json.frame === 80)
     || json.type === 'streaming_complete'
   ) {
     if (
@@ -75,7 +75,6 @@ watchEffect(() => {
 function processingParagraph (
   item: __VkBroadcastingMarkdown.Paragraph,
 ) {
-  consola.info('Processing Paragraph', item)
   if (!item.url) {
     return
   }
@@ -83,7 +82,6 @@ function processingParagraph (
     mode: 'start_from_position',
     audio_data: item.url.split(',').slice(1).join(),
   }
-  consola.info('Processing Paragraph', message)
   send(JSON.stringify(message))
 }
 function paragraphLoad ({ data }: {
@@ -99,7 +97,6 @@ function paragraphLoad ({ data }: {
     10,
     2000,
   ).then(() => {
-    consola.info('Broadcast Play', Date.now())
     data.broadcast = TickerStatus.play
   })
 }
@@ -141,6 +138,7 @@ defineExpose({
   <VkPixiFrameCore
     v-if="frameShow"
     v-model:status="frameStatus"
-    :data="frameUrls"
+    v-model:data="frameUrls"
+    @set-data="setData(frameUrls, $event)"
   ></VkPixiFrameCore>
 </template>
