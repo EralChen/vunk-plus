@@ -83,9 +83,10 @@ function startFrameLoop () {
       /* 清理上一帧 */
       const originTexture = sprite.texture
       const originIndex = index.value - 1
-      if (originTexture && originIndex >= 0) {
-        // 卸载上一个纹理
-
+      if (
+        originTexture && originIndex >= 0
+        && !props.loop
+      ) {
         Promise
           .resolve(sleep(500))
           .then(() => Assets.unload(
@@ -107,10 +108,14 @@ function startFrameLoop () {
       sprite.texture = currentTexture
 
       resizeSprite()
-      index.value = index.value + 1
+
+      index.value = props.loop
+        ? (index.value + 1) % props.data.length // 循环播放
+        : index.value + 1 // 非循环播放
     }
     else {
-      emit('update:status', TickerStatus.paused)
+      if (!props.loop)
+        emit('update:status', TickerStatus.paused)
     }
   }, 1000 / props.frameRate) // 每 40ms 一帧
 }
