@@ -8,7 +8,7 @@ export const parser: __VkAgentChatProvider.Parser = (message) => {
       ...roleMap[message.role],
       loading: message.seviceLoading,
     },
-  ] as __VkAgentChatProvider.BubbleItem[]
+  ] as Partial<__VkAgentChatProvider.BubbleItem>[]
 
   if (message.thinkingContent) {
     list.unshift({
