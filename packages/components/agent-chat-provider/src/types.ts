@@ -50,8 +50,8 @@ export type RoleMedia = RoleMediaBasic
 
 export type BubbleItemModule = 'Thinking'
 
-interface BubbleItemBasic extends BubbleMessage {
-  key: string
+export interface BubbleItemBasic extends BubbleMessage {
+  key?: string
   modules?: BubbleItemModule[]
 }
 export interface RoleMediaBasic extends Partial<BubbleItemBasic>

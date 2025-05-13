@@ -1,6 +1,6 @@
 ## TODO
 
-- [ ] 补充 BubbleList 文档, 如何扩展扩展 Role 和  templateType
+- [x] 补充 BubbleList 文档, 如何扩展扩展 Role 和  templateType
 
 ## WriteTo
 

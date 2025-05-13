@@ -8,7 +8,7 @@ export const parser: __VkAgentChatProvider.Parser = (message) => {
       ...roleMap[message.role],
       loading: message.seviceLoading,
     },
-  ] as __VkAgentChatProvider.AgentMessage[]
+  ] as __VkAgentChatProvider.BubbleItem[]
 
   if (message.thinkingContent) {
     list.unshift({
@@ -20,6 +20,7 @@ export const parser: __VkAgentChatProvider.Parser = (message) => {
       meta: {
         metahumanStatus: 2,
       },
+      templateType: 'VkBroadcastingMarkdown',
     })
   }
   return list

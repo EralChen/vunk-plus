@@ -2,7 +2,6 @@ import type { RequestFn } from 'ant-design-x-vue'
 
 import type { AgentMessage, BubbleItem, BubbleMessage, Parser } from './types'
 import { useXAgent, useXChat } from 'ant-design-x-vue'
-import { consola } from 'consola'
 import { computed, inject, provide } from 'vue'
 
 import { ChatAgentInjectKey } from './const'
@@ -32,11 +31,7 @@ export function initAgentChat (
     })
   }
   const items = computed(() => {
-    return chat.parsedMessages.value.map((item, index) => {
-      if (index === chat.parsedMessages.value.length - 1) {
-        consola.info('parsedMessages', item.message)
-      }
-
+    return chat.parsedMessages.value.map((item) => {
       return {
         key: item.id,
         ...roleMap[item.message.role],
