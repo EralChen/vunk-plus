@@ -10,7 +10,7 @@ const props = defineProps({
     default: () => ({}),
   },
 })
-const app = usePixiApp()
+const { application: app, context } = usePixiApp()
 const appRef = ref() as Ref<HTMLDivElement>
 
 onMounted(async () => {
@@ -18,6 +18,7 @@ onMounted(async () => {
     resizeTo: appRef.value,
     ...props.defaultOptions,
   })
+  context.whenDef.resolve(app)
   appRef.value.appendChild(app.canvas)
 })
 </script>

@@ -3,22 +3,35 @@ import type { Texture } from 'pixi.js'
 import { TickerStatus } from '@vunk/shared/enum'
 import { sleep } from '@vunk/shared/promise'
 
-import { consola } from 'consola'
-import { Assets, CanvasSource, ImageSource, Sprite, TextureSource } from 'pixi.js'
+import { Assets, Sprite } from 'pixi.js'
 import { onBeforeUnmount, ref, useId, watchEffect } from 'vue'
 import { props as dProps, emits } from './ctx'
 import { usePixiApp } from './use'
 
 const props = defineProps(dProps)
 const emit = defineEmits(emits)
-const app = usePixiApp()
+const { application: app, context } = usePixiApp()
 const compId = useId()
 const getAlias = (key: string | number) => `${compId}-${key}`
 // 创建精灵并将其添加到舞台
 const sprite = new Sprite()
 app.stage.addChild(sprite)
 
+context.when().then((app) => {
+  if (sprite.texture) {
+    resizeSprite()
+    app.renderer.on(
+      'resize',
+      () => {
+        resizeSprite()
+      },
+    )
+  }
+})
+
 function resizeSprite () {
+  if (!app.renderer?.screen)
+    return
   // === 设置 sprite 尺寸自适应 ===
   const scaleX = app.screen.width / sprite.texture.width
   const scaleY = app.screen.height / sprite.texture.height
@@ -39,10 +52,6 @@ watchEffect(() => {
     if (textureMap.has(alias)) {
       continue
     }
-
-    consola.info(
-      `加载纹理 ${alias}`,
-    )
 
     Assets.add({
       alias,
