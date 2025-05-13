@@ -1,6 +1,6 @@
 # Changelog 更新日志
 
-## 1.4.1
+## 1.4.2
 
 + [PixiFrame] 新增 component [PixiFrame](../../component/pixi-frame/+Page.md): 帧动画播放组件
 
