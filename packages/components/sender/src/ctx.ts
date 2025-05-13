@@ -36,7 +36,7 @@ export const props = {
   },
 
   /**
-   * @description 模块
+   * @description 可选模块, 包含: Attachments 文件上传;
    */
   modules: {
     type: Array<Module>,

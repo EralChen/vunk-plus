@@ -14,13 +14,6 @@ bubble-list/basic
 bubble-list/src/ctx
 :::
 
-:::details types
-
-:::source
-components/bubble-list/src/types
-
-:::
-
 ## BubbleList Slots
 
 [BubbleList Slots](https://element-plus-x.com/components/bubbleList/#%E6%8F%92%E6%A7%BD)
@@ -34,4 +27,10 @@ components/bubble-list/src/types
 
 :::tip
 这些插槽允许您完全自定义气泡列表中的不同部分，以满足特定的UI需求。
+:::
+
+## Types
+
+:::source
+components/bubble-list/src/types
 :::

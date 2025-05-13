@@ -19,3 +19,10 @@ chat-independent/basic
 :::props
 chat-independent/src/ctx
 :::
+
+## ChatIndependent Source
+
+::: details 源码
+:::source
+components/chat-independent/src/index.vue
+:::
