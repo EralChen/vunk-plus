@@ -2,7 +2,6 @@
 import type { __VkAgentChatProvider } from '@vunk-plus/components/agent-chat-provider'
 import type { __VkBubbleList } from '@vunk-plus/components/bubble-list'
 import type { __VkChatIndependent } from '@vunk-plus/components/chat-independent'
-import type { AnyFunc, NormalObject } from '@vunk/shared'
 import { speechToText, textToSpeech } from '@/api/application'
 import { VkAgentChatProvider } from '@vunk-plus/components/agent-chat-provider'
 import { VkChatIndependent } from '@vunk-plus/components/chat-independent'

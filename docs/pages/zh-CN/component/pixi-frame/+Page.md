@@ -1,4 +1,4 @@
---- 
+---
 title: PixiFrame
 lang: zh-CN
 ---
@@ -7,11 +7,20 @@ lang: zh-CN
 
 PixiFrame
 
-
 ## Basic
 
-:::demo 
+:::demo
 pixi-frame/basic
 :::
 
-## PixiFrame 其他
+## PixiFrame Props
+
+:::props
+pixi-frame/src/ctx
+:::
+
+## PixiFrame Emits
+
+| name | arguments | description |
+| ---- | --------- | ----------- |
+| setData | SetDataEvent | 设置数据 |

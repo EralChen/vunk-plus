@@ -15,6 +15,9 @@ export const props = {
     default: false,
   },
 
+  /**
+   * @description v-model:status 控制动画状态
+   */
   status: {
     type: String as PropType<TickerStatus>,
     default: TickerStatus.pending,

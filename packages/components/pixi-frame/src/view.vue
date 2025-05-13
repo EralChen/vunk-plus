@@ -16,7 +16,6 @@ const appRef = ref() as Ref<HTMLDivElement>
 onMounted(async () => {
   await app.init({
     resizeTo: appRef.value,
-    background: '#1099bb',
     ...props.defaultOptions,
   })
   appRef.value.appendChild(app.canvas)
