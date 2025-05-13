@@ -9,9 +9,9 @@ AgentChatProvider 是一个对话代理提供者组件，用于处理聊天消�
 
 你可以查阅以下链接了解抽象数据流的工作细节:
 
-[useXAgent](https://antd-design-x-vue.netlify.app/component/use-x-agent.html)
+[useXAgent](https://x.ant.design/components/use-x-agent-cn)
 
-[useXChat](https://antd-design-x-vue.netlify.app/component/use-x-chat.html)
+[useXChat](https://x.ant.design/components/use-x-chat-cn)
 
 ## 基本用法
 

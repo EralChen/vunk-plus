@@ -22,28 +22,25 @@ const text = `
 
 `
 const authenticationPromise = authentication({
-  access_token: '859436e6e5fe3e63',
+  access_token: '5a8e7afe04be860d',
 }).then((res) => {
-  localStorage.setItem('accessToken', res)
+  sessionStorage.setItem('accessToken', res)
 })
 
 const textToSpeechFn: __VkBroadcastingMarkdown.TextToSpeech = async (text) => {
   await authenticationPromise
   return textToSpeech({
-    application_id: '1df6fc34-0483-11f0-ab5c-8e5d3c122c24',
+    application_id: 'ea2c3e52-fa3f-11ef-b7ff-10ffe00db574',
     text,
   }).then((res) => {
     // blob 转 data url
     return blobToDataURL(res)
   })
 }
-const status = ref(TickerStatus.pending)
 </script>
 
 <template>
-  {{ status }}
   <VkBroadcastingMarkdown
-    v-model:status="status"
     :source="text"
     :text-to-speech="textToSpeechFn"
   >
