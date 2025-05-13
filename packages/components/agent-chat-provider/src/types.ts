@@ -1,6 +1,7 @@
 import type { __VkBubbleTemplates } from '@vunk-plus/components/bubble-templates'
 import type { Media, NormalObject } from '@vunk/shared'
 import type { RequestFn } from 'ant-design-x-vue'
+import type { MaybeArray } from 'naive-ui/es/_utils'
 import type { BubbleListItemProps } from 'vue-element-plus-x/types/components/BubbleList/types'
 import type { initAgentChat } from './use'
 
@@ -8,7 +9,7 @@ export type AgentChatContext = ReturnType<typeof initAgentChat>
 
 export type Request = RequestFn<AgentMessage>
 
-export type Parser = (message: AgentMessage) => BubbleMessage | BubbleMessage[]
+export type Parser = (message: AgentMessage) => MaybeArray<Partial<BubbleItem>>
 
 /**
  * @description   useXAgent request onSuccess 发送的数据
@@ -51,7 +52,7 @@ export type RoleMedia = RoleMediaBasic
 export type BubbleItemModule = 'Thinking'
 
 export interface BubbleItemBasic extends BubbleMessage {
-  key?: string
+  key: string
   modules?: BubbleItemModule[]
 }
 export interface RoleMediaBasic extends Partial<BubbleItemBasic>
