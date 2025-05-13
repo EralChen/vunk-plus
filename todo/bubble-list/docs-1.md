@@ -1,6 +1,6 @@
 ## TODO
 
-- [ ] 补充 bubble-list 文档, slots 部分
+- [x] 补充 bubble-list 文档, slots 部分
 
 ## WriteTo
 
