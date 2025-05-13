@@ -27,6 +27,7 @@ onErrorCaptured((error) => {
       <div pos-fixed inset-0>
         <MetahumanBackground
           v-loading="true"
+          :modules="[]"
         ></MetahumanBackground>
       </div>
     </template>

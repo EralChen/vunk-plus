@@ -3,9 +3,9 @@ import type { NormalObject } from '@vunk/shared'
 import type { RestFetchReaderOnmessage } from '@vunk/shared/fetch'
 import { cChatId } from '@/api/application'
 import { useApplicationProfile } from '@/components/authentication'
-import { Role } from '@vunk-plus/components/agent-chat-provider'
 import { restFetch } from '@vunk/shared/fetch'
 import { ref } from 'vue'
+import { Role } from './static-roles'
 
 async function agentRequest (
   onmessage: RestFetchReaderOnmessage,
@@ -13,10 +13,12 @@ async function agentRequest (
     message: string
     chatId: string
   },
+  abortController?: AbortController,
 ) {
   return restFetch.reader({
     url: `/application/chat_message/${data.chatId}`,
     onmessage,
+    abortController,
   }, {
     headers: {
       authorization: localStorage.getItem('accessToken'),
@@ -47,8 +49,10 @@ export function useRequest () {
       return
     }
 
+    const abortController = new AbortController()
+
     let content = ''
-    const role = Role.Broadcasting
+    const role = Role.Metahuman
     let thinkingContent = ''
     let thinkingStatus: __VkAgentChatProvider.AgentMessage['thinkingStatus'] = 'start'
     let seviceLoading = true
@@ -59,6 +63,7 @@ export function useRequest () {
         thinkingContent,
         thinkingStatus,
         seviceLoading,
+        abortController,
       })
     }
     const success = () => {
@@ -66,46 +71,53 @@ export function useRequest () {
         role,
         content,
         thinkingContent,
-        thinkingStatus,
-        seviceLoading,
+        thinkingStatus: 'end',
+        seviceLoading: false,
         seviceEnd: true,
+        abortController,
       })
     }
 
     update()
 
-    agentRequest((e: any) => {
-      let json: NormalObject = {
-        content: '',
-        reasoning_content: '',
-      }
-      if (typeof e.data === 'string') {
-        json = JSON.parse(e.data)
-      }
-      if (json.is_end) {
-        success()
-        return
-      }
+    agentRequest(
+      (e: any) => {
+        let json: NormalObject = {
+          content: '',
+          reasoning_content: '',
+        }
+        if (typeof e.data === 'string') {
+          json = JSON.parse(e.data)
+        }
+        if (json.is_end) {
+          success()
+          return
+        }
 
-      if (json.reasoning_content) {
-        thinkingContent += json.reasoning_content
-        thinkingStatus = 'thinking'
-        seviceLoading = false
-        update()
-      }
+        if (json.reasoning_content) {
+          thinkingContent += json.reasoning_content
+          thinkingStatus = 'thinking'
+          seviceLoading = false
+          update()
+        }
 
-      if (json.content) {
-        content += json.content
-        seviceLoading = false
-        update()
-      }
-      if (
-        thinkingContent && json.content
-      ) { // 思考完成
-        thinkingStatus = 'end'
-        update()
-      }
-    }, { message: message?.content, chatId: chatId.value })
+        if (json.content) {
+          content += json.content
+          seviceLoading = false
+          update()
+        }
+        if (
+          thinkingContent && json.content
+        ) { // 思考完成
+          thinkingStatus = 'end'
+          update()
+        }
+      },
+      { message: message?.content, chatId: chatId.value },
+      abortController,
+    ).catch(() => {
+      success()
+    })
   }
   return {
     request,

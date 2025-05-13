@@ -1,4 +1,7 @@
-import type { Broadcast, ParagraphStatus } from './const'
+import type { ReturnVoid } from '@vunk/shared'
+import type { TickerStatus } from '@vunk/shared/enum'
+import type { Deferred } from '@vunk/shared/promise'
+import type { ParagraphStatus } from './const'
 
 export interface Paragraph {
   value: string
@@ -7,7 +10,7 @@ export interface Paragraph {
   end: number
   separator: string
 
-  broadcast: Broadcast
+  broadcast: TickerStatus
 
   /**
    * @description 语音合成的 url
@@ -19,3 +22,10 @@ export interface Paragraph {
  * @returns Audio URL
  */
 export type TextToSpeech = (text: string) => Promise<string>
+
+export interface ParagraphLoadEvent {
+  data: Paragraph
+  deferred: Deferred<any>
+}
+
+export type ParagraphOnLoad = (event: ParagraphLoadEvent) => ReturnVoid

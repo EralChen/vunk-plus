@@ -44,4 +44,6 @@ export const emits = {
   submitText: (text: string) => typeof text === 'string',
 
   submit: (_: SubmitRawEvent) => true,
+
+  error: (_: Error) => true,
 }

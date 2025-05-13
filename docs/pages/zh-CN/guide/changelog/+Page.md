@@ -1,6 +1,10 @@
 # Changelog 更新日志
 
-## 1.3.0
+## 1.4.0
+
++ [PixiFrame] 新增 component [PixiFrame](../../component/pixi-frame/+Page.md): 帧动画播放组件
+
+## 1.3.14
 
 + [BroadcastingMarkdown] 新增 component [BroadcastingMarkdown](../../component/broadcasting-markdown/+Page.md): 随播报展示的 TypingMarkdown 组件
 + [Sender] 新增 component [Sender](../../component/sender/+Page.md): 发送器组件

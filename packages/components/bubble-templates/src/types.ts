@@ -36,4 +36,15 @@ export interface RenderDataRecord {
    */
   error?: boolean
 
+  /**
+   * @description 组件实例
+   */
+  elRef?: any
+}
+
+export interface Interruptable {
+  /**
+   * @description 中断
+   */
+  interrupt?: () => void
 }

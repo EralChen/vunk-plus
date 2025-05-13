@@ -8,12 +8,12 @@
     "build": "gulp -f gulpfile.ts"
   },
   "dependencies": {
-    "audiobuffer-to-wav": "^1.0.0",
+    "howler": "^2.2.4",
     "markdown-it-async": "^2.2.0",
     "vue-element-plus-x": "^1.1.6"
   },
   "devDependencies": {
-    "@types/audiobuffer-to-wav": "^1.0.4",
+    "@types/howler": "^2.2.12",
     "vue-router": "^4.4.5"
   }
 }

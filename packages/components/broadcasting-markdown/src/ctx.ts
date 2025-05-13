@@ -1,8 +1,18 @@
 import type { SetDataEvent } from '@vunk/core'
+import type { Deferred } from '@vunk/shared/promise'
 import type { PropType } from 'vue'
-import type { Paragraph, TextToSpeech } from './types'
+import type { Paragraph, ParagraphLoadEvent, TextToSpeech } from './types'
+import { noop } from '@vunk/shared/function'
+import { defaultRender } from './const'
 
 export const props = {
+  /**
+   * @description md文本转纯文本的函数
+   */
+  render: {
+    type: Function as PropType<(text: string) => string>,
+    default: defaultRender,
+  },
 
   /**
    *  @description 段落详情
@@ -37,25 +47,9 @@ export const props = {
   },
 
   /**
-   * @description 暂停的
-   */
-  pause: {
-    type: Boolean,
-    default: false,
-  },
-
-  /**
    * @description 组件内会根据当前游标是否和 source 长度一致来判断，是否持续阅读, 当一致时，会关闭阅读状态。但若设置为 true，则会持续阅读, 这在动态接收数据时会有用
    */
   keepRead: {
-    type: Boolean,
-    default: false,
-  },
-
-  /**
-   * @description 是否使用 web speech api
-   */
-  webSpeech: {
     type: Boolean,
     default: false,
   },
@@ -68,11 +62,43 @@ export const props = {
     default: undefined,
   },
 
+  /**
+   * @description 段落处理函数
+   */
+  processing: {
+    type: Function as PropType<
+      (paragraph: Paragraph) => void
+    >,
+    default: noop,
+  },
+
 }
 
 export const emits = {
   'setData': (e: SetDataEvent) => e,
+  'interrupt': null,
   'update:broadcasting': (_: boolean) => true,
   'update:completed': (_: boolean) => true,
   'update:error': (_: boolean) => true,
+  'paragraphLoad': (_: ParagraphLoadEvent) => true,
+}
+
+export const paragraphProps = {
+  data: {
+    type: Object as PropType<Paragraph>,
+    default: () => ({}),
+  },
+  deferred: {
+    type: Object as PropType<Deferred<any>>,
+    required: true as const,
+  },
+  render: {
+    type: Function as PropType<(text: string) => string>,
+    default: defaultRender,
+  },
+}
+
+export const paragraphEmits = {
+  setData: (e: SetDataEvent<keyof Paragraph>) => e,
+  load: (_: ParagraphLoadEvent) => true,
 }

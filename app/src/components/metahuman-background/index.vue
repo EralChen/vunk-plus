@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { VkPixiFrameView } from '@vunk-plus/components/pixi-frame'
 import { useModelComputed } from '@vunk/core/composables'
 import { computed, type PropType, ref } from 'vue'
 import { MetahumanStatus } from './const'
@@ -15,9 +16,17 @@ const props = defineProps({
     type: String,
     default: undefined,
   },
+  modules: {
+    type: Array as PropType<'PixiFrame'[]>,
+    default: () => ['PixiFrame'],
+  },
 })
 
 const emit = defineEmits(['update:type'])
+
+const hasPixiFrame = computed(() => {
+  return props.modules.includes('PixiFrame')
+})
 
 const typeModel = useModelComputed({
   default: 'M',
@@ -36,10 +45,10 @@ const videoSources = computed(() => [
     status: MetahumanStatus.THINKING,
     src: `${base}metahuman/${typeModel.value}_THINKING.mp4`,
   },
-  {
-    status: MetahumanStatus.SPEAKING,
-    src: `${base}metahuman/${typeModel.value}_SPEAKING.mp4`,
-  },
+  // {
+  //   status: MetahumanStatus.SPEAKING,
+  //   src: `${base}metahuman/${typeModel.value}_SPEAKING.mp4`,
+  // },
   {
     status: MetahumanStatus.WELCOME,
     src: `${base}metahuman/${typeModel.value}_WELCOME.mp4`,
@@ -54,7 +63,7 @@ const videoSources = computed(() => [
       v-for="videoSrc in videoSources"
       :key="videoSrc.status"
       ref="videoRefs"
-      class="video"
+      class="source"
       :class="[
         { active: status === videoSrc.status },
       ]"
@@ -64,6 +73,14 @@ const videoSources = computed(() => [
       autoplay
       preload="auto"
     />
+    <VkPixiFrameView
+      v-if="hasPixiFrame"
+      class="source"
+      :class="{
+        active: status === MetahumanStatus.SPEAKING,
+      }"
+    >
+    </VkPixiFrameView>
   </div>
 </template>
 
@@ -71,7 +88,7 @@ const videoSources = computed(() => [
 .metahuman-background {
   position: relative;
   height: 100%;
-  .video {
+  .source {
     position: absolute;
     height: 100%;
     top: -50px;

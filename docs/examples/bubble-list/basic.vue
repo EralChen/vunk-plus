@@ -23,6 +23,10 @@ const bubbleItems: __VkBubbleList.Item[] = [
   <div class="h-500px">
     <VkBubbleList
       :items="bubbleItems"
-    ></VkBubbleList>
+    >
+      <template #footer="{ item }">
+        {{ item }}
+      </template>
+    </VkBubbleList>
   </div>
 </template>

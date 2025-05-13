@@ -1,40 +1,28 @@
 <script lang="ts">
-import type { SetDataEvent } from '@vunk/core'
-import type { Ref } from 'vue'
 import type { Paragraph } from './types'
 import { VkTypingMarkdown } from '@vunk-plus/components/typing-markdown'
 import { setData } from '@vunk/core'
+import { useDataComputed } from '@vunk/core/composables'
 import { computed, defineComponent, ref, watch, watchEffect } from 'vue'
-import { Broadcast, defaultRender, ParagraphStatus } from './const'
+import { Broadcast, ParagraphStatus } from './const'
 import { emits, props } from './ctx'
-import CustomSpeechView from './custom-speech.vue'
+import HowlerSpeechView from './howler-speech.vue'
 import ParagraphView from './paragraph.vue'
-import WebSpeechView from './web-speech.vue'
 
 export default defineComponent({
   name: 'VkBroadcastingMarkdown',
   components: {
     ParagraphView,
     VkTypingMarkdown,
-    WebSpeechView,
-    CustomSpeechView,
+    HowlerSpeechView,
   },
   props,
   emits,
-  setup (props, { emit }) {
-    const _data = ref([]) as Ref<Paragraph[]>
-
+  setup (props, { emit, expose }) {
     // 经过的段落
-    const theData = computed(() => {
-      return props.data ?? _data.value
-    })
-    const handleSetData = (e: SetDataEvent) => {
-      if (props.data === undefined) {
-        setData(_data.value, e)
-        return
-      }
-      emit('setData', e)
-    }
+    const [theData, handleSetData] = useDataComputed({
+      default: [] as Paragraph[],
+    }, props, emit)
 
     const addParagraph = (paragraph: Paragraph) => {
       const k = theData.value.length
@@ -50,10 +38,16 @@ export default defineComponent({
       if (!props.textToSpeech) {
         return
       }
-      const value = defaultRender(paragraph.value)
+      const value = props.render(paragraph.value)
+      if (!value) {
+        return
+      }
       return props.textToSpeech(`${value}`)
         .then((url) => {
           paragraph.url = url
+        })
+        .then(async () => {
+          await props.processing?.(paragraph)
         })
     }
 
@@ -79,7 +73,7 @@ export default defineComponent({
 
       // 首句未开始直接为空
       if (
-        theData.value[0].broadcast === Broadcast.initial
+        theData.value[0].broadcast === Broadcast.pending
       ) {
         return '......'
       }
@@ -150,7 +144,7 @@ export default defineComponent({
               end,
               status: ParagraphStatus.initial,
               value,
-              broadcast: Broadcast.initial,
+              broadcast: Broadcast.pending,
             }
             addParagraph(paragraph)
           }
@@ -196,14 +190,32 @@ export default defineComponent({
             end,
             status: ParagraphStatus.initial,
             value,
-            broadcast: Broadcast.initial,
+            broadcast: Broadcast.pending,
           }
           addParagraph(paragraph)
         }
       }
     }
 
+    /* 打断当前播报 */
+    const isInterrupted = ref(false)
+    function interrupt () {
+      isInterrupted.value = true
+      theData.value.forEach((item) => {
+        item.broadcast = Broadcast.stop
+      })
+      emit('interrupt')
+    }
+    /* 打断当前播报 END */
+
     /* 收集段落状态 */
+
+    const isPaused = computed(() => {
+      return theData.value.some(
+        item => item.status === ParagraphStatus.pending
+          && item.broadcast === Broadcast.paused,
+      )
+    })
     const isBroadcasting = computed(() => {
       return theData.value.some(
         item => item.broadcast === Broadcast.playing,
@@ -246,6 +258,10 @@ export default defineComponent({
     }
     /* 收集段落状态 END */
 
+    expose({
+      interrupt,
+    })
+
     return {
       theData,
       ParagraphStatus,
@@ -253,6 +269,10 @@ export default defineComponent({
       isPrevParagraphFulfilled,
       isParagraphEnabled,
       processingParagraph,
+      isInterrupted,
+      setData,
+      Broadcast,
+      isPaused,
     }
   },
 })
@@ -260,13 +280,10 @@ export default defineComponent({
 
 <template>
   <slot :paragraphs="theData">
-    <!-- <ElButton @click="() => console.log(theData)">
-      log
-    </ElButton> -->
     <VkTypingMarkdown
       :source="fulfilledTextValue"
-      :delay="200"
-      :pause="pause"
+      :delay="120"
+      :pause="isInterrupted || isPaused"
     ></VkTypingMarkdown>
   </slot>
 
@@ -279,22 +296,18 @@ export default defineComponent({
   >
     <template #default="{ deferred }">
       <slot
-        name="paragraph" :data="item" :deferred="deferred"
+        name="paragraph"
+        :data="item"
+        :deferred="deferred"
       >
-        <CustomSpeechView
-          v-if="item.url"
-          :url="item.url"
-          :pause="pause"
+        <HowlerSpeechView
+          :render="render"
           :deferred="deferred"
           :data="item"
+          @set-data="setData(item, $event)"
+          @load="$emit('paragraphLoad', $event)"
         >
-        </CustomSpeechView>
-        <WebSpeechView
-          v-if="webSpeech"
-          :pause="pause"
-          :deferred="deferred"
-          :data="item"
-        ></WebSpeechView>
+        </HowlerSpeechView>
       </slot>
     </template>
   </ParagraphView>

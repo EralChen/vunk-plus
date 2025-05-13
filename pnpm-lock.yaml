@@ -27,8 +27,8 @@ importers:
         specifier: workspace:*
         version: link:packages/shared
       '@vunk/core':
-        specifier: 1.4.2
-        version: 1.4.2
+        specifier: 1.4.4
+        version: 1.4.4
       '@vunk/form':
         specifier: 2.9.0
         version: 2.9.0
@@ -36,8 +36,8 @@ importers:
         specifier: workspace:*
         version: link:packages/entry
       '@vunk/shared':
-        specifier: 0.8.4
-        version: 0.8.4
+        specifier: 0.8.7
+        version: 0.8.7
       ant-design-vue:
         specifier: ^4.2.6
         version: 4.2.6(vue@3.5.13(typescript@5.8.3))
@@ -126,6 +126,9 @@ importers:
       pinia-plugin-persist:
         specifier: ^1.0.0
         version: 1.0.0(pinia@2.3.1(typescript@5.8.3)(vue@3.5.13(typescript@5.8.3)))(vue@3.5.13(typescript@5.8.3))
+      pixi.js:
+        specifier: ^8.9.2
+        version: 8.9.2
       rollup:
         specifier: ^4.13.0
         version: 4.40.0
@@ -245,9 +248,12 @@ importers:
       vite-plugin-inspect:
         specifier: ^0.8.3
         version: 0.8.9(rollup@4.40.0)(vite@5.4.18(@types/node@18.19.86)(sass@1.86.3)(terser@5.39.0))
+      vite-plugin-mkcert:
+        specifier: ^1.17.8
+        version: 1.17.8(vite@5.4.18(@types/node@18.19.86)(sass@1.86.3)(terser@5.39.0))
       vitepress:
         specifier: ^1.1.4
-        version: 1.6.3(@algolia/client-search@5.23.3)(@types/node@18.19.86)(async-validator@4.2.5)(postcss@8.5.3)(sass@1.86.3)(search-insights@2.17.3)(terser@5.39.0)(typescript@5.8.3)
+        version: 1.6.3(@algolia/client-search@5.23.3)(@types/node@18.19.86)(async-validator@4.2.5)(axios@1.9.0)(postcss@8.5.3)(sass@1.86.3)(search-insights@2.17.3)(terser@5.39.0)(typescript@5.8.3)
 
   internal/build-constants: {}
 
@@ -279,9 +285,9 @@ importers:
 
   packages/components:
     dependencies:
-      audiobuffer-to-wav:
-        specifier: ^1.0.0
-        version: 1.0.0
+      howler:
+        specifier: ^2.2.4
+        version: 2.2.4
       markdown-it-async:
         specifier: ^2.2.0
         version: 2.2.0
@@ -289,9 +295,9 @@ importers:
         specifier: ^1.1.6
         version: 1.1.6(typescript@5.8.3)
     devDependencies:
-      '@types/audiobuffer-to-wav':
-        specifier: ^1.0.4
-        version: 1.0.4
+      '@types/howler':
+        specifier: ^2.2.12
+        version: 2.2.12
       vue-router:
         specifier: ^4.4.5
         version: 4.5.0(vue@3.5.13(typescript@5.8.3))
@@ -1956,6 +1962,9 @@ packages:
     resolution: {integrity: sha512-dfUnCxiN9H4ap84DvD2ubjw+3vUNpstxa0TneY/Paat8a3R4uQZDLSvWjmznAY/DoahqTHl9V46HF/Zs3F29pg==}
     engines: {node: '>= 10.0.0'}
 
+  '@pixi/colord@2.9.6':
+    resolution: {integrity: sha512-nezytU2pw587fQstUu1AsJZDVEynjskwOL+kibwcdxsMBFqPsFFNA7xl0ii/gXuDi6M0xj3mfRJj8pBSc2jCfA==}
+
   '@pkgjs/parseargs@0.11.0':
     resolution: {integrity: sha512-+1VkjdD0QBLPodGrJUeqarH8VAIvQODIbwh9XpP5Syisf7YoQgsJKPNFoqqLQlu+VQ/tVSshMR6loPMn8U+dPg==}
     engines: {node: '>=14'}
@@ -2207,14 +2216,17 @@ packages:
   '@tybys/wasm-util@0.9.0':
     resolution: {integrity: sha512-6+7nlbMVX/PVDCwaIQ8nTOPveOcFLSt8GcXdx8hD0bt39uWxYT88uXzqTd4fTvqta7oeUJqudepapKNt2DYJFw==}
 
-  '@types/audiobuffer-to-wav@1.0.4':
-    resolution: {integrity: sha512-lxIdj8z6koV3CEVW6wEXQiH2XBeTzxq1WWa3BtNtCtH++LO7ivWkciki4to0gmphhDKhSSxlce1zJaHIKJMolw==}
+  '@types/css-font-loading-module@0.0.12':
+    resolution: {integrity: sha512-x2tZZYkSxXqWvTDgveSynfjq/T2HyiZHXb00j/+gy19yp70PHCizM48XFdjBCWH7eHBD0R5i/pw9yMBP/BH5uA==}
 
   '@types/debug@4.1.12':
     resolution: {integrity: sha512-vIChWdVG3LG1SMxEvI/AK+FWJthlrqlTu7fbrlywTkkaONwk/UAGaULXRlf8vkzFBLVm0zkMdCquhL5aOjhXPQ==}
 
   '@types/doctrine@0.0.9':
     resolution: {integrity: sha512-eOIHzCUSH7SMfonMG1LsC2f8vxBFtho6NGBznK41R84YzPuvSBzrhEps33IsQiOW9+VL6NQ9DbjQJznk/S4uRA==}
+
+  '@types/earcut@2.1.4':
+    resolution: {integrity: sha512-qp3m9PPz4gULB9MhjGID7wpo3gJ4bTGXm7ltNDsmOvsPduTeHp8wSW9YckBj3mljeOh4F0m2z/0JKAALRKbmLQ==}
 
   '@types/eslint@9.6.1':
     resolution: {integrity: sha512-FXx2pKgId/WyYo2jXw63kk7/+TY7u7AziEJxJAnSFzHlqTAS3Ync6SvgYAN/k4/PQpnnVuzoMuVnByKK2qp0ag==}
@@ -2236,6 +2248,9 @@ packages:
 
   '@types/hast@3.0.4':
     resolution: {integrity: sha512-WPs+bbQw5aCj+x6laNGWLH3wviHtoCv/P3+otBhbOhJgG8qtpdAMlTCxLtsTWA7LH1Oh/bFCHsBn0TPS5m30EQ==}
+
+  '@types/howler@2.2.12':
+    resolution: {integrity: sha512-hy769UICzOSdK0Kn1FBk4gN+lswcj1EKRkmiDtMkUGvFfYJzgaDXmVXkSShS2m89ERAatGIPnTUlp2HhfkVo5g==}
 
   '@types/json-schema@7.0.15':
     resolution: {integrity: sha512-5+fP8P8MFNC+AyZCDxrB2pkZFPGzqQWUzpSeuuVLvm8VMcorNYavBqoFcxK8bQz4Qsbn4oUEEem4wDLfcysGHA==}
@@ -2748,8 +2763,8 @@ packages:
   '@vueuse/shared@9.13.0':
     resolution: {integrity: sha512-UrnhU+Cnufu4S6JLCPZnkWh0WwZGUp72ktOF2DFptMlOs3TOdVv8xJN53zhHGARmVOsz5KqOls09+J1NR6sBKw==}
 
-  '@vunk/core@1.4.2':
-    resolution: {integrity: sha512-/xgvng17Hh0/anhgD0b/YW1egRChG6NXlTT06OKlSgKaBr4dHplKpo/zhbtIaXrWnNTUewabvS3arOWzU96sDA==}
+  '@vunk/core@1.4.4':
+    resolution: {integrity: sha512-b/Oa/Xnx56xqtuXsUA2ZeYdt2NNJdwUyXggQImjvWJ9EwQceXuyxIUog52fXDphmx/GuHbNa5BYd3BoHzWHTZg==}
 
   '@vunk/form@2.9.0':
     resolution: {integrity: sha512-v89Uy2Upk/3e6ycw7KffV2lBgN9lCGvdzRWe2ceL+Dd/NGrF3p8obemq0x8rFbeeEspRC/QNrxDI9EZ8XqU08g==}
@@ -2757,8 +2772,15 @@ packages:
   '@vunk/gsap@0.0.0-alpha.3':
     resolution: {integrity: sha512-UTyP4VmeAoMY+eab/OhFyyXrd21W4zgQuV2px4r/5x8iox187yf3AH42zuI//ub+loVTgE74iu9MQasTJ8NdMw==}
 
-  '@vunk/shared@0.8.4':
-    resolution: {integrity: sha512-dZonT9eVw7wTd67Io3c20LG+X0N6Tj3GSpz3jaHOusVVM3cX7Eh3rWtprr5KBAWFbgcEuLMD40T+wNnIDPUnRg==}
+  '@vunk/shared@0.8.7':
+    resolution: {integrity: sha512-Ou9qgOEdXp1S1VgsWSqoRuWeHJp8VdAaa5iHQYiUjmRVpN83Th0fDT6Z3bUaqjA+h0GXGE/elzKH8O52Mb/ZZA==}
+
+  '@webgpu/types@0.1.60':
+    resolution: {integrity: sha512-8B/tdfRFKdrnejqmvq95ogp8tf52oZ51p3f4QD5m5Paey/qlX4Rhhy5Y8tgFMi7Ms70HzcMMw3EQjH/jdhTwlA==}
+
+  '@xmldom/xmldom@0.8.10':
+    resolution: {integrity: sha512-2WALfTl4xo2SkGCYRt6rDTFfk9R1czmBvUQy12gK2KuRKIpWEhcbbzy8EZXtz/jkRqHX8bFEc6FC1HjX4TUWYw==}
+    engines: {node: '>=10.0.0'}
 
   abort-controller@3.0.0:
     resolution: {integrity: sha512-h8lQ8tacZYnR3vNQTgibj+tODHI5/+l06Au2Pcriv/Gmet0eaj4TwWH41sO9wnHDiQsEj19q0drzdWdeAHtweg==}
@@ -2911,9 +2933,6 @@ packages:
     engines: {node: '>= 4.5.0'}
     hasBin: true
 
-  audiobuffer-to-wav@1.0.0:
-    resolution: {integrity: sha1-1bQyJxRV5/7laxEc0PjWINf54QU=}
-
   autoprefixer@10.4.21:
     resolution: {integrity: sha512-O+A6LWV5LDHSJD3LjHYoNi4VLsj/Whi7k6zG12xTYaU4cQ8oxQGckXNX8cRHK5yOZ/ppVHe0ZBXGzSV9jXdVbQ==}
     engines: {node: ^10 || ^12 || >=14}
@@ -2924,6 +2943,9 @@ packages:
   available-typed-arrays@1.0.7:
     resolution: {integrity: sha512-wvUjBtSGN7+7SjNpq/9M2Tg350UZD3q62IFZLbRAR1bSMlCo1ZaeW+BJ+D090e4hIIZLBcTDWe4Mh4jvUDajzQ==}
     engines: {node: '>= 0.4'}
+
+  axios@1.9.0:
+    resolution: {integrity: sha512-re4CqKTJaURpzbLHtIi6XpDv20/CnpXOtjRY5/CU32L8gU8ek9UIivcfvSWvmKEngmVbrUtPpdDwWDWL7DNHvg==}
 
   b4a@1.6.7:
     resolution: {integrity: sha512-OnAYlL5b7LEkALw87fUVafQw5rVR9RjwGd4KUwNQ6DrrNmaVaUCgLipfVlzrPQ4tWOR9P0IXGNOx50jYCCdSJg==}
@@ -3510,6 +3532,9 @@ packages:
     resolution: {integrity: sha512-IYf1hpuWrdzse/s/YJOrFmU15lyhSzxelNVAHTEG3DtP4QsLTWZUzcUL3HMXmKQxXpa4EIrBPpwRgj0aehdvAw==}
     engines: {node: '>= 10.13.0'}
 
+  earcut@2.2.4:
+    resolution: {integrity: sha512-/pjZsA1b4RPHbeWZQn66SWS8nZZWLQQ23oE3Eam7aroEFGEvwKAsJfZ9ytiEMycfzXWpca4FA9QIOehf7PocBQ==}
+
   eastasianwidth@0.2.0:
     resolution: {integrity: sha512-I88TYZWc9XiYHRQ4/3c5rjjfgkjhLyW2luGIheGERbNQ6OY7yTybanSpDXZa8y7VUP9YmDcYa+eyq4ca7iLqWA==}
 
@@ -3829,6 +3854,9 @@ packages:
     resolution: {integrity: sha512-i/2XbnSz/uxRCU6+NdVJgKWDTM427+MqYbkQzD321DuCQJUqOuJKIA0IM2+W2xtYHdKOmZ4dR6fExsd4SXL+WQ==}
     engines: {node: '>=6'}
 
+  eventemitter3@5.0.1:
+    resolution: {integrity: sha512-GWkBvjiSZK87ELrYOSESUYeVIc9mvLLf/nXalMOS5dYrgZq9o5OVkbZAVM06CVxYsCwH9BDZFPlQTlPA1j4ahA==}
+
   evtd@0.2.4:
     resolution: {integrity: sha512-qaeGN5bx63s/AXgQo8gj6fBkxge+OoLddLniox5qtLAEY5HSnuSlISXVPxnSae1dWblvTh4/HoMIB+mbMsvZzw==}
 
@@ -3955,6 +3983,15 @@ packages:
   focus-trap@7.6.4:
     resolution: {integrity: sha512-xx560wGBk7seZ6y933idtjJQc1l+ck+pI3sKvhKozdBV1dRZoKhkW5xoCaFv9tQiX5RH1xfSxjuNu6g+lmN/gw==}
 
+  follow-redirects@1.15.9:
+    resolution: {integrity: sha512-gew4GsXizNgdoRyqmyfMHyAmXsZDk6mHkSxZFCzW9gwlbtOW44CDtYavM+y+72qD/Vq2l550kMF52DT8fOLJqQ==}
+    engines: {node: '>=4.0'}
+    peerDependencies:
+      debug: '*'
+    peerDependenciesMeta:
+      debug:
+        optional: true
+
   for-each@0.3.5:
     resolution: {integrity: sha512-dKx12eRCVIzqCxFGplyFKJMPvLEWgmNtUrpTiJIR5u97zEhRG8ySrtboPHZXx7daLxQVrl643cTzbab2tkQjxg==}
     engines: {node: '>= 0.4'}
@@ -4049,6 +4086,9 @@ packages:
   get-value@2.0.6:
     resolution: {integrity: sha512-Ln0UQDlxH1BapMu3GPtf7CuYNwRZf2gwCuPqbyG6pB8WfmFpzqcy4xtAaAMUhnNqjMKTiCPZG2oMT3YSx8U2NA==}
     engines: {node: '>=0.10.0'}
+
+  gifuct-js@2.1.2:
+    resolution: {integrity: sha512-rI2asw77u0mGgwhV3qA+OEgYqaDn5UNqgs+Bx0FGwSpuqfYn+Ir6RQY5ENNQ8SbIiG/m5gVa7CD5RriO4f4Lsg==}
 
   github-markdown-css@5.8.1:
     resolution: {integrity: sha512-8G+PFvqigBQSWLQjyzgpa2ThD9bo7+kDsriUIidGcRhXgmcaAWUIpCZf8DavJgc+xifjbCG+GvMyWr0XMXmc7g==}
@@ -4228,6 +4268,9 @@ packages:
 
   hosted-git-info@2.8.9:
     resolution: {integrity: sha512-mxIDAb9Lsm6DoOJ7xH+5+X4y1LU/4Hi50L9C5sIswK3JzULS4bwk1FvjdBgvYR4bzT4tuUQiC15FE2f5HbLvYw==}
+
+  howler@2.2.4:
+    resolution: {integrity: sha512-iARIBPgcQrwtEr+tALF+rapJ8qSc+Set2GJQl7xT1MQzWaVkFebdJhR3alVlSiUf5U7nAANKuj3aWpwerocD5w==}
 
   html-void-elements@3.0.0:
     resolution: {integrity: sha512-bEqo66MRXsUGxWHV5IP0PUiAWwoEjba4VCzg0LjFJBpchPaTfyfCKTG6bc5F8ucKec3q5y6qOdGyYTSBEvhCrg==}
@@ -4521,6 +4564,9 @@ packages:
   isexe@2.0.0:
     resolution: {integrity: sha512-RHxMLp9lnKHGHRng9QFhRCMbYAcVpn69smSGcq3f36xjgVVWThj4qqLbTLlq7Ssj8B+fIQ1EuCEGI2lKsyQeIw==}
 
+  ismobilejs@1.1.1:
+    resolution: {integrity: sha512-VaFW53yt8QO61k2WJui0dHf4SlL8lxBofUuUmwBo0ljPk0Drz2TiuDW4jo3wDcv41qy/SxrJ+VAzJ/qYqsmzRw==}
+
   isobject@2.1.0:
     resolution: {integrity: sha512-+OUdGJlgjOBZDfxnDjYYG6zp487z0JGNQq3cYQYg5f5hKR+syHMsaztzGeml/4kGG55CSpKSpWTY+jYGgsHLgA==}
     engines: {node: '>=0.10.0'}
@@ -4542,6 +4588,9 @@ packages:
 
   js-base64@2.6.4:
     resolution: {integrity: sha512-pZe//GGmwJndub7ZghVHz7vjb2LgC1m8B07Au3eYqeqv9emhESByMXxaEgkUkEqJe87oBbSniGYoQNIBklc7IQ==}
+
+  js-binary-schema-parser@2.0.3:
+    resolution: {integrity: sha512-xezGJmOb4lk/M1ZZLTR/jaBHQ4gG/lqQnJqdIv4721DMggsa1bDVlHXNeHYogaIEHD9vCRv0fcL4hMA+Coarkg==}
 
   js-tokens@4.0.0:
     resolution: {integrity: sha512-RdJUflcE3cUzKiMqQgsCu06FPu9UdIJO0beYbPhHN4k6apgJtifcoCtT9bcxOpYBtpD2kCM6Sbzg4CausW/PKQ==}
@@ -4996,7 +5045,7 @@ packages:
     engines: {node: '>=10'}
 
   ms@2.0.0:
-    resolution: {integrity: sha1-VgiurfwAvmwpAd9fmGF4jeDVl8g=}
+    resolution: {integrity: sha512-Tpp60P6IUJDTuOq/5Z8cdskzJujfwqfOTkrwIwj7IRISpnkJnT6SyJ4PCPnGMoFjC9ddhal5KVIYtAt97ix05A==}
 
   ms@2.1.3:
     resolution: {integrity: sha512-6FlzubTLZG3J2a/NVCAleEhjzq5oxgHyaCU9yYXvcLsvoVaHJq/s5xXI6/XXP6tz7R9xAOtHnSO/tXtF3WRTlA==}
@@ -5225,6 +5274,9 @@ packages:
     resolution: {integrity: sha512-1Y1A//QUXEZK7YKz+rD9WydcE1+EuPr6ZBgKecAB8tmoW6UFv0NREVJe1p+jRxtThkcbbKkfwIbWJe/IeE6m2Q==}
     engines: {node: '>=0.10.0'}
 
+  parse-svg-path@0.1.2:
+    resolution: {integrity: sha512-JyPSBnkTJ0AI8GGJLfMXvKq42cj5c006fnLz6fXy6zfoVjJizi8BNTpu8on8ziI1cKy9d9DGNuY17Ce7wuejpQ==}
+
   pascalcase@0.1.1:
     resolution: {integrity: sha512-XHXfu/yOQRy9vYOtUDVMN60OEJjW013GoObG1o+xwQTpB9eYJX/BjXMsdW13ZDPruFhYYn0AG22w0xgQMwl3Nw==}
     engines: {node: '>=0.10.0'}
@@ -5315,6 +5367,9 @@ packages:
   pirates@4.0.7:
     resolution: {integrity: sha512-TfySrs/5nm8fQJDcBDuUng3VOUKsd7S+zqvbOTiGXHfxX4wK31ard+hoNuvkicM/2YFzlpDgABOevKSsB4G/FA==}
     engines: {node: '>= 6'}
+
+  pixi.js@8.9.2:
+    resolution: {integrity: sha512-oLFBkOOA/O6OpT5T8o05AxgZB9x9yWNzEQ+WTNZZFoCvfU2GdT4sFTjpVFuHQzgZPmAm/1IFhKdNiXVnlL8PRw==}
 
   pkg-types@1.3.1:
     resolution: {integrity: sha512-/Jm5M4RvtBFVkKWRu2BLUTNP8/M2a+UwuAX+ae4770q1qVGtfjG+WTCupoZixokjmHiry8uI+dlY8KXYV5HVVQ==}
@@ -5570,6 +5625,9 @@ packages:
 
   property-information@7.0.0:
     resolution: {integrity: sha512-7D/qOz/+Y4X/rzSB6jKxKUsQnphO046ei8qxG59mtM3RG3DHgTK81HrxrmoDVINJb8NKT5ZsRbwHvQ6B68Iyhg==}
+
+  proxy-from-env@1.1.0:
+    resolution: {integrity: sha512-D+zkORCbA9f1tdWRK0RaCR3GPv50cMxcrz4X8k5LTSUD1Dkw47mKJEZQNunItRTkWwgtaUSo1RVFRIG9ZXiFYg==}
 
   punycode.js@2.3.1:
     resolution: {integrity: sha512-uxFIHU0YlHYhDQtV4R9J6a52SLx28BCjT+4ieh7IGbgwVJWO+km431c4yRlREUAsAmt/uMjQUyQHNEPf0M39CA==}
@@ -6582,6 +6640,12 @@ packages:
     peerDependenciesMeta:
       '@nuxt/kit':
         optional: true
+
+  vite-plugin-mkcert@1.17.8:
+    resolution: {integrity: sha512-S+4tNEyGqdZQ3RLAG54ETeO2qyURHWrVjUWKYikLAbmhh/iJ+36gDEja4OWwFyXNuvyXcZwNt5TZZR9itPeG5Q==}
+    engines: {node: '>=v16.7.0'}
+    peerDependencies:
+      vite: '>=3'
 
   vite-plugin-svg-icons@2.0.1:
     resolution: {integrity: sha512-6ktD+DhV6Rz3VtedYvBKKVA2eXF+sAQVaKkKLDSqGUfnhqXl3bj5PPkVTl3VexfTuZy66PmINi8Q6eFnVfRUmA==}
@@ -8452,6 +8516,8 @@ snapshots:
       '@parcel/watcher-win32-x64': 2.5.1
     optional: true
 
+  '@pixi/colord@2.9.6': {}
+
   '@pkgjs/parseargs@0.11.0':
     optional: true
 
@@ -8715,13 +8781,15 @@ snapshots:
       tslib: 2.8.1
     optional: true
 
-  '@types/audiobuffer-to-wav@1.0.4': {}
+  '@types/css-font-loading-module@0.0.12': {}
 
   '@types/debug@4.1.12':
     dependencies:
       '@types/ms': 2.1.0
 
   '@types/doctrine@0.0.9': {}
+
+  '@types/earcut@2.1.4': {}
 
   '@types/eslint@9.6.1':
     dependencies:
@@ -8753,6 +8821,8 @@ snapshots:
   '@types/hast@3.0.4':
     dependencies:
       '@types/unist': 3.0.3
+
+  '@types/howler@2.2.12': {}
 
   '@types/json-schema@7.0.15': {}
 
@@ -9378,13 +9448,14 @@ snapshots:
       - '@vue/composition-api'
       - vue
 
-  '@vueuse/integrations@12.8.2(async-validator@4.2.5)(focus-trap@7.6.4)(typescript@5.8.3)':
+  '@vueuse/integrations@12.8.2(async-validator@4.2.5)(axios@1.9.0)(focus-trap@7.6.4)(typescript@5.8.3)':
     dependencies:
       '@vueuse/core': 12.8.2(typescript@5.8.3)
       '@vueuse/shared': 12.8.2(typescript@5.8.3)
       vue: 3.5.13(typescript@5.8.3)
     optionalDependencies:
       async-validator: 4.2.5
+      axios: 1.9.0(debug@4.4.0)
       focus-trap: 7.6.4
     transitivePeerDependencies:
       - typescript
@@ -9415,13 +9486,17 @@ snapshots:
       - '@vue/composition-api'
       - vue
 
-  '@vunk/core@1.4.2': {}
+  '@vunk/core@1.4.4': {}
 
   '@vunk/form@2.9.0': {}
 
   '@vunk/gsap@0.0.0-alpha.3': {}
 
-  '@vunk/shared@0.8.4': {}
+  '@vunk/shared@0.8.7': {}
+
+  '@webgpu/types@0.1.60': {}
+
+  '@xmldom/xmldom@0.8.10': {}
 
   abort-controller@3.0.0:
     dependencies:
@@ -9586,8 +9661,6 @@ snapshots:
 
   atob@2.1.2: {}
 
-  audiobuffer-to-wav@1.0.0: {}
-
   autoprefixer@10.4.21(postcss@8.5.3):
     dependencies:
       browserslist: 4.24.4
@@ -9601,6 +9674,14 @@ snapshots:
   available-typed-arrays@1.0.7:
     dependencies:
       possible-typed-array-names: 1.1.0
+
+  axios@1.9.0(debug@4.4.0):
+    dependencies:
+      follow-redirects: 1.15.9(debug@4.4.0)
+      form-data: 4.0.2
+      proxy-from-env: 1.1.0
+    transitivePeerDependencies:
+      - debug
 
   b4a@1.6.7: {}
 
@@ -10254,6 +10335,8 @@ snapshots:
       is-plain-object: 5.0.0
       object.defaults: 1.1.0
 
+  earcut@2.2.4: {}
+
   eastasianwidth@0.2.0: {}
 
   electron-to-chromium@1.5.136: {}
@@ -10805,6 +10888,8 @@ snapshots:
 
   event-target-shim@5.0.1: {}
 
+  eventemitter3@5.0.1: {}
+
   evtd@0.2.4: {}
 
   execa@9.5.2:
@@ -10963,6 +11048,10 @@ snapshots:
     dependencies:
       tabbable: 6.2.0
 
+  follow-redirects@1.15.9(debug@4.4.0):
+    optionalDependencies:
+      debug: 4.4.0
+
   for-each@0.3.5:
     dependencies:
       is-callable: 1.2.7
@@ -11071,6 +11160,10 @@ snapshots:
       resolve-pkg-maps: 1.0.0
 
   get-value@2.0.6: {}
+
+  gifuct-js@2.1.2:
+    dependencies:
+      js-binary-schema-parser: 2.0.3
 
   github-markdown-css@5.8.1: {}
 
@@ -11283,6 +11376,8 @@ snapshots:
   hookable@5.5.3: {}
 
   hosted-git-info@2.8.9: {}
+
+  howler@2.2.4: {}
 
   html-void-elements@3.0.0: {}
 
@@ -11547,6 +11642,8 @@ snapshots:
 
   isexe@2.0.0: {}
 
+  ismobilejs@1.1.1: {}
+
   isobject@2.1.0:
     dependencies:
       isarray: 1.0.0
@@ -11564,6 +11661,8 @@ snapshots:
   jiti@2.4.2: {}
 
   js-base64@2.6.4: {}
+
+  js-binary-schema-parser@2.0.3: {}
 
   js-tokens@4.0.0: {}
 
@@ -12448,6 +12547,8 @@ snapshots:
 
   parse-passwd@1.0.0: {}
 
+  parse-svg-path@0.1.2: {}
+
   pascalcase@0.1.1: {}
 
   path-browserify@1.0.1: {}
@@ -12508,6 +12609,19 @@ snapshots:
       - '@vue/composition-api'
 
   pirates@4.0.7: {}
+
+  pixi.js@8.9.2:
+    dependencies:
+      '@pixi/colord': 2.9.6
+      '@types/css-font-loading-module': 0.0.12
+      '@types/earcut': 2.1.4
+      '@webgpu/types': 0.1.60
+      '@xmldom/xmldom': 0.8.10
+      earcut: 2.2.4
+      eventemitter3: 5.0.1
+      gifuct-js: 2.1.2
+      ismobilejs: 1.1.1
+      parse-svg-path: 0.1.2
 
   pkg-types@1.3.1:
     dependencies:
@@ -12750,6 +12864,8 @@ snapshots:
   process-nextick-args@2.0.1: {}
 
   property-information@7.0.0: {}
+
+  proxy-from-env@1.1.0: {}
 
   punycode.js@2.3.1: {}
 
@@ -14039,6 +14155,15 @@ snapshots:
       - rollup
       - supports-color
 
+  vite-plugin-mkcert@1.17.8(vite@5.4.18(@types/node@18.19.86)(sass@1.86.3)(terser@5.39.0)):
+    dependencies:
+      axios: 1.9.0(debug@4.4.0)
+      debug: 4.4.0
+      picocolors: 1.1.1
+      vite: 5.4.18(@types/node@18.19.86)(sass@1.86.3)(terser@5.39.0)
+    transitivePeerDependencies:
+      - supports-color
+
   vite-plugin-svg-icons@2.0.1(vite@6.2.6(@types/node@18.19.86)(jiti@2.4.2)(sass@1.86.3)(terser@5.39.0)(tsx@4.19.3)(yaml@2.7.1)):
     dependencies:
       '@types/svgo': 2.6.4
@@ -14123,7 +14248,7 @@ snapshots:
       tsx: 4.19.3
       yaml: 2.7.1
 
-  vitepress@1.6.3(@algolia/client-search@5.23.3)(@types/node@18.19.86)(async-validator@4.2.5)(postcss@8.5.3)(sass@1.86.3)(search-insights@2.17.3)(terser@5.39.0)(typescript@5.8.3):
+  vitepress@1.6.3(@algolia/client-search@5.23.3)(@types/node@18.19.86)(async-validator@4.2.5)(axios@1.9.0)(postcss@8.5.3)(sass@1.86.3)(search-insights@2.17.3)(terser@5.39.0)(typescript@5.8.3):
     dependencies:
       '@docsearch/css': 3.8.2
       '@docsearch/js': 3.8.2(@algolia/client-search@5.23.3)(search-insights@2.17.3)
@@ -14136,7 +14261,7 @@ snapshots:
       '@vue/devtools-api': 7.7.2
       '@vue/shared': 3.5.13
       '@vueuse/core': 12.8.2(typescript@5.8.3)
-      '@vueuse/integrations': 12.8.2(async-validator@4.2.5)(focus-trap@7.6.4)(typescript@5.8.3)
+      '@vueuse/integrations': 12.8.2(async-validator@4.2.5)(axios@1.9.0)(focus-trap@7.6.4)(typescript@5.8.3)
       focus-trap: 7.6.4
       mark.js: 8.11.1
       minisearch: 7.1.2

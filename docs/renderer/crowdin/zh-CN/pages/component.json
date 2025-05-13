@@ -65,7 +65,7 @@
     ]
   },
   "antx": {
-    "text": "Antx",
+    "text": "X",
     "children": [
       {
         "link": "/sender",
@@ -90,6 +90,15 @@
       {
         "link": "/chat-independent",
         "text": "ChatIndependent"
+      }
+    ]
+  },
+  "pixi": {
+    "text": "Pixi",
+    "children": [
+      {
+        "link": "/pixi-frame",
+        "text": "PixiFrame"
       }
     ]
   }

@@ -1,15 +1,10 @@
 <script lang="ts">
 import type { Ref } from 'vue'
+import { useRecorder } from '@vunk-plus/composables/recorder'
 import { ElButton, ElMessage } from 'element-plus'
-import Recorder from 'recorder-core'
-import { defineComponent, onUnmounted, ref, shallowRef } from 'vue'
+import { defineComponent, onUnmounted, ref } from 'vue'
 import { emits, props } from './ctx'
 import { speechToText } from './speech-to-text'
-import 'recorder-core/src/engine/mp3'
-import 'recorder-core/src/engine/wav'
-import 'recorder-core/src/engine/mp3-engine'
-import 'recorder-core/src/extensions/waveview'
-import 'recorder-core/src/app-support/app'
 
 const LONG_PRESS_DURATION = 100 // 长按阈值，单位毫秒 (0.1秒)
 
@@ -21,49 +16,39 @@ export default defineComponent({
   props,
   emits,
   setup (props, { emit }) {
-    const supported = ref(false)
-
-    const recording = ref(false)
     const recordingNode = ref() as Ref<HTMLSpanElement>
-    const wave = shallowRef()
-    const blobUrl = ref('')
-    let pressTimer: any = null
-
-    const rec = new Recorder({
-      // mp3格式，指定采样率hz、比特率kbps
-      type: 'wav',
-      sampleRate: 16000,
-      bitRate: 16,
-      onProcess,
+    const { openOrStart, recording, recorder, wave } = useRecorder({
+      waveViewRef: recordingNode,
+      defaultOptions: {
+        onProcess,
+      },
     })
 
-    const recOpen = () => {
-      return new Promise((resolve, reject) => {
-        rec.open(() => {
-          supported.value = true
-          if (Recorder.WaveView) {
-            wave.value = Recorder.WaveView({
-              elem: recordingNode.value,
-            })
-          }
-          resolve(true)
-        }, (msg, isUserNotAllow) => {
-          ElMessage.error(`${isUserNotAllow ? '用户未授权, ' : ''}无法录音:${msg}`)
-          reject(new Error(msg))
-        })
-      })
-    }
+    const blobUrl = ref('')
+    let pressTimer: null | ReturnType<typeof setTimeout> = null
 
+    const isDragging = ref(false)
     // 处理开始录音的逻辑
     const startRecording = async () => {
-      await recOpen()
-      if (!supported.value)
+      try {
+        await openOrStart({
+          // 授权时, 取消弹窗
+          openThen: () => {
+            isDragging.value = false
+            return false
+          },
+        })
+      }
+      catch (e) {
+        console.error('录音失败:', e)
+        emit('error', e)
+        isDragging.value = false
         return
-      rec.start()
+      }
+
       recording.value = true
     }
 
-    const isDragging = ref(false)
     const dragPosition = ref({ x: 0, y: 0 })
     const cancelZone = ref(false)
     const isTextZone = ref(false) // 添加文本区域状态
@@ -72,9 +57,9 @@ export default defineComponent({
     // 处理停止录音的逻辑, 已排除 cancelZone
     const stopRecording = () => {
       const theTextZone = isTextZone.value
-      rec.stop(async (blob) => {
+      recorder.stop(async (blob) => {
         blobUrl.value = (window.URL || webkitURL).createObjectURL(blob)
-        rec.close() // 关闭录音
+        recorder.close() // 关闭录音
         recording.value = false
 
         emit('submit', {
@@ -159,8 +144,8 @@ export default defineComponent({
       dragPosition.value = { x: touch.clientX, y: touch.clientY }
 
       // 检查是否在取消区域或文本区域
-      const cancelBtn = document.querySelector('.cancel-btn')
-      const textBtn = document.querySelector('.text-btn')
+      const cancelBtn = document.querySelector('.cancel-btn-x')
+      const textBtn = document.querySelector('.text-btn-x')
 
       if (cancelBtn && textBtn) {
         const cancelRect = cancelBtn.getBoundingClientRect()
@@ -185,10 +170,10 @@ export default defineComponent({
     // 修改释放逻辑
     function onmouseup (e: MouseEvent | TouchEvent) {
       isMouseDown = false
-      clearTimeout(pressTimer)
+      clearTimeout(pressTimer as never)
       if (isDragging.value) {
         if (cancelZone.value) {
-          rec.close()
+          recorder.close()
         }
         else {
           stopRecording()
@@ -243,7 +228,7 @@ export default defineComponent({
     <!-- 遮罩层 -->
     <Teleport :to="appendTo">
       <div
-        v-if="isDragging"
+        v-show="isDragging"
         class="vk-recording-mask"
       >
         <!-- 录音提示区域移到上面 -->
@@ -255,26 +240,31 @@ export default defineComponent({
         </div>
 
         <div class="action-buttons">
-          <div
-            class="cancel-btn"
-            :class="{ active: cancelZone }"
-          >
-            <div class="btn-icon">
-              ×
-            </div>
-            <div class="btn-text">
-              取消发送
+          <div class="cancel-btn-x">
+            <div
+              class="cancel-btn"
+              :class="{ active: cancelZone }"
+            >
+              <div class="btn-icon">
+                ×
+              </div>
+              <div class="btn-text">
+                取消发送
+              </div>
             </div>
           </div>
-          <div
-            class="text-btn"
-            :class="{ active: isTextZone }"
-          >
-            <div class="btn-icon">
-              文
-            </div>
-            <div class="btn-text">
-              转为文字
+
+          <div class="text-btn-x">
+            <div
+              class="text-btn"
+              :class="{ active: isTextZone }"
+            >
+              <div class="btn-icon">
+                文
+              </div>
+              <div class="btn-text">
+                转为文字
+              </div>
             </div>
           </div>
         </div>

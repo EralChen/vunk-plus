@@ -1,25 +1,27 @@
 <script lang="ts" setup>
 import type { __VkBubbleList } from '@vunk-plus/components/bubble-list'
-import type { BubbleList } from 'vue-element-plus-x'
-import { text } from 'node:stream/consumers'
 import { useAgentChat } from '@vunk-plus/components/agent-chat-provider'
 import { VkBubbleList } from '@vunk-plus/components/bubble-list'
-import { VkRecorderButton } from '@vunk-plus/components/recorder-button'
 import { VkSender } from '@vunk-plus/components/sender'
 import { VkKeyboardAvatar } from '@vunk-plus/icons/keyboard'
 import { VkVoiceAvatar } from '@vunk-plus/icons/voice'
 import { VkDuplex } from '@vunk/core'
 import { VkRendererData } from '@vunk/core/components/renderer-data'
 import { useDataComputed, useDeferred } from '@vunk/core/composables'
-import { computed, nextTick, ref } from 'vue'
+import { isNotEmptyObject } from '@vunk/shared/object'
+import { computed, defineAsyncComponent, nextTick, ref } from 'vue'
 import { InputType } from './const'
 import { emits as dEmits, props as dProps } from './ctx'
 
 defineOptions({
   name: 'VkChatIndependent',
 })
+
 const props = defineProps(dProps)
+
 const emit = defineEmits(dEmits)
+
+const VkRecorderButton = defineAsyncComponent(() => import('@vunk-plus/components/recorder-button'))
 
 const [bubbleData, setBubbleData] = useDataComputed<
   __VkBubbleList.RenderData
@@ -37,18 +39,17 @@ const { simplicity } = useAgentChat()
 const { items: bubbleItems, onRequest } = simplicity
 
 const lastBubbleData = computed(() => {
-  const key = bubbleItems.value.at(-1)?.key
-  if (key && bubbleData.value[key]) {
-    return bubbleData.value[key]
-  }
-  return {}
+  return getBubbleDataAt(-1)
+})
+const clientLoading = computed(() => {
+  return isNotEmptyObject(lastBubbleData.value)
+    && lastBubbleData.value.completed !== true
 })
 const senderDisabled = computed(() => {
   if (lastBubbleData.value.error === true) {
     // 如果本条数据错误, 则开放输入
     return false
   }
-
   return bubbleItems.value.at(-1)?.loading === true
     || lastBubbleData.value.completed === false
 })
@@ -67,6 +68,27 @@ function onSubmit (nextContent: string) {
     bubbleListDef.value?.scrollToBottom()
   }, 400)
 }
+function onCancel () {
+  const lastBubble = bubbleItems.value.at(-1) as __VkBubbleList.Item
+  if (!lastBubble)
+    return
+  lastBubble.abortController?.abort() // 打断请求
+  const lastBubbleData = bubbleData.value[lastBubble.key]
+  lastBubbleData.elRef?.interrupt() // 打断渲染
+  nextTick(() => {
+    lastBubbleData.completed = true
+  })
+}
+
+/* utils */
+function getBubbleDataAt (index: number) {
+  const bubble = bubbleItems.value.at(index)
+  if (bubble?.key && bubbleData.value[bubble.key]) {
+    return bubbleData.value[bubble.key]
+  }
+  return {}
+}
+/* utils END  */
 </script>
 
 <template>
@@ -87,6 +109,12 @@ function onSubmit (nextContent: string) {
                 :items="bubbleItems"
                 :text-to-speech="textToSpeech"
               >
+                <template #renderer>
+                  <slot name="bubble_renderer"></slot>
+                </template>
+                <template #footer="e">
+                  <slot v-bind="e" name="bubble_footer"></slot>
+                </template>
               </VkBubbleList>
             </div>
           </VkRendererData>
@@ -94,32 +122,37 @@ function onSubmit (nextContent: string) {
 
         <template #two>
           <div class="vk-chat-independent-footer">
-            <VkKeyboardAvatar
-              v-show="inputType === InputType.Voice"
-              :size="40"
-              @click="inputType = InputType.Text"
-            ></VkKeyboardAvatar>
-            <VkVoiceAvatar
-              v-show="inputType === InputType.Text"
-              :size="40"
-              @click="inputType = InputType.Voice"
-            ></VkVoiceAvatar>
+            <template v-if="speechToText">
+              <VkKeyboardAvatar
+                v-show="inputType === InputType.Voice"
+                :size="40"
+                @click="inputType = InputType.Text"
+              ></VkKeyboardAvatar>
+              <VkRecorderButton
+                v-show="inputType === InputType.Voice"
+                :append-to="mainRef"
+                :disabled="senderDisabled"
+                :speech-to-text="speechToText"
+                :submit-to-text="true"
+                @submit-text="onSubmit"
+              ></VkRecorderButton>
 
-            <VkRecorderButton
-              v-show="inputType === InputType.Voice"
-              :append-to="mainRef"
-              :disabled="senderDisabled"
-              :speech-to-text="speechToText"
-              :submit-to-text="true"
-              @submit-text="onSubmit"
-            ></VkRecorderButton>
+              <VkVoiceAvatar
+                v-show="inputType === InputType.Text"
+                :size="40"
+                @click="inputType = InputType.Voice"
+              ></VkVoiceAvatar>
+            </template>
+
             <VkSender
               v-show="inputType === InputType.Text"
               v-model="content"
               :auto-size="true"
               placeholder="请输入内容"
-              :disabled="senderDisabled"
+              :send-disabled="senderDisabled"
+              :loading="clientLoading"
               @submit="onSubmit"
+              @cancel="onCancel"
             ></VkSender>
           </div>
         </template>

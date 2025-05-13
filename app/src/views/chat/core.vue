@@ -3,21 +3,22 @@ import type { __VkAgentChatProvider } from '@vunk-plus/components/agent-chat-pro
 import type { __VkBubbleList } from '@vunk-plus/components/bubble-list'
 import type { __VkChatIndependent } from '@vunk-plus/components/chat-independent'
 import { speechToText, textToSpeech } from '@/api/application'
-import { Role, VkAgentChatProvider } from '@vunk-plus/components/agent-chat-provider'
+import { VkAgentChatProvider } from '@vunk-plus/components/agent-chat-provider'
 import { VkChatIndependent } from '@vunk-plus/components/chat-independent'
+import { VkPixiFrameProvider } from '@vunk-plus/components/pixi-frame'
 import { setData } from '@vunk/core'
 import { useDeferred } from '@vunk/core/composables'
+import { blobToDataURL } from '@vunk/shared/data'
 import { useApplicationProfile } from '_c/authentication'
 import { MetahumanBackground, MetahumanStatus } from '_c/metahuman-background'
-import { consola } from 'consola'
-import { computed, ref, watchEffect } from 'vue'
+import { MetahumanBroadcastingRendererTemplate } from '_c/metahuman-broadcasting'
+import { computed, ref } from 'vue'
 import { parser } from './parser'
 import { useRequest } from './useRequest'
 
 const {
   stt_model_enable,
   id: applicationId,
-  prologue,
 } = useApplicationProfile()
 
 const { ready, request } = useRequest()
@@ -35,11 +36,8 @@ function getBubbleDataAt (index: number) {
   }
   return {}
 }
-const lastBubbleData = computed(() => {
+const _lastBubbleData = computed(() => {
   return getBubbleDataAt(-1)
-})
-watchEffect(() => {
-  consola.info('lastBubbleData', lastBubbleData.value)
 })
 const currentBroadcasting = computed(() => {
   // 有没有  meta?.broadcasting === true
@@ -56,20 +54,20 @@ const currentMetahumanStatus = computed(() => {
 /* chat 数据  END */
 
 /* 添加开场白 */
-agentChatContext.promise.then(({ chat }) => {
-  chat.setMessages([{
-    id: 'prologue',
-    message: {
-      role: Role.Broadcasting,
-      content: prologue.split('\n')[0] || prologue,
-      seviceEnd: true,
-      meta: {
-        metahumanStatus: MetahumanStatus.WELCOME,
-      },
-    },
-    status: 'success',
-  }])
-})
+// agentChatContext.promise.then(({ chat }) => {
+//   chat.setMessages([{
+//     id: 'prologue',
+//     message: {
+//       role: Role.Broadcasting,
+//       content: prologue.split('\n')[0] || prologue,
+//       seviceEnd: true,
+//       meta: {
+//         metahumanStatus: MetahumanStatus.WELCOME,
+//       },
+//     },
+//     status: 'success',
+//   }])
+// })
 /* 添加开场白 END */
 
 /* 语音输入输出 */
@@ -78,8 +76,7 @@ function textToSpeechFn (text: string) {
     application_id: applicationId,
     text,
   }).then((blob) => {
-    const url = URL.createObjectURL(blob)
-    return url
+    return blobToDataURL(blob)
   })
 }
 const speechToTextFn: __VkChatIndependent.SpeechToText = (blob) => {
@@ -103,21 +100,28 @@ const speechToTextFn: __VkChatIndependent.SpeechToText = (blob) => {
       :parser="parser"
       @load="agentChatContext.resolve"
     >
-      <VkChatIndependent
-        class="home-chat-independent"
-        :data="bubbleData"
-        :speech-to-text="stt_model_enable
-          ? speechToTextFn
-          : undefined"
-        :text-to-speech="textToSpeechFn"
-        @set-data="setData(bubbleData, $event)"
-      >
-        <template #background>
-          <MetahumanBackground
-            :status="currentMetahumanStatus"
-          ></MetahumanBackground>
-        </template>
-      </VkChatIndependent>
+      <VkPixiFrameProvider>
+        <VkChatIndependent
+          class="home-chat-independent"
+          :data="bubbleData"
+          :speech-to-text="stt_model_enable
+            ? speechToTextFn
+            : undefined"
+          :text-to-speech="textToSpeechFn"
+          @set-data="setData(bubbleData, $event)"
+        >
+          <template #bubble_renderer>
+            <MetahumanBroadcastingRendererTemplate
+              :text-to-speech="textToSpeechFn"
+            />
+          </template>
+          <template #background>
+            <MetahumanBackground
+              :status="currentMetahumanStatus"
+            ></MetahumanBackground>
+          </template>
+        </VkChatIndependent>
+      </VkPixiFrameProvider>
     </VkAgentChatProvider>
   </div>
 </template>
@@ -133,12 +137,10 @@ const speechToTextFn: __VkChatIndependent.SpeechToText = (blob) => {
   margin-bottom: 40px;
 }
 .home-chat-independent .vk-chat-independent-main__bubbles{
-
    mask-image: linear-gradient(to bottom,
     rgba(0, 0, 0, 0.4),
     rgba(0, 0, 0, 1) 80%,
     rgba(0, 0, 0, 1) 100%
   );
-
 }
 </style>

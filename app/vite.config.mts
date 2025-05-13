@@ -7,6 +7,7 @@ import { windowEnv } from '@vunk/shared/vite/plain'
 import unocss from 'unocss/vite'
 import { defineConfig, loadEnv } from 'vite'
 import createExternal from 'vite-plugin-external'
+import mkcert from 'vite-plugin-mkcert'
 import { createSvgIconsPlugin } from 'vite-plugin-svg-icons'
 import VueDevTools from 'vite-plugin-vue-devtools'
 import { appRoot, srcRoot } from './path.config'
@@ -21,6 +22,16 @@ export default defineConfig(({ mode }) => {
     },
     server: {
       host: '0.0.0.0',
+
+      proxy: {
+        '/api': {
+          // target: 'http://192.168.111.245:9091',
+          target: 'https://llm.geosophon.com',
+          changeOrigin: true,
+          rewrite: path => path.replace(env.VITE_BASE_PATH, '/'),
+        },
+      },
+
     },
     resolve: {
       alias: {
@@ -37,9 +48,6 @@ export default defineConfig(({ mode }) => {
 
       windowEnv(),
       unocss(),
-      // legacy({
-      //   modernPolyfills: ['esnext.array.at'],
-      // }),
       createExternal({
         externals: {
         },
@@ -55,15 +63,9 @@ export default defineConfig(({ mode }) => {
         symbolId: 'icon-[dir]-[name]',
       }),
 
-    ],
+      // mkcert(),
 
-    css: { // https://www.cnblogs.com/crispyChicken/p/18420010
-      preprocessorOptions: {
-        scss: {
-          api: 'modern',
-        },
-      },
-    },
+    ],
 
   } as UserConfig
 })

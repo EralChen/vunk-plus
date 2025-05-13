@@ -2,9 +2,10 @@
 import type { __VkAgentChatProvider } from '@vunk-plus/components/agent-chat-provider'
 import type { __VkBroadcastingMarkdown } from '@vunk-plus/components/broadcasting-markdown'
 import type { __VkBubbleList } from '@vunk-plus/components/bubble-list'
-import type { PropType } from 'vue'
+import type { SetDataEvent } from '@vunk/core'
 import { VkBroadcastingMarkdown } from '@vunk-plus/components/broadcasting-markdown'
 import { VkRendererTemplate } from '@vunk/core/components/renderer-template'
+import { markRaw, type PropType } from 'vue'
 import { Thinking, Typewriter } from 'vue-element-plus-x'
 
 defineOptions({
@@ -20,22 +21,35 @@ defineProps({
   },
 })
 
-function initRenderData (emitSetData, props) {
+function setRef (
+  emitSetData: (e: SetDataEvent) => void,
+  props: __VkBubbleList.Item,
+  el: any,
+) {
+  emitSetData?.({
+    k: [props.key, 'elRef'],
+    v: markRaw(el),
+  })
+}
+
+function initRenderData (
+  emitSetData: (e: SetDataEvent) => void,
+  props: __VkBubbleList.Item,
+) {
   emitSetData?.({
     k: [props.key, 'meta'],
     v: props.meta ?? {},
   })
   emitSetData?.({
     k: [props.key, 'templateType'],
-    v: 'VkBroadcastingMarkdown',
+    v: props.templateType,
   })
 }
-const typed = (e: __VkBubbleList.Item) => e
 </script>
 
 <template>
   <VkRendererTemplate type="Typewriter">
-    <template #default="{ props, emitSetData }">
+    <template #default="{ emitSetData, props }">
       <Thinking
         v-if="props.thinkingContent && modules?.includes('Thinking')"
         :content="props.thinkingContent"
@@ -43,11 +57,20 @@ const typed = (e: __VkBubbleList.Item) => e
       >
       </Thinking>
       <Typewriter
+        :ref="(el) => setRef(emitSetData, props, el)"
         :content="props.content"
         :typing="props.typing"
         :is-markdown="props.isMarkdown"
         :is-fog="props.isFog"
         @vue:mounted="initRenderData(emitSetData, props)"
+        @start="() => emitSetData({
+          k: [props.key, 'completed'],
+          v: false,
+        })"
+        @finish="() => emitSetData({
+          k: [props.key, 'completed'],
+          v: true,
+        })"
       ></Typewriter>
     </template>
   </VkRendererTemplate>
@@ -61,6 +84,7 @@ const typed = (e: __VkBubbleList.Item) => e
       >
       </Thinking>
       <VkBroadcastingMarkdown
+        :ref="(el) => setRef(emitSetData, props, el)"
         :source="props.content"
         :keep-read="!props.seviceEnd"
         :text-to-speech="textToSpeech"
