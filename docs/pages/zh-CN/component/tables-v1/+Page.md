@@ -2,19 +2,17 @@
 
 `ElTable`、`ElTableColumn`、`ElPagination` 的集成组件
 
-
 ## Basic
 
-:::demo 
+:::demo
 tables-v1/basic
 :::
 
 ## Start
 
-:::demo 
+:::demo
 tables-v1/start
 :::
-
 
 ## TablesV1 Props
 
@@ -26,7 +24,6 @@ tables-v1/start
 >>>
 tables-v1/src/ctx
 :::
-
 
 ## TablesV1 Emits
 
