@@ -1,5 +1,9 @@
 # Changelog 更新日志
 
+## 1.4.3
+
++ [TablesV1] 添加 prop `duplexFull`: 若为 false, 表格根据其内容高度自适应; 依赖 "@vunk/core": ">=1.4.6"
+
 ## 1.4.2
 
 + [PixiFrame] 新增 component [PixiFrame](../../component/pixi-frame/+Page.md): 帧动画播放组件

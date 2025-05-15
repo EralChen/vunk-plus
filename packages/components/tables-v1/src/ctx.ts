@@ -90,6 +90,14 @@ export const props = {
     default: undefined,
   },
 
+  /**
+   * @description 若为 false, 表格根据其内容高度自适应; 依赖 "@vunk/core": ">=1.4.6"
+   */
+  duplexFull: {
+    type: Boolean,
+    default: true,
+  },
+
 }
 
 export const createBindProps = bindPropsFactory(props)
