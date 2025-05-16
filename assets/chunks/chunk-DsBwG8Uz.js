@@ -1,0 +1,1 @@
+import{d as t,A as n,B as o,C as s}from"./chunk-Cl7Gad5t.js";const a={class:"my-custom-template"},c=["innerHTML"],i=t({__name:"MyCustomTemplate",props:{content:{type:String,default:"自定义渲染内容"}},setup(e){return(r,m)=>(o(),n("div",a,[s("div",{innerHTML:e.content},null,8,c)]))}});export{i as _};
