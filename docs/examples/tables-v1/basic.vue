@@ -3,7 +3,7 @@ import type { __VkTablesV1 } from '@vunk-plus/components/tables-v1'
 import { VkTablesV1 } from '@vunk-plus/components/tables-v1'
 import { computed, ref } from 'vue'
 
-const data = Array.from({ length: 100 }).map((_, i) => {
+const data = Array.from({ length: 12 }).map((_, i) => {
   return {
     name: `name-${i + 1}`,
   }
@@ -24,12 +24,15 @@ const columns: __VkTablesV1.Column[] = [
 </script>
 
 <template>
-  <VkTablesV1
-    v-model:current-page="currentPage"
-    v-model:page-size="pageSize"
-    :total="100"
-    :columns="columns"
-    :data="theData"
-    :background="true"
-  ></VkTablesV1>
+  <div h-300px>
+    <VkTablesV1
+      v-model:current-page="currentPage"
+      v-model:page-size="pageSize"
+      :duplex-full="false"
+      :total="12"
+      :columns="columns"
+      :data="theData"
+      :background="true"
+    ></VkTablesV1>
+  </div>
 </template>
