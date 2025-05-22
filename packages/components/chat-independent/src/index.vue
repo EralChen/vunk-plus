@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import type { __VkBubbleList } from '@vunk-plus/components/bubble-list'
+import type { __VkBubbleTemplates } from '@vunk-plus/components/bubble-templates'
 import { useAgentChat } from '@vunk-plus/components/agent-chat-provider'
 import { VkBubbleList } from '@vunk-plus/components/bubble-list'
 import { VkSender } from '@vunk-plus/components/sender'
@@ -8,7 +9,8 @@ import { VkVoiceAvatar } from '@vunk-plus/icons/voice'
 import { VkDuplex } from '@vunk/core'
 import { VkRendererData } from '@vunk/core/components/renderer-data'
 import { useDataComputed, useDeferred } from '@vunk/core/composables'
-import { isNotEmptyObject } from '@vunk/shared/object'
+import { isEmptyObject, isNotEmptyObject } from '@vunk/shared/object'
+import { waiting } from '@vunk/shared/promise'
 import { computed, defineAsyncComponent, nextTick, ref } from 'vue'
 import { InputType } from './const'
 import { emits as dEmits, props as dProps } from './ctx'
@@ -38,19 +40,30 @@ const bubbleListReslove = bubbleListDef.resolve
 const { simplicity } = useAgentChat()
 const { items: bubbleItems, onRequest } = simplicity
 
+const lastBubbleItem = computed(() => {
+  return bubbleItems.value.at(-1)
+})
 const lastBubbleData = computed(() => {
   return getBubbleDataAt(-1)
 })
 const clientLoading = computed(() => {
-  return isNotEmptyObject(lastBubbleData.value)
+  if (lastBubbleItem.value?.loading === true) { // 正在请求
+    return true
+  }
+  if (
+    isNotEmptyObject(lastBubbleData.value)
     && lastBubbleData.value.completed !== true
+  ) { // 渲染未完成
+    return true
+  }
+  return false
 })
 const senderDisabled = computed(() => {
   if (lastBubbleData.value.error === true) {
     // 如果本条数据错误, 则开放输入
     return false
   }
-  return bubbleItems.value.at(-1)?.loading === true
+  return lastBubbleItem.value?.loading === true
     || lastBubbleData.value.completed === false
 })
 
@@ -73,11 +86,12 @@ function onCancel () {
   if (!lastBubble)
     return
   lastBubble.abortController?.abort() // 打断请求
-  const lastBubbleData = bubbleData.value[lastBubble.key]
-  lastBubbleData.elRef?.interrupt() // 打断渲染
-  nextTick(() => {
-    lastBubbleData.completed = true
-  })
+
+  waiting(() => bubbleData.value[lastBubble.key], 60)
+    .then((lastBubbleData: __VkBubbleTemplates.RenderDataRecord) => {
+      lastBubbleData.elRef?.interrupt() // 打断渲染
+      bubbleData.value[lastBubble.key].completed = true
+    })
 }
 
 /* utils */
