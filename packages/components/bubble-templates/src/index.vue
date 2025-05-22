@@ -67,7 +67,7 @@ function initRenderData (
           k: [props.key, 'completed'],
           v: false,
         })"
-        @finish="() => emitSetData({
+        @finish="() => props.seviceEnd && emitSetData({
           k: [props.key, 'completed'],
           v: true,
         })"
