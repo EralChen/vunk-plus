@@ -6,6 +6,7 @@ import { Howl } from 'howler'
 import { computed, onBeforeUnmount, onMounted, shallowRef, watch, watchEffect } from 'vue'
 import { Broadcast } from './const'
 
+Howler.autoUnlock = false
 /* init Howl */
 const originalPlay = Howl.prototype.play
 Howl.prototype.play = function (this: Howl, soundId?: number) {
@@ -44,6 +45,7 @@ export function useHowlerParagraph (
     return new Howl({
       src: [url],
       format: ['mp3', 'wav', 'aac'],
+
       // 事件处理
       onplay: () => {
         // theData.value.broadcast = Broadcast.playing
@@ -120,13 +122,14 @@ export function useHowlerParagraph (
   watchEffect(() => {
     if (broadcast.value === Broadcast.play) {
       sound.value?.play()
-    } else if (broadcast.value === Broadcast.pause) {
+    }
+    else if (broadcast.value === Broadcast.pause) {
       sound.value?.pause()
-    } else if (broadcast.value === Broadcast.stop) {
+    }
+    else if (broadcast.value === Broadcast.stop) {
       sound.value?.stop()
     }
   })
-
 
   return {
     url,
