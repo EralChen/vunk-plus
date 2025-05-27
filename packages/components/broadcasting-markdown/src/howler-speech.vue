@@ -27,10 +27,12 @@ export default defineComponent({
     useHowlerParagraph(props, emit)
 
     onMounted(() => {
-      emit('setData', {
-        k: 'broadcast',
-        v: Broadcast.play,
-      })
+      if (theData.value.broadcast !== Broadcast.playing) {
+        emit('setData', {
+          k: 'broadcast',
+          v: Broadcast.play,
+        })
+      }
 
       emit('load', {
         data: props.data,
