@@ -12,7 +12,9 @@ const originalPlay = Howl.prototype.play
 Howl.prototype.play = function (this: Howl, soundId?: number) {
   const WeixinJSBridge = (window as NormalObject).WeixinJSBridge
   WeixinJSBridge && WeixinJSBridge.invoke('getNetworkType', {}, () => {
-    originalPlay.call(this, soundId)
+    if (!this.playing(soundId)) {
+      originalPlay.call(this, soundId)
+    }
   }, false)
   return originalPlay.call(this, soundId)
 }
@@ -129,6 +131,39 @@ export function useHowlerParagraph (
     else if (broadcast.value === Broadcast.stop) {
       sound.value?.stop()
     }
+  })
+
+  // 使用 Page Visibility API 检测页面可见性
+  const handleVisibilityChange = () => {
+    if (document.hidden) {
+      // 页面不可见（锁屏或切换到其他标签页）
+      emit('setData', {
+        k: 'broadcast',
+        v: Broadcast.pause,
+      })
+    }
+    else {
+      // 页面可见
+      setTimeout(() => {
+        if (
+          broadcast.value === Broadcast.paused
+        ) {
+          emit('setData', {
+            k: 'broadcast',
+            v: Broadcast.play,
+          })
+        }
+      }, 400)
+    }
+  }
+
+  onMounted(() => {
+    // 添加事件监听器
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+  })
+  onBeforeUnmount(() => {
+    // 移除事件监听器
+    document.removeEventListener('visibilitychange', handleVisibilityChange)
   })
 
   return {
