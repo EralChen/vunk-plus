@@ -2,6 +2,12 @@ import type { PropType } from 'vue'
 import { TickerStatus } from '@vunk/shared/enum'
 
 export const props = {
+
+  url: {
+    type: String,
+    requierd: false as const,
+  },
+
   data: {
     type: Array<string>,
     default: () => [],
