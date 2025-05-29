@@ -2,6 +2,7 @@ import type { App } from 'vue'
 import VkPixiFrameCore from './src/core.vue'
 import VkPixiFrame from './src/index.vue'
 import VkPixiFrameProvider from './src/provider.vue'
+import VkPixiFrameVideo from './src/video.vue'
 import VkPixiFrameView from './src/view.vue'
 
 export * as __VkPixiFrame from './src/types'
@@ -14,6 +15,7 @@ export {
   VkPixiFrame,
   VkPixiFrameCore,
   VkPixiFrameProvider,
+  VkPixiFrameVideo,
   VkPixiFrameView,
 }
 export default VkPixiFrame

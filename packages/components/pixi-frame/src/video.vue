@@ -2,21 +2,34 @@
 import type { Texture } from 'pixi.js'
 import { TickerStatus } from '@vunk/shared/enum'
 import { Assets, Sprite } from 'pixi.js'
-import { onBeforeUnmount, ref, useId, watchEffect } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, useId, watchEffect } from 'vue'
 import { props as dProps, emits } from './ctx'
 import { usePixiApp } from './use'
 
-const props = defineProps(dProps)
+const props = defineProps({
+  ...dProps,
+  url: {
+    type: String,
+    required: true,
+  },
+})
 const emit = defineEmits(emits)
 const { application: app, context } = usePixiApp()
 const compId = useId()
 
 // 视频相关状态
 const sprite = new Sprite()
-const texture = ref<Texture | null>(null)
-const isVideoReady = ref(false)
-const videoError = ref<string>('')
-const isLoading = ref(false)
+const texture = ref<Texture>()
+const video = computed(() => {
+  if (texture.value?.source && texture.value.source.resource) {
+    const resource = texture.value.source.resource
+    if (resource instanceof HTMLVideoElement) {
+      return resource
+    }
+  }
+  return null
+})
+const videoError = ref('')
 
 // 将精灵添加到舞台
 app.stage.addChild(sprite)
@@ -27,6 +40,8 @@ context.when().then((app) => {
     resizeSprite()
   })
 })
+
+onMounted(() => loadVideoTexture(props.url))
 
 // 调整精灵尺寸以适应容器
 function resizeSprite () {
@@ -45,23 +60,9 @@ function resizeSprite () {
   sprite.x = (app.screen.width - sprite.width) / 2
   sprite.y = (app.screen.height - sprite.height) / 2
 }
-
-// 获取视频元素
-function getVideoElement (texture: any): HTMLVideoElement | null {
-  // 根据 PIXI.js 8.x 的结构获取视频元素
-  if (texture.source && texture.source.resource) {
-    const resource = texture.source.resource
-    if (resource instanceof HTMLVideoElement) {
-      return resource
-    }
-  }
-  return null
-}
-
 // 使用 Assets 系统加载视频纹理
 async function loadVideoTexture (url: string) {
   try {
-    isLoading.value = true
     videoError.value = ''
 
     // 为视频创建唯一的别名
@@ -81,19 +82,14 @@ async function loadVideoTexture (url: string) {
     texture.value = videoTexture
     sprite.texture = videoTexture
 
-    // 获取视频元素并设置属性
-    const video = getVideoElement(videoTexture)
-    if (video) {
-      video.loop = props.loop
-      video.muted = true
-      video.crossOrigin = 'anonymous'
-
+    if (video.value) {
+      video.value.loop = props.loop
+      video.value.muted = true
+      video.value.crossOrigin = 'anonymous'
       // 设置视频事件监听器
-      setupVideoEvents(video)
+      setupVideoEvents(video.value)
     }
 
-    isVideoReady.value = true
-    isLoading.value = false
     resizeSprite()
 
     return videoTexture
@@ -101,8 +97,6 @@ async function loadVideoTexture (url: string) {
   catch (error) {
     console.error('加载视频纹理失败:', error)
     videoError.value = '视频加载失败'
-    isLoading.value = false
-    isVideoReady.value = false
     return null
   }
 }
@@ -164,12 +158,8 @@ function setupVideoEvents (video: HTMLVideoElement) {
 
 // 播放控制
 function play () {
-  if (!isVideoReady.value || !texture.value)
-    return
-
-  const video = getVideoElement(texture.value)
-  if (video) {
-    video.play().catch((error) => {
+  if (video.value) {
+    video.value.play().catch((error) => {
       console.error('视频播放失败:', error)
       videoError.value = '视频播放失败'
     })
@@ -177,23 +167,13 @@ function play () {
 }
 
 function pause () {
-  if (!texture.value)
-    return
-
-  const video = getVideoElement(texture.value)
-  if (video) {
-    video.pause()
-  }
+  video.value?.pause()
 }
 
 function stop () {
-  if (!texture.value)
-    return
-
-  const video = getVideoElement(texture.value)
-  if (video) {
-    video.pause()
-    video.currentTime = 0
+  if (video.value) {
+    video.value.pause()
+    video.value.currentTime = 0
   }
   emit('update:status', TickerStatus.stopped)
 }
@@ -205,7 +185,7 @@ async function cleanupVideo () {
 
     // 销毁纹理
     texture.value.destroy(true)
-    texture.value = null
+    texture.value = undefined
 
     // 从 Assets 缓存中卸载
     if (Assets.cache.has(alias)) {
@@ -214,36 +194,16 @@ async function cleanupVideo () {
   }
 
   // 重置状态
-  isVideoReady.value = false
   videoError.value = ''
-  isLoading.value = false
 }
-
-// 监听 URL 变化
-watchEffect(() => {
-  if (props.url) {
-    loadVideoTexture(props.url)
-  }
-  else {
-    cleanupVideo()
-  }
-})
 
 // 监听循环播放设置变化
 watchEffect(() => {
-  if (texture.value) {
-    const video = getVideoElement(texture.value)
-    if (video) {
-      video.loop = props.loop
-    }
-  }
+  video.value && (video.value.loop = props.loop)
 })
 
 // 监听播放状态变化
 watchEffect(() => {
-  if (!isVideoReady.value)
-    return
-
   switch (props.status) {
     case TickerStatus.play:
       play()
@@ -260,7 +220,6 @@ watchEffect(() => {
 // 组件销毁时清理资源
 onBeforeUnmount(() => {
   cleanupVideo()
-
   // 从舞台移除精灵
   if (sprite && app.stage) {
     app.stage.removeChild(sprite)
@@ -269,48 +228,5 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div v-if="videoError" class="video-error">
-    <p>{{ videoError }}</p>
-  </div>
-  <div v-else-if="isLoading" class="video-loading">
-    <p>加载视频中...</p>
-  </div>
-  <slot v-else></slot>
+  <slot></slot>
 </template>
-
-<style scoped>
-.video-error,
-.video-loading {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-  font-size: 14px;
-  text-align: center;
-}
-
-.video-error {
-  color: #ff4444;
-}
-
-.video-loading {
-  color: #666;
-}
-
-.video-error p,
-.video-loading p {
-  margin: 0;
-  padding: 20px;
-  border-radius: 4px;
-}
-
-.video-error p {
-  background-color: rgba(255, 68, 68, 0.1);
-  border: 1px solid rgba(255, 68, 68, 0.3);
-}
-
-.video-loading p {
-  background-color: rgba(102, 102, 102, 0.1);
-  border: 1px solid rgba(102, 102, 102, 0.3);
-}
-</style>
