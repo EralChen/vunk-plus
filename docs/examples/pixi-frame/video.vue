@@ -66,7 +66,7 @@ const statusColor = computed(() => {
 
 <template>
   <div class="pixi-video-demo">
-    <h2>PIXI 视频播放器演示</h2>
+    <h4>PIXI 视频播放器演示</h4>
 
     <div class="demo-container">
       <!-- 视频播放器 -->
@@ -85,21 +85,18 @@ const statusColor = computed(() => {
           <div class="button-group">
             <ElButton
               type="success"
-              icon="VideoPlay"
               @click="play"
             >
               播放
             </ElButton>
             <ElButton
               type="warning"
-              icon="VideoPause"
               @click="pause"
             >
               暂停
             </ElButton>
             <ElButton
               type="danger"
-              icon="VideoStop"
               @click="stop"
             >
               停止
@@ -174,206 +171,3 @@ const statusColor = computed(() => {
     </div>
   </div>
 </template>
-
-<style scoped>
-.pixi-video-demo {
-  padding: 20px;
-  max-width: 1200px;
-  margin: 0 auto;
-  font-family: 'Helvetica Neue', Arial, sans-serif;
-}
-
-.demo-container {
-  display: grid;
-  grid-template-columns: 2fr 1fr;
-  gap: 30px;
-  margin-top: 20px;
-}
-
-.video-container {
-  background: linear-gradient(45deg, #f0f0f0, #e0e0e0);
-  border: 2px solid #ddd;
-  border-radius: 12px;
-  height: 500px;
-  overflow: hidden;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  position: relative;
-}
-
-.video-container::before {
-  content: '';
-  position: absolute;
-  top: 10px;
-  left: 10px;
-  right: 10px;
-  bottom: 10px;
-  border: 1px dashed #bbb;
-  border-radius: 8px;
-  pointer-events: none;
-  z-index: 1;
-}
-
-.control-panel {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.control-group {
-  background: white;
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
-  padding: 16px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-}
-
-.control-group h3 {
-  margin: 0 0 12px 0;
-  font-size: 16px;
-  color: #333;
-  border-bottom: 2px solid #f0f0f0;
-  padding-bottom: 8px;
-}
-
-.button-group {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  margin-bottom: 16px;
-}
-
-.status-display {
-  margin-top: 12px;
-}
-
-.status-indicator {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 12px;
-  background: #f8f9fa;
-  border-radius: 6px;
-  border: 1px solid #e9ecef;
-}
-
-.status-dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  transition: background-color 0.3s ease;
-}
-
-.status-text {
-  font-weight: 500;
-  color: #495057;
-}
-
-.setting-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin: 12px 0;
-  padding: 8px 0;
-}
-
-.setting-item label {
-  font-weight: 500;
-  color: #495057;
-}
-
-.video-select {
-  padding: 6px 12px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  background: white;
-  font-size: 14px;
-  min-width: 180px;
-}
-
-.info-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.info-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 6px 0;
-  border-bottom: 1px solid #f0f0f0;
-}
-
-.info-item:last-child {
-  border-bottom: none;
-}
-
-.info-item .label {
-  font-weight: 500;
-  color: #6c757d;
-}
-
-.info-item .value {
-  color: #495057;
-  font-family: monospace;
-  font-size: 13px;
-  background: #f8f9fa;
-  padding: 2px 6px;
-  border-radius: 3px;
-}
-
-.instructions {
-  color: #6c757d;
-  font-size: 14px;
-  line-height: 1.5;
-}
-
-.instructions ul {
-  margin: 0;
-  padding-left: 18px;
-}
-
-.instructions li {
-  margin: 6px 0;
-}
-
-/* 响应式设计 */
-@media (max-width: 968px) {
-  .demo-container {
-    grid-template-columns: 1fr;
-    gap: 20px;
-  }
-
-  .video-container {
-    height: 300px;
-  }
-
-  .button-group {
-    justify-content: center;
-  }
-}
-
-@media (max-width: 640px) {
-  .pixi-video-demo {
-    padding: 15px;
-  }
-
-  .control-group {
-    padding: 12px;
-  }
-
-  .button-group {
-    flex-direction: column;
-  }
-
-  .setting-item {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 8px;
-  }
-
-  .video-select {
-    width: 100%;
-  }
-}
-</style>

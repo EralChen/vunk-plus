@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import type { Texture } from 'pixi.js'
+import { useDeferred } from '@vunk/core/composables'
 import { TickerStatus } from '@vunk/shared/enum'
 import { Assets, Sprite } from 'pixi.js'
 import { computed, onBeforeUnmount, onMounted, ref, useId, watchEffect } from 'vue'
@@ -29,7 +30,14 @@ const video = computed(() => {
   }
   return null
 })
+const readyDef = useDeferred()
 const videoError = ref('')
+
+readyDef.promise.then(() => {
+  if (props.status === TickerStatus.play) {
+    play()
+  }
+})
 
 // 将精灵添加到舞台
 app.stage.addChild(sprite)
@@ -88,6 +96,8 @@ async function loadVideoTexture (url: string) {
       video.value.crossOrigin = 'anonymous'
       // 设置视频事件监听器
       setupVideoEvents(video.value)
+
+      readyDef.resolve()
     }
 
     resizeSprite()

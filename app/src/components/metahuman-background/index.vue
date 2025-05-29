@@ -59,26 +59,9 @@ const videoSources = computed(() => [
 <template>
   <div class="metahuman-background">
     <slot></slot>
-    <video
-      v-for="videoSrc in videoSources"
-      :key="videoSrc.status"
-      ref="videoRefs"
-      class="source"
-      :class="[
-        { active: status === videoSrc.status },
-      ]"
-      :src="videoSrc.src"
-      loop
-      muted
-      autoplay
-      preload="auto"
-    />
     <VkPixiFrameView
       v-if="hasPixiFrame"
-      class="source"
-      :class="{
-        active: status === MetahumanStatus.SPEAKING,
-      }"
+      class="source is-active"
     >
     </VkPixiFrameView>
   </div>
@@ -98,7 +81,7 @@ const videoSources = computed(() => [
     transform: translateX(-48%);
     z-index: 0;
     opacity: 0;
-    &.active {
+    &.is-active {
       opacity: 1;
     }
   }
