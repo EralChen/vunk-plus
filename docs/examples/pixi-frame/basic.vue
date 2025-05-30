@@ -1,8 +1,17 @@
 <script lang="ts" setup>
+import type { SetDataEvent } from '@vunk/core'
+import type { __VkfForm } from '@vunk/form'
 import { VkPixiFrame } from '@vunk-plus/components/pixi-frame'
+import { setData } from '@vunk/core'
 import { useUpdating } from '@vunk/core/composables'
+import { VkfForm } from '@vunk/form'
 import { TickerStatus } from '@vunk/shared/enum'
-import { ElButton } from 'element-plus'
+import {
+  ElButton,
+  ElSpace,
+  ElTag,
+  ElText,
+} from 'element-plus'
 import { computed, nextTick, onMounted, reactive, ref } from 'vue'
 
 // 纯色 DataURL 生成函数
@@ -90,29 +99,74 @@ const colorSequences: Record<string, string[]> = {
   ],
 }
 
+// 表单数据
+const formData = reactive({
+  frameRate: 24,
+  loop: false,
+  selectedSequence: 'rainbow',
+  frameWidth: 300,
+  frameHeight: 200,
+})
+
 // 状态
 const status = ref(TickerStatus.pending)
-const frameRate = ref(24)
-const loop = ref(false)
-const selectedSequence = ref('rainbow')
-const frameWidth = ref(300)
-const frameHeight = ref(200)
 const frames = reactive<string[]>([])
 
 const updating = useUpdating(nextTick)
+
+// 表单项配置
+const formItems: __VkfForm.FormItem[] = [
+  {
+    label: '帧率控制',
+    prop: 'frameRate',
+    templateType: 'VkfSlider',
+    min: 1,
+    max: 60,
+    showStops: true,
+  },
+  {
+    label: '循环播放',
+    prop: 'loop',
+    templateType: 'VkfSwitch',
+  },
+  {
+    label: '颜色序列',
+    prop: 'selectedSequence',
+    templateType: 'VkfSelect',
+    options: [
+      { label: '彩虹色', value: 'rainbow' },
+      { label: '红蓝渐变', value: 'redToBlue' },
+      { label: '灰度渐变', value: 'grayScale' },
+    ],
+  },
+  {
+    label: '帧宽度',
+    prop: 'frameWidth',
+    templateType: 'VkfInputNumber',
+    min: 50,
+    max: 800,
+  },
+  {
+    label: '帧高度',
+    prop: 'frameHeight',
+    templateType: 'VkfInputNumber',
+    min: 50,
+    max: 600,
+  },
+]
 
 // 根据选择的序列生成帧数据
 function generateFrames () {
   frames.splice(0, frames.length) // 清空数组
 
-  const colors = colorSequences[selectedSequence.value]
+  const colors = colorSequences[formData.selectedSequence]
   if (!colors)
     return
 
   setTimeout(() => {
     // 延迟生成DataURL，确保在浏览器环境中执行
     colors.forEach((color: string) => {
-      const dataUrl = createColorDataUrl(color, frameWidth.value, frameHeight.value)
+      const dataUrl = createColorDataUrl(color, formData.frameWidth, formData.frameHeight)
       frames.push(dataUrl)
     })
   }, 10)
@@ -131,9 +185,18 @@ function stop () {
   status.value = TickerStatus.stop
 }
 
-// 当颜色序列或尺寸改变时，重新生成帧
-function updateFrames () {
-  generateFrames()
+// 当表单数据变化时，重新生成帧
+function handleFormDataChange (event: SetDataEvent) {
+  const key = event.k
+  setData(formData, event)
+  // 当影响帧生成的属性变化时，重新生成帧
+  if ([
+    'selectedSequence',
+    'frameWidth',
+    'frameHeight',
+  ].includes(key)) {
+    generateFrames()
+  }
 }
 
 // 显示当前状态的文字描述
@@ -177,208 +240,56 @@ onMounted(() => {
         v-if="!updating"
         v-model:status="status"
         :data="frames"
-        :frame-rate="frameRate"
-        :loop="loop"
+        :frame-rate="formData.frameRate"
+        :loop="formData.loop"
       />
     </div>
 
-    <div class="controls">
-      <div class="control-group">
-        <h3>播放控制</h3>
-        <div class="buttons">
-          <button class="control-btn play" @click="play">
-            播放
-          </button>
-          <button class="control-btn pause" @click="pause">
-            暂停
-          </button>
-          <button class="control-btn stop" @click="stop">
-            停止
-          </button>
-        </div>
-        <div class="status">
-          当前状态: {{ statusText }}
-        </div>
+    <!-- 播放控制区域 -->
+    <div class="control-section">
+      <h4>播放控制</h4>
+      <ElSpace>
+        <ElButton type="success" @click="play">
+          播放
+        </ElButton>
+        <ElButton type="warning" @click="pause">
+          暂停
+        </ElButton>
+        <ElButton type="danger" @click="stop">
+          停止
+        </ElButton>
+      </ElSpace>
+      <div style="margin-top: 8px;">
+        <ElText>当前状态: {{ statusText }}</ElText>
       </div>
+    </div>
 
-      <div class="control-group">
-        <h3>帧率控制</h3>
-        <div class="slider-container">
-          <input
-            v-model.number="frameRate"
-            type="range"
-            min="1"
-            max="60"
-          >
-          <span class="value">{{ frameRate }} FPS</span>
-        </div>
-      </div>
+    <!-- 配置表单 -->
+    <div class="form-section">
+      <h4>配置参数</h4>
+      <VkfForm
+        :data="formData"
+        :form-items="formItems"
+        label-width="120px"
+        @set-data="handleFormDataChange"
+      />
+    </div>
 
-      <div class="control-group">
-        <h3>循环播放</h3>
-        <label class="toggle">
-          <input v-model="loop" type="checkbox">
-          <span>{{ loop ? '开启' : '关闭' }}</span>
-        </label>
-      </div>
-
-      <div class="control-group">
-        <h3>颜色序列</h3>
-        <select v-model="selectedSequence" @change="updateFrames">
-          <option value="rainbow">
-            彩虹色
-          </option>
-          <option value="redToBlue">
-            红蓝渐变
-          </option>
-          <option value="grayScale">
-            灰度渐变
-          </option>
-        </select>
-      </div>
-
-      <div class="control-group">
-        <h3>帧尺寸</h3>
-        <div class="size-controls">
-          <div>
-            <label>宽度:</label>
-            <input v-model.number="frameWidth" type="number" min="50" max="800" @change="updateFrames">
-          </div>
-          <div>
-            <label>高度:</label>
-            <input v-model.number="frameHeight" type="number" min="50" max="600" @change="updateFrames">
-          </div>
-        </div>
-      </div>
-
-      <div class="control-group">
-        <h3>帧数据信息</h3>
-        <div class="info">
-          当前序列: {{ selectedSequence }}
-        </div>
-        <div class="info">
+    <!-- 信息显示 -->
+    <div class="info-section">
+      <h4>帧数据信息</h4>
+      <ElSpace direction="vertical">
+        <ElTag>当前序列: {{ formData.selectedSequence }}</ElTag>
+        <ElTag type="info">
           帧数量: {{ frames.length }}
-        </div>
-      </div>
+        </ElTag>
+        <ElTag type="success">
+          帧率: {{ formData.frameRate }} FPS
+        </ElTag>
+        <ElTag :type="formData.loop ? 'warning' : 'info'">
+          循环播放: {{ formData.loop ? '开启' : '关闭' }}
+        </ElTag>
+      </ElSpace>
     </div>
   </div>
 </template>
-
-<style>
-.pixi-frame-demo {
-  font-family: Arial, sans-serif;
-}
-
-.frame-container {
-  width: 100%;
-  height: 400px;
-  border: 1px solid #ccc;
-  margin-bottom: 20px;
-  background-color: #f5f5f5;
-}
-
-.controls {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 20px;
-}
-
-.control-group {
-  padding: 15px;
-  border: 1px solid #eee;
-  border-radius: 4px;
-  background-color: #f9f9f9;
-}
-
-.control-group h3 {
-  margin-top: 0;
-  margin-bottom: 10px;
-  font-size: 16px;
-  color: #333;
-}
-
-.buttons {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 10px;
-}
-
-.control-btn {
-  padding: 8px 16px;
-  border: none;
-  border-radius: 4px;
-  color: white;
-  cursor: pointer;
-  font-weight: bold;
-}
-
-.play {
-  background-color: #4CAF50;
-}
-
-.pause {
-  background-color: #FFC107;
-}
-
-.stop {
-  background-color: #F44336;
-}
-
-.status {
-  margin-top: 10px;
-  font-weight: bold;
-}
-
-.slider-container {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.slider-container input {
-  flex: 1;
-}
-
-.value {
-  min-width: 60px;
-  text-align: right;
-}
-
-.toggle {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  cursor: pointer;
-}
-
-select {
-  width: 100%;
-  padding: 8px;
-  border-radius: 4px;
-}
-
-.size-controls {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.size-controls div {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.size-controls label {
-  min-width: 50px;
-}
-
-.size-controls input {
-  width: 80px;
-  padding: 4px;
-}
-
-.info {
-  margin: 5px 0;
-}
-</style>

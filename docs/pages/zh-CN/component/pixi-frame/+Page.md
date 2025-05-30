@@ -13,6 +13,14 @@ PixiFrame 是一个基于 PixiJS 的多媒体播放组件，支持图片序列�
 pixi-frame/basic
 ::: -->
 
+## APNG
+
+支持 APNG (Animated PNG) 格式的动画图片播放，直接使用 PIXI.js 原生的 Assets 系统加载和渲染，避免内存溢出问题。
+
+:::demo
+pixi-frame/apng
+:::
+
 <!-- ## Video
 
 支持视频文件的播放，使用 PIXI.js 的视频纹理功能实现硬件加速渲染。
@@ -20,26 +28,6 @@ pixi-frame/basic
 :::demo
 pixi-frame/video
 ::: -->
-
-### 使用方式
-
-通过 `url` 属性指定视频文件路径即可切换到视频播放模式：
-
-```vue
-<template>
-  <VkPixiFrame
-    v-model:status="status"
-    url="/path/to/video.mp4"
-    :loop="true"
-  />
-</template>
-```
-
-### 性能注意事项
-
-1. **视频尺寸**: 过大的视频文件可能影响性能，建议根据显示需求优化视频分辨率
-2. **同时播放**: 避免同时播放多个视频以保证性能
-3. **内存管理**: 组件会自动管理视频资源，切换视频或销毁组件时会正确释放内存
 
 ## PixiFrame Props
 

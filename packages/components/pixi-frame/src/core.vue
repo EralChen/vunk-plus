@@ -2,45 +2,19 @@
 import type { Texture } from 'pixi.js'
 import { TickerStatus } from '@vunk/shared/enum'
 import { sleep } from '@vunk/shared/promise'
-
-import { Assets, Sprite } from 'pixi.js'
+import { Assets } from 'pixi.js'
 import { onBeforeUnmount, ref, useId, watchEffect } from 'vue'
 import { props as dProps, emits } from './ctx'
-import { usePixiApp } from './use'
+import { useSprite } from './useSprite'
 
 const props = defineProps(dProps)
 const emit = defineEmits(emits)
-const { application: app, context } = usePixiApp()
 const compId = useId()
 const getAlias = (key: string | number) => `${compId}-${key}`
 // 创建精灵并将其添加到舞台
-const sprite = new Sprite()
-app.stage.addChild(sprite)
-
-context.when().then((app) => {
-  if (sprite.texture) {
-    resizeSprite()
-    app.renderer.on(
-      'resize',
-      () => {
-        resizeSprite()
-      },
-    )
-  }
+const { sprite, resizeSprite } = useSprite({
+  autoResize: true,
 })
-
-function resizeSprite () {
-  if (!app.renderer?.screen)
-    return
-  // === 设置 sprite 尺寸自适应 ===
-  const scaleX = app.screen.width / sprite.texture.width
-  const scaleY = app.screen.height / sprite.texture.height
-  const scale = Math.min(scaleX, scaleY) // 保持比例
-  sprite.scale.set(scale)
-  // 居中显示
-  sprite.x = (app.screen.width - sprite.width) / 2
-  sprite.y = (app.screen.height - sprite.height) / 2
-}
 
 const textureMap = new Map<string, Texture>()
 
@@ -70,9 +44,7 @@ watchEffect(() => {
 })
 
 const index = ref(0)
-
 let timer: number | null = null
-
 function startFrameLoop () {
   if (timer !== null)
     return // 防止重复启动
@@ -129,6 +101,14 @@ function startFrameLoop () {
   }, 1000 / props.frameRate) // 每 40ms 一帧
 }
 
+onBeforeUnmount(stop)
+
+watchEffect(() => {
+  props.status === TickerStatus.play && play()
+  props.status === TickerStatus.pause && pause()
+  props.status === TickerStatus.stop && stop()
+})
+
 // 开始播放动画
 function play () {
   if (props.data.length > 0) {
@@ -154,23 +134,6 @@ function stop () {
   textureMap.clear()
   index.value = 0
 }
-
-onBeforeUnmount(() => {
-  stop()
-  app.stage.removeChild(sprite)
-})
-
-watchEffect(() => {
-  if (props.status === TickerStatus.play) {
-    play()
-  }
-  else if (props.status === TickerStatus.pause) {
-    pause()
-  }
-  else if (props.status === TickerStatus.stop) {
-    stop()
-  }
-})
 </script>
 
 <template>
