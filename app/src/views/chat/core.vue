@@ -124,6 +124,7 @@ const speechToTextFn: __VkChatIndependent.SpeechToText = (blob) => {
               v-model:status="videoStatus"
               :loop="true"
               :url="videoUrl"
+              label="MetahumanVideo"
             >
             </VkPixiFrameVideo>
 

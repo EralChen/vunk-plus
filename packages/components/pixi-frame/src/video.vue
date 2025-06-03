@@ -19,9 +19,7 @@ const compId = useId()
 const getAlias = () => `${compId}-video`
 
 // 使用 useSprite 创建精灵并自动管理
-const { sprite, resizeSprite } = useSprite({
-  autoResize: true,
-})
+const { sprite, resizeSprite } = useSprite(props)
 
 // 视频相关状态
 const texture = ref<Texture>()

@@ -1,4 +1,5 @@
 import type { PropType } from 'vue'
+import type { Resize } from './types'
 import { TickerStatus } from '@vunk/shared/enum'
 
 export const props = {
@@ -32,6 +33,16 @@ export const props = {
   frameRate: {
     type: Number,
     default: 24,
+  },
+
+  label: {
+    type: String,
+    default: '',
+  },
+
+  resize: {
+    type: Function as PropType<Resize>,
+    default: undefined,
   },
 
 }

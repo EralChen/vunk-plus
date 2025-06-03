@@ -1,14 +1,22 @@
+import type { Resize } from './types'
 import { Sprite } from 'pixi.js'
-import { onBeforeUnmount } from 'vue'
+import { onBeforeUnmount, watchEffect } from 'vue'
 import { usePixiApp } from './use'
 
-export function useSprite (options: {
+export function useSprite (props: {
   autoResize?: boolean
+  label?: string
+  resize?: Resize
 }) {
-  const autoResize = options.autoResize ?? true
+  const autoResize = props.autoResize ?? true
+  const resize = props.resize ?? defaultResize
   const { application: app, context } = usePixiApp()
   const sprite = new Sprite()
   app.stage.addChild(sprite)
+
+  watchEffect(() => {
+    props.label && (sprite.label = props.label)
+  })
 
   autoResize && context.when().then((app) => {
     if (sprite.texture) {
@@ -20,7 +28,18 @@ export function useSprite (options: {
   function resizeSprite () {
     if (!app.renderer?.screen)
       return
-    // === 设置 sprite 尺寸自适应 ===
+    resize({
+      application: app,
+      sprite,
+    })
+  }
+
+  onBeforeUnmount(() => {
+    app.renderer.off('resize', resizeSprite)
+    app.stage.removeChild(sprite)
+  })
+
+  function defaultResize () {
     const scaleX = app.screen.width / sprite.texture.width
     const scaleY = app.screen.height / sprite.texture.height
     const scale = Math.min(scaleX, scaleY) // 保持比例
@@ -29,11 +48,6 @@ export function useSprite (options: {
     sprite.x = (app.screen.width - sprite.width) / 2
     sprite.y = (app.screen.height - sprite.height) / 2
   }
-
-  onBeforeUnmount(() => {
-    app.renderer.off('resize', resizeSprite)
-    app.stage.removeChild(sprite)
-  })
 
   return {
     sprite,

@@ -1,5 +1,7 @@
 <script setup lang="ts">
-import { VkPixiFrameView } from '@vunk-plus/components/pixi-frame'
+import type { ResizeEvent } from '@vunk-plus/components/pixi-frame/src/types'
+import type { Application, Sprite } from 'pixi.js'
+import { TickerStatus, VkPixiFrameApng, VkPixiFrameView } from '@vunk-plus/components/pixi-frame'
 import { useModelComputed } from '@vunk/core/composables'
 import { computed, type PropType, ref } from 'vue'
 import { MetahumanStatus } from './const'
@@ -54,6 +56,20 @@ const videoSources = computed(() => [
     src: `${base}metahuman/${typeModel.value}_WELCOME.mp4`,
   },
 ])
+
+const chipStatus = ref(TickerStatus.play)
+
+function handleResize ({ application, sprite }: ResizeEvent) {
+  const relativeSprite = application.stage.getChildByLabel('MetahumanVideo') as Sprite
+  if (relativeSprite) {
+    sprite.x = relativeSprite.x
+    sprite.y = relativeSprite.y
+    sprite.scale.set(
+      relativeSprite.scale.x,
+      relativeSprite.scale.y,
+    )
+  }
+}
 </script>
 
 <template>
@@ -62,8 +78,20 @@ const videoSources = computed(() => [
     <VkPixiFrameView
       v-if="hasPixiFrame"
       class="source is-active"
+      :default-options="{
+        background: '#000',
+        backgroundAlpha: 0,
+      }"
     >
     </VkPixiFrameView>
+
+    <VkPixiFrameApng
+      v-if="hasPixiFrame"
+      v-model:status="chipStatus"
+      :url="`${base}imgs/chip.png`"
+      :resize="handleResize"
+      :loop="true"
+    ></VkPixiFrameApng>
   </div>
 </template>
 
