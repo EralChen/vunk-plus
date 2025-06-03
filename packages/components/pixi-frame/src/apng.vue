@@ -8,11 +8,6 @@ import { onBeforeUnmount, onMounted, ref, useId, watchEffect } from 'vue'
 import { props as dProps, emits } from './ctx'
 import { useSprite } from './useSprite'
 
-interface APNGFrame {
-  imageData: ImageData
-  delay: number
-}
-
 const props = defineProps({
   ...dProps,
   url: {
@@ -30,7 +25,7 @@ const { sprite, resizeSprite } = useSprite({
 })
 
 // APNG相关状态
-const frames = ref<APNGFrame[]>([])
+const frames = ref<string[]>([])
 const index = ref(0)
 const isLoaded = ref(false)
 const error = ref('')
@@ -139,10 +134,7 @@ async function loadAPNG (url: string) {
           resizeSprite()
         }
 
-        return {
-          imageData,
-          delay: frame.delay || 100, // 保留 delay 但不使用
-        }
+        return alias
       }
       finally {
         // 清理URL
