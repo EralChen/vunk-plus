@@ -12,9 +12,7 @@ const emit = defineEmits(emits)
 const compId = useId()
 const getAlias = (key: string | number) => `${compId}-${key}`
 // 创建精灵并将其添加到舞台
-const { sprite, resizeSprite } = useSprite({
-  autoResize: true,
-})
+const { sprite, resizeSprite } = useSprite(props)
 
 const textureMap = new Map<string, Texture>()
 

@@ -62,8 +62,8 @@ const chipStatus = ref(TickerStatus.play)
 function handleResize ({ application, sprite }: ResizeEvent) {
   const relativeSprite = application.stage.getChildByLabel('MetahumanVideo') as Sprite
   if (relativeSprite) {
-    sprite.x = relativeSprite.x
-    sprite.y = relativeSprite.y
+    sprite.x = relativeSprite.x + relativeSprite.width / 2 - sprite.width / 2
+    sprite.y = relativeSprite.y + relativeSprite.height / 2 - sprite.height / 2
     sprite.scale.set(
       relativeSprite.scale.x,
       relativeSprite.scale.y,

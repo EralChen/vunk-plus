@@ -20,9 +20,7 @@ const compId = useId()
 const getAlias = (frameIndex: number) => `${compId}-apng-frame-${frameIndex}`
 
 // 使用 useSprite 统一管理 sprite
-const { sprite, resizeSprite } = useSprite({
-  autoResize: true,
-})
+const { sprite, resizeSprite } = useSprite(props)
 
 // APNG相关状态
 const frames = ref<string[]>([])
@@ -90,56 +88,35 @@ async function loadAPNG (url: string) {
       ctx.clearRect(0, 0, canvas.width, canvas.height)
 
       // 使用 frame.imageData 获取帧数据
-      const blob = frame.imageData
-      if (!blob) {
-        throw new Error('帧数据为空')
+      await frame.createImage()
+      const img = frame.imageElement as HTMLImageElement
+      ctx.drawImage(img, frame.left, frame.top)
+
+      // 获取ImageData
+      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height)
+
+      // 立即创建纹理并加载到 textureMap（类似 core.vue）
+      const alias = getAlias(frameIndex)
+
+      // 先设置为 undefined 占位
+      textureMap.set(alias, undefined as never)
+
+      // 将ImageData转换为纹理
+      ctx.putImageData(imageData, 0, 0)
+      const dataUrl = canvas.toDataURL()
+      Assets.add({ alias, src: dataUrl })
+
+      // 加载纹理
+      const texture = await Assets.load(alias)
+      textureMap.set(alias, texture)
+
+      // 如果是第一帧，立即显示
+      if (frameIndex === 0) {
+        sprite.texture = texture
+        resizeSprite()
       }
-      const img = new Image()
 
-      // 创建 blob URL
-      const imgUrl = URL.createObjectURL(blob)
-
-      try {
-        // 等待图片加载
-        await new Promise<void>((resolve, reject) => {
-          img.onload = () => resolve()
-          img.onerror = reject
-          img.src = imgUrl
-        })
-
-        // 绘制到canvas
-        ctx.drawImage(img, frame.left, frame.top)
-
-        // 获取ImageData
-        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height)
-
-        // 立即创建纹理并加载到 textureMap（类似 core.vue）
-        const alias = getAlias(frameIndex)
-
-        // 先设置为 undefined 占位
-        textureMap.set(alias, undefined as never)
-
-        // 将ImageData转换为纹理
-        ctx.putImageData(imageData, 0, 0)
-        const dataUrl = canvas.toDataURL()
-        Assets.add({ alias, src: dataUrl })
-
-        // 加载纹理
-        const texture = await Assets.load(alias)
-        textureMap.set(alias, texture)
-
-        // 如果是第一帧，立即显示
-        if (frameIndex === 0) {
-          sprite.texture = texture
-          resizeSprite()
-        }
-
-        return alias
-      }
-      finally {
-        // 清理URL
-        URL.revokeObjectURL(imgUrl)
-      }
+      return alias
     })
 
     frames.value = await Promise.all(framePromises)
