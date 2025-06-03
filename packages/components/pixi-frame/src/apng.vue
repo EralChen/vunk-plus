@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import type { Texture } from 'pixi.js'
-import { useDeferred } from '@vunk/core/composables'
 import { TickerStatus } from '@vunk/shared/enum'
+import { sleep } from '@vunk/shared/promise'
 import parseAPNG from 'apng-js'
 import { Assets, Texture as PixiTexture } from 'pixi.js'
 import { onBeforeUnmount, onMounted, ref, useId, watchEffect } from 'vue'
@@ -31,28 +31,19 @@ const { sprite, resizeSprite } = useSprite({
 
 // APNG相关状态
 const frames = ref<APNGFrame[]>([])
-const currentFrame = ref(0)
+const index = ref(0)
 const isLoaded = ref(false)
 const error = ref('')
-const readyDef = useDeferred()
 
-// 纹理缓存管理
+// 纹理缓存管理（类似 core.vue）
 const textureMap = new Map<string, Texture>()
-const loadedFrames = new Set<number>()
 
 // 播放控制
-let animationId: number | null = null
-let lastFrameTime = 0
+let timer: number | null = null
 
 // 复用的 canvas 元素
 let reusableCanvas: HTMLCanvasElement | null = null
 let reusableCtx: CanvasRenderingContext2D | null = null
-
-readyDef.promise.then(() => {
-  if (props.status === TickerStatus.play) {
-    play()
-  }
-})
 
 onMounted(() => loadAPNG(props.url))
 
@@ -60,7 +51,9 @@ onMounted(() => loadAPNG(props.url))
 function getReusableCanvas (width: number, height: number) {
   if (!reusableCanvas) {
     reusableCanvas = document.createElement('canvas')
-    reusableCtx = reusableCanvas.getContext('2d', { willReadFrequently: true })!
+    reusableCtx = reusableCanvas.getContext('2d', {
+      willReadFrequently: true,
+    })!
   }
 
   if (reusableCanvas.width !== width || reusableCanvas.height !== height) {
@@ -71,7 +64,7 @@ function getReusableCanvas (width: number, height: number) {
   return { canvas: reusableCanvas, ctx: reusableCtx! }
 }
 
-// 加载APNG文件
+// 加载APNG文件并预加载所有帧纹理（类似 core.vue 的 watchEffect 逻辑）
 async function loadAPNG (url: string) {
   try {
     error.value = ''
@@ -97,7 +90,7 @@ async function loadAPNG (url: string) {
     const { canvas, ctx } = getReusableCanvas(apng.width, apng.height)
 
     // 处理每一帧
-    const framePromises = apng.frames.map(async (frame) => {
+    const framePromises = apng.frames.map(async (frame, frameIndex) => {
       // 清空canvas
       ctx.clearRect(0, 0, canvas.width, canvas.height)
 
@@ -125,9 +118,30 @@ async function loadAPNG (url: string) {
         // 获取ImageData
         const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height)
 
+        // 立即创建纹理并加载到 textureMap（类似 core.vue）
+        const alias = getAlias(frameIndex)
+
+        // 先设置为 undefined 占位
+        textureMap.set(alias, undefined as never)
+
+        // 将ImageData转换为纹理
+        ctx.putImageData(imageData, 0, 0)
+        const dataUrl = canvas.toDataURL()
+        Assets.add({ alias, src: dataUrl })
+
+        // 加载纹理
+        const texture = await Assets.load(alias)
+        textureMap.set(alias, texture)
+
+        // 如果是第一帧，立即显示
+        if (frameIndex === 0) {
+          sprite.texture = texture
+          resizeSprite()
+        }
+
         return {
           imageData,
-          delay: frame.delay || 100, // 默认100ms延迟
+          delay: frame.delay || 100, // 保留 delay 但不使用
         }
       }
       finally {
@@ -137,16 +151,7 @@ async function loadAPNG (url: string) {
     })
 
     frames.value = await Promise.all(framePromises)
-
-    if (frames.value.length > 0) {
-      // 预加载第一帧
-      await loadFrameTexture(0)
-      isLoaded.value = true
-      readyDef.resolve()
-    }
-    else {
-      throw new Error('APNG文件没有有效帧')
-    }
+    isLoaded.value = true
   }
   catch (err) {
     console.error('加载APNG失败:', err)
@@ -155,82 +160,53 @@ async function loadAPNG (url: string) {
   }
 }
 
-// 异步加载帧纹理
-async function loadFrameTexture (frameIndex: number): Promise<Texture | null> {
-  if (!frames.value[frameIndex]) {
-    return null
-  }
+// 开始帧循环（完全参考 core.vue 的逻辑）
+function startFrameLoop () {
+  if (timer !== null)
+    return // 防止重复启动
 
-  const alias = getAlias(frameIndex)
-
-  // 检查是否已经加载
-  if (textureMap.has(alias)) {
-    return textureMap.get(alias)!
-  }
-
-  const frame = frames.value[frameIndex]
-  const { imageData } = frame
-
-  // 使用复用的 canvas 创建纹理
-  const { canvas, ctx } = getReusableCanvas(imageData.width, imageData.height)
-
-  // 将ImageData绘制到canvas
-  ctx.putImageData(imageData, 0, 0)
-
-  // 创建纹理并添加到 Assets 系统
-  const dataUrl = canvas.toDataURL()
-  Assets.add({ alias, src: dataUrl })
-
-  const texture = await Assets.load(alias)
-  textureMap.set(alias, texture)
-  loadedFrames.add(frameIndex)
-
-  return texture
-}
-
-// 更新帧纹理
-async function updateFrameTexture (frameIndex: number) {
-  if (!frames.value[frameIndex]) {
-    return
-  }
-
-  const texture = await loadFrameTexture(frameIndex)
-  if (texture) {
-    sprite.texture = texture
-    currentFrame.value = frameIndex
-    resizeSprite()
-
-    // 清理旧帧纹理（非循环播放且不是当前帧和下一帧）
-    if (!props.loop) {
-      cleanupOldTextures(frameIndex)
+  timer = window.setInterval(() => {
+    if (
+      frames.value.length === 0
+      || props.status !== TickerStatus.playing
+    ) {
+      return
     }
-  }
-}
 
-// 清理旧的纹理（保留当前帧和下一帧）
-function cleanupOldTextures (currentIndex: number) {
-  const keepFrames = new Set([
-    currentIndex,
-    currentIndex + 1,
-    Math.max(0, currentIndex - 1), // 也保留前一帧以防回退
-  ])
+    const currentTexture = textureMap.get(
+      getAlias(index.value),
+    )
 
-  for (const frameIndex of loadedFrames) {
-    if (!keepFrames.has(frameIndex)) {
-      const alias = getAlias(frameIndex)
-      const texture = textureMap.get(alias)
-
-      if (texture && texture !== sprite.texture) {
-        // 使用 Assets.unload 清理资源
-        Assets.unload(alias).catch((err) => {
-          console.warn('清理纹理失败:', err)
-        })
-
-        textureMap.delete(alias)
-        loadedFrames.delete(frameIndex)
+    if (currentTexture) {
+      /* 清理上一帧（非循环播放时） */
+      const originIndex = index.value - 1
+      if (
+        originIndex >= 0
+        && !props.loop
+      ) {
+        // 延迟清理，类似 core.vue
+        Promise.resolve()
+          .then(() => sleep(500))
+          .then(() => {
+            Assets.unload(getAlias(originIndex))
+            textureMap.delete(getAlias(originIndex))
+          })
       }
+      /* 清理上一帧 END */
+
+      sprite.texture = currentTexture
+
+      resizeSprite()
+
+      index.value = props.loop
+        ? (index.value + 1) % frames.value.length // 循环播放
+        : index.value + 1 // 非循环播放
     }
-  }
+    else {
+      if (!props.loop)
+        emit('update:status', TickerStatus.paused)
+    }
+  }, 1000 / props.frameRate) // 使用 props.frameRate 计算帧间隔
 }
 
 // 播放动画
@@ -239,61 +215,32 @@ function play () {
     return
   }
 
-  if (animationId !== null) {
-    cancelAnimationFrame(animationId)
-  }
-
   emit('update:status', TickerStatus.playing)
-  lastFrameTime = performance.now()
-  animate()
-}
-
-// 动画循环
-function animate () {
-  const now = performance.now()
-  // 使用props.frameRate计算帧间隔，确保FPS可靠
-  const frameInterval = 1000 / props.frameRate // 毫秒
-
-  if (now - lastFrameTime >= frameInterval) {
-    let nextFrame = currentFrame.value + 1
-
-    if (nextFrame >= frames.value.length) {
-      if (props.loop) {
-        nextFrame = 0
-      }
-      else {
-        // 动画结束
-        emit('update:status', TickerStatus.stopped)
-        return
-      }
-    }
-
-    updateFrameTexture(nextFrame)
-    lastFrameTime = now
-  }
-
-  animationId = requestAnimationFrame(animate)
+  startFrameLoop()
 }
 
 // 暂停动画
 function pause () {
-  if (animationId !== null) {
-    cancelAnimationFrame(animationId)
-    animationId = null
+  if (timer !== null) {
+    clearInterval(timer)
+    timer = null
   }
   emit('update:status', TickerStatus.paused)
 }
 
 // 停止动画
 function stop () {
-  if (animationId !== null) {
-    cancelAnimationFrame(animationId)
-    animationId = null
+  if (timer !== null) {
+    clearInterval(timer)
+    timer = null
   }
 
   // 回到第一帧
-  if (frames.value.length > 0) {
-    updateFrameTexture(0)
+  index.value = 0
+  const firstTexture = textureMap.get(getAlias(0))
+  if (firstTexture) {
+    sprite.texture = firstTexture
+    resizeSprite()
   }
 
   emit('update:status', TickerStatus.stopped)
@@ -302,21 +249,16 @@ function stop () {
 // 清理所有资源
 async function cleanup () {
   // 停止动画
-  if (animationId !== null) {
-    cancelAnimationFrame(animationId)
-    animationId = null
+  if (timer !== null) {
+    clearInterval(timer)
+    timer = null
   }
 
   // 清理所有纹理
   const unloadPromises: Promise<void>[] = []
   for (const [alias, texture] of textureMap) {
     if (texture && texture !== PixiTexture.EMPTY) {
-      // 使用 Assets.unload 清理资源
-      unloadPromises.push(
-        Assets.unload(alias).catch((err) => {
-          console.warn('清理纹理失败:', err)
-        }),
-      )
+      unloadPromises.push(Assets.unload(alias))
     }
   }
 
@@ -325,13 +267,12 @@ async function cleanup () {
 
   // 清理状态
   textureMap.clear()
-  loadedFrames.clear()
   frames.value = []
-  currentFrame.value = 0
+  index.value = 0
   isLoaded.value = false
   error.value = ''
 
-  // 清理复用的 canvas（在组件销毁时）
+  // 清理复用的 canvas
   if (reusableCanvas) {
     reusableCanvas.width = 0
     reusableCanvas.height = 0
