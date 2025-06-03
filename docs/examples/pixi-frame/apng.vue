@@ -1,16 +1,48 @@
 <script lang="ts" setup>
+import type { SetDataEvent } from '@vunk/core'
+import type { __VkfForm } from '@vunk/form'
 import { VkPixiFrame } from '@vunk-plus/components/pixi-frame'
+import { setData } from '@vunk/core'
+import { VkfForm } from '@vunk/form'
 import { TickerStatus } from '@vunk/shared/enum'
-import { computed, ref } from 'vue'
+import { ElButton, ElSpace, ElTag } from 'element-plus'
+import { computed, reactive, ref } from 'vue'
 
 // 动画状态控制
 const status = ref<TickerStatus>(TickerStatus.pending)
-const loop = ref(true)
-const frameRate = ref(24)
+
+// 表单数据
+const formData = reactive({
+  loop: true,
+  frameRate: 24,
+})
 
 // 测试用的APNG URL
 const base = import.meta.env.BASE_URL || '/'
 const apngUrl = `${base}metahuman/M_SILENT.png`
+
+// 表单项配置
+const formItems: __VkfForm.FormItem[] = [
+  {
+    label: '帧率控制',
+    prop: 'frameRate',
+    templateType: 'VkfSlider',
+    min: 1,
+    max: 60,
+    showStops: true,
+    marks: {
+      12: '12',
+      24: '24',
+      30: '30',
+      60: '60',
+    },
+  },
+  {
+    label: '循环播放',
+    prop: 'loop',
+    templateType: 'VkfSwitch',
+  },
+]
 
 // 播放控制函数
 function play () {
@@ -25,8 +57,9 @@ function stop () {
   status.value = TickerStatus.stop
 }
 
-function toggleLoop () {
-  loop.value = !loop.value
+// 处理表单数据变化
+function handleFormDataChange (event: SetDataEvent) {
+  setData(formData, event)
 }
 
 // 状态显示
@@ -55,203 +88,68 @@ const statusText = computed(() => {
         <VkPixiFrame
           v-model:status="status"
           :url="apngUrl"
-          :loop="loop"
-          :frame-rate="frameRate"
+          :loop="formData.loop"
+          :frame-rate="formData.frameRate"
         />
       </div>
 
       <div class="controls">
+        <!-- 状态信息 -->
         <div class="status-info">
-          <p><strong>当前状态:</strong> {{ statusText }}</p>
-          <p><strong>循环播放:</strong> {{ loop ? '开启' : '关闭' }}</p>
-          <p><strong>帧率:</strong> {{ frameRate }} FPS</p>
-          <p><strong>APNG URL:</strong> {{ apngUrl }}</p>
+          <h4>状态信息</h4>
+          <ElSpace direction="vertical">
+            <ElTag>当前状态: {{ statusText }}</ElTag>
+            <ElTag :type="formData.loop ? 'success' : 'info'">
+              循环播放: {{ formData.loop ? '开启' : '关闭' }}
+            </ElTag>
+            <ElTag type="warning">
+              帧率: {{ formData.frameRate }} FPS
+            </ElTag>
+            <ElTag type="info">
+              APNG URL: {{ apngUrl }}
+            </ElTag>
+          </ElSpace>
         </div>
 
-        <div class="frame-rate-control">
-          <label for="frameRate">帧率控制: {{ frameRate }} FPS</label>
-          <input
-            id="frameRate"
-            v-model="frameRate"
-            type="range"
-            min="1"
-            max="60"
-            step="1"
-            class="frame-rate-slider"
-          >
+        <!-- 播放控制按钮 -->
+        <div class="control-section">
+          <h4>播放控制</h4>
+          <ElSpace>
+            <ElButton
+              type="success"
+              :disabled="status === TickerStatus.playing"
+              @click="play"
+            >
+              播放
+            </ElButton>
+            <ElButton
+              type="warning"
+              :disabled="status !== TickerStatus.playing"
+              @click="pause"
+            >
+              暂停
+            </ElButton>
+            <ElButton
+              type="danger"
+              :disabled="status === TickerStatus.pending"
+              @click="stop"
+            >
+              停止
+            </ElButton>
+          </ElSpace>
         </div>
 
-        <div class="control-buttons">
-          <button :disabled="status === TickerStatus.playing" @click="play">
-            播放
-          </button>
-          <button :disabled="status !== TickerStatus.playing" @click="pause">
-            暂停
-          </button>
-          <button :disabled="status === TickerStatus.pending" @click="stop">
-            停止
-          </button>
-          <button @click="toggleLoop">
-            {{ loop ? '关闭' : '开启' }}循环
-          </button>
+        <!-- 配置表单 -->
+        <div class="form-section">
+          <h4>配置参数</h4>
+          <VkfForm
+            :data="formData"
+            :form-items="formItems"
+            label-width="120px"
+            @set-data="handleFormDataChange"
+          />
         </div>
       </div>
     </div>
-
-    <div class="description">
-      <h3>功能说明</h3>
-      <ul>
-        <li>支持APNG格式的动画图片播放</li>
-        <li>提供播放、暂停、停止控制</li>
-        <li>支持循环播放设置</li>
-        <li>支持自定义帧率控制（1-60 FPS）</li>
-        <li>自动缩放以适应容器大小</li>
-        <li>基于PIXI.js渲染，性能优异</li>
-      </ul>
-    </div>
   </div>
 </template>
-
-<style scoped>
-.apng-example {
-  padding: 20px;
-  max-width: 800px;
-  margin: 0 auto;
-}
-
-.demo-container {
-  display: flex;
-  gap: 20px;
-  margin: 20px 0;
-  align-items: flex-start;
-}
-
-.pixi-container {
-  flex-shrink: 0;
-}
-
-.controls {
-  flex: 1;
-  min-width: 300px;
-}
-
-.status-info {
-  background: #f5f5f5;
-  padding: 15px;
-  border-radius: 4px;
-  margin-bottom: 15px;
-}
-
-.status-info p {
-  margin: 5px 0;
-  font-size: 14px;
-}
-
-.frame-rate-control {
-  background: #f9f9f9;
-  padding: 15px;
-  border-radius: 4px;
-  margin-bottom: 15px;
-}
-
-.frame-rate-control label {
-  display: block;
-  margin-bottom: 8px;
-  font-weight: bold;
-  font-size: 14px;
-}
-
-.frame-rate-slider {
-  width: 100%;
-  height: 6px;
-  border-radius: 3px;
-  background: #ddd;
-  outline: none;
-  cursor: pointer;
-}
-
-.frame-rate-slider::-webkit-slider-thumb {
-  appearance: none;
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  background: #007bff;
-  cursor: pointer;
-}
-
-.frame-rate-slider::-moz-range-thumb {
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  background: #007bff;
-  cursor: pointer;
-  border: none;
-}
-
-.control-buttons {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-
-.control-buttons button {
-  padding: 8px 16px;
-  border: 1px solid #ddd;
-  background: #fff;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.control-buttons button:hover:not(:disabled) {
-  background: #f0f0f0;
-  border-color: #999;
-}
-
-.control-buttons button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.description {
-  margin-top: 30px;
-  padding: 20px;
-  background: #fafafa;
-  border-radius: 4px;
-}
-
-.description h3 {
-  margin-top: 0;
-  color: #333;
-}
-
-.description ul {
-  padding-left: 20px;
-}
-
-.description li {
-  margin: 5px 0;
-}
-
-.description pre {
-  background: #f0f0f0;
-  padding: 15px;
-  border-radius: 4px;
-  overflow-x: auto;
-  font-size: 14px;
-}
-
-.description code {
-  font-family: 'Courier New', monospace;
-}
-
-@media (max-width: 768px) {
-  .demo-container {
-    flex-direction: column;
-  }
-
-  .pixi-container {
-    width: 100%;
-  }
-}
-</style>

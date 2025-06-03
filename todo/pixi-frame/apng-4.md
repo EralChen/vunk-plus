@@ -1,6 +1,6 @@
 ## TODO
 
-- [ ] 使用 vunk-form, 改造 apng 用例
+- [x] 使用 vunk-form, 改造 apng 用例
 
 ## WriteTo
 
