@@ -1,5 +1,7 @@
 <script lang="ts" setup>
 import type { Texture } from 'pixi.js'
+import type { PropType } from 'vue'
+import type { Datum } from './types'
 import { TickerStatus } from '@vunk/shared/enum'
 import { sleep } from '@vunk/shared/promise'
 import { Assets } from 'pixi.js'
@@ -7,7 +9,13 @@ import { onBeforeUnmount, ref, useId, watchEffect } from 'vue'
 import { props as dProps, emits } from './ctx'
 import { useSprite } from './useSprite'
 
-const props = defineProps(dProps)
+const props = defineProps({
+  ...dProps,
+  data: {
+    type: undefined as unknown as PropType<Datum[] | string[]>,
+    required: true,
+  },
+})
 const emit = defineEmits(emits)
 const compId = useId()
 const getAlias = (key: string | number) => `${compId}-${key}`
@@ -19,7 +27,9 @@ const textureMap = new Map<string, Texture>()
 watchEffect(() => {
   for (const key in props.data) {
     const alias = `${compId}-${key}`
-    const url = props.data[key]
+    const src = typeof props.data[key] === 'string'
+      ? props.data[key]
+      : props.data[key].src
 
     if (textureMap.has(alias)) {
       continue
@@ -27,11 +37,12 @@ watchEffect(() => {
 
     Assets.add({
       alias,
-      src: url,
+      src,
     })
     textureMap.set(alias, undefined as never)
 
     Assets.load(alias).then((res) => {
+      res._meta = props.data[key]
       textureMap.set(alias, res)
       if (key === '0') {
         sprite.texture = res

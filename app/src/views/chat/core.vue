@@ -17,7 +17,7 @@ import { parser } from './parser'
 import { useRequest } from './useRequest'
 
 const base = import.meta.env.BASE_URL || '/'
-const videoUrl = ref(`${base}metahuman/F_SLT.mp4`)
+const videoUrl = ref(`${base}metahuman/01.mp4`)
 const videoStatus = ref(TickerStatus.play)
 const {
   stt_model_enable,

@@ -84,14 +84,6 @@ function handleResize ({ application, sprite }: ResizeEvent) {
       }"
     >
     </VkPixiFrameView>
-
-    <VkPixiFrameApng
-      v-if="hasPixiFrame"
-      v-model:status="chipStatus"
-      :url="`${base}imgs/chip.png`"
-      :resize="handleResize"
-      :loop="true"
-    ></VkPixiFrameApng>
   </div>
 </template>
 

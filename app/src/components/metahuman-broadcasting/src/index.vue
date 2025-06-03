@@ -2,13 +2,25 @@
 import type { UseWebSocketReturn } from '@vueuse/core'
 import type { __VkBroadcastingMarkdown } from '@vunk-plus/components/broadcasting-markdown'
 import type { __VkBubbleTemplates } from '@vunk-plus/components/bubble-templates'
+import type { __VkPixiFrame } from '@vunk-plus/components/pixi-frame'
+import type { Sprite } from 'pixi.js'
 import type { PropType, Ref } from 'vue'
 import { ParagraphStatus, VkBroadcastingMarkdown } from '@vunk-plus/components/broadcasting-markdown'
 import { TickerStatus, VkPixiFrameCore } from '@vunk-plus/components/pixi-frame'
+import { usePixiApp } from '@vunk-plus/components/pixi-frame/src/use'
 import { setData } from '@vunk/core'
 import { useDeferred } from '@vunk/core/composables'
 import { waiting } from '@vunk/shared/promise'
 import { computed, nextTick, reactive, ref, watchEffect } from 'vue'
+
+interface FrameDatum {
+  src: string
+  position: {
+    x: number
+    y: number
+  }
+  currentTime: number
+}
 
 defineOptions({
   name: 'MetahumanBroadcasting',
@@ -37,7 +49,31 @@ const isParagraphUnplayed = computed(() => {
 const { data, send } = props.webSocket
 
 const frameShow = ref(true)
-const frameUrls = reactive<string[]>([])
+const frameUrls = reactive<FrameDatum[]>([])
+const handleResize: __VkPixiFrame.Resize = ({
+  sprite,
+  application,
+  meta,
+}) => {
+  const relativeSprite = application.stage.getChildAt(0) as Sprite
+
+  if (relativeSprite && meta) {
+    sprite.x = relativeSprite.x + (meta.position.x * relativeSprite.scale.x)
+    sprite.y = relativeSprite.y + (meta.position.y * relativeSprite.scale.y)
+    sprite.scale.set(
+      relativeSprite.scale.x,
+      relativeSprite.scale.y,
+    )
+  }
+  const video = relativeSprite.texture?.source?.resource as HTMLVideoElement | undefined
+
+  if (video && meta && meta.index !== 0) {
+    // 设置一个 0.2秒的阈值，来决定是否校准
+    if (Math.abs(video.currentTime - meta.currentTime) > 0.2) {
+      video.currentTime = meta.currentTime
+    }
+  }
+}
 
 watchEffect(() => {
   const json = JSON.parse(data.value)
@@ -47,7 +83,14 @@ watchEffect(() => {
 
   if (json.type === 'frame') { // 添加帧数据
     const url = `data:image/jpeg;base64,${json.frame_data}`
-    frameUrls.push(url)
+    frameUrls.push({
+      src: url,
+      position: {
+        x: json.face_position.x_min,
+        y: json.face_position.y_min,
+      },
+      currentTime: json.bg_frame_time,
+    })
     return
   }
 
@@ -139,6 +182,7 @@ defineExpose({
     v-if="frameShow"
     v-model:status="frameStatus"
     v-model:data="frameUrls"
+    :resize="handleResize"
     @set-data="setData(frameUrls, $event)"
   ></VkPixiFrameCore>
 </template>

@@ -1,3 +1,4 @@
+import type { NormalObject } from '@vunk/shared'
 import type { Resize } from './types'
 import { Sprite } from 'pixi.js'
 import { onBeforeUnmount, watchEffect } from 'vue'
@@ -28,9 +29,11 @@ export function useSprite (props: {
   function resizeSprite () {
     if (!app.renderer?.screen)
       return
+    const meta = (sprite.texture as NormalObject)._meta
     resize({
       application: app,
       sprite,
+      meta,
     })
   }
 
