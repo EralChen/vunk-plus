@@ -87,6 +87,7 @@ export default defineComponent({
     class="vk-typing-markdown"
     :class="{
       'is-typing': isDebouncedTyping,
+      'is-loading': loading,
     }"
     v-html="htmlText"
   >
@@ -97,6 +98,22 @@ export default defineComponent({
 .vk-typing-markdown.is-typing .is-last::after{
   animation: blink 0.7s infinite;
   content: '|';
+}
+
+.vk-typing-markdown.is-loading:not(.is-typing) .is-last::after {
+  content: '';
+  display: inline-block;
+  width: 1em;
+  text-align: left;
+  animation: dotTyping 1.2s steps(4, end) infinite;
+}
+
+@keyframes dotTyping {
+  0%   { content: '';     }
+  25%  { content: '.';    }
+  50%  { content: '..';   }
+  75%  { content: '...';  }
+  100% { content: '';     }
 }
 
 @keyframes blink {

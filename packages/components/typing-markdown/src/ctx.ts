@@ -37,6 +37,11 @@ export const props = {
     type: Boolean,
   },
 
+  loading: {
+    type: Boolean,
+    default: false,
+  },
+
 }
 
 export const emits = {
