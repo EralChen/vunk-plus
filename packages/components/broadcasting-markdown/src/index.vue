@@ -18,7 +18,7 @@ export default defineComponent({
   },
   props,
   emits,
-  setup (props, { emit, expose }) {
+  setup (props, { emit, expose, slots }) {
     // 经过的段落
     const [theData, handleSetData] = useDataComputed({
       default: [] as Paragraph[],
@@ -225,8 +225,9 @@ export default defineComponent({
       emit('update:broadcasting', isBroadcasting.value)
     })
 
+    const isTypingFinished = ref(!!slots.paragraphs)
     const isCompleted = computed(() => {
-      return props.keepRead === false && theData.value.every(
+      return isTypingFinished.value && props.keepRead === false && theData.value.every(
         item => item.status === ParagraphStatus.fulfilled,
       )
     })
@@ -273,6 +274,7 @@ export default defineComponent({
       setData,
       Broadcast,
       isPaused,
+      isTypingFinished,
     }
   },
 })
@@ -281,6 +283,7 @@ export default defineComponent({
 <template>
   <slot :paragraphs="theData">
     <VkTypingMarkdown
+      v-model:finished="isTypingFinished"
       :source="fulfilledTextValue"
       :delay="120"
       :pause="isInterrupted || isPaused"

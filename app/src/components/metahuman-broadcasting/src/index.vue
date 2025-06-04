@@ -7,11 +7,10 @@ import type { Sprite } from 'pixi.js'
 import type { PropType, Ref } from 'vue'
 import { ParagraphStatus, VkBroadcastingMarkdown } from '@vunk-plus/components/broadcasting-markdown'
 import { TickerStatus, VkPixiFrameCore } from '@vunk-plus/components/pixi-frame'
-import { usePixiApp } from '@vunk-plus/components/pixi-frame/src/use'
 import { setData } from '@vunk/core'
 import { useDeferred } from '@vunk/core/composables'
 import { waiting } from '@vunk/shared/promise'
-import { computed, nextTick, reactive, ref, watchEffect } from 'vue'
+import { computed, reactive, ref, watchEffect } from 'vue'
 
 interface FrameDatum {
   src: string
@@ -31,6 +30,10 @@ const props = defineProps({
   webSocket: {
     type: Object as PropType<UseWebSocketReturn<any>>,
     required: true,
+  },
+  keepRead: {
+    type: Boolean,
+    default: false,
   },
 })
 
@@ -68,9 +71,12 @@ const handleResize: __VkPixiFrame.Resize = ({
   const video = relativeSprite.texture?.source?.resource as HTMLVideoElement | undefined
 
   if (video && meta && meta.index !== 0) {
-    // 设置一个 0.2秒的阈值，来决定是否校准
-    if (Math.abs(video.currentTime - meta.currentTime) > 0.2) {
-      video.currentTime = meta.currentTime
+    // 设置一个 0.1秒的阈值，来决定是否校准
+    if (Math.abs(video.currentTime - meta.currentTime) > 0.05) {
+      console.warn(
+        `视频时间不一致, 当前: ${video.currentTime}, 期望: ${meta.currentTime}`,
+      )
+      video.currentTime = meta.currentTime + 0.01
     }
   }
 }
@@ -144,17 +150,17 @@ function paragraphLoad ({ data }: {
   })
 }
 function paragraphCompleted (v: boolean) {
-  if (v && paragraphData.value.length) {
+  if (v && paragraphData.value.length
+    && frameStatus.value !== TickerStatus.pending
+  ) {
     frameStop()
   }
 }
 
 function frameStop () {
+  frameShow.value = false
   frameStatus.value = TickerStatus.stop
   frameUrls.length = 0
-  nextTick(() => {
-    frameShow.value = false
-  })
 }
 
 async function interrupt () {
@@ -171,6 +177,7 @@ defineExpose({
   <VkBroadcastingMarkdown
     v-bind="$attrs"
     :ref="broadcastingMarkdownDef.resolve"
+    :keep-read="keepRead"
     :data="paragraphData"
     :processing="processingParagraph"
     @set-data="setData(paragraphData, $event)"

@@ -5,7 +5,7 @@ import type { Datum } from './types'
 import { TickerStatus } from '@vunk/shared/enum'
 import { sleep } from '@vunk/shared/promise'
 import { Assets } from 'pixi.js'
-import { onBeforeUnmount, ref, useId, watchEffect } from 'vue'
+import { onBeforeUnmount, ref, useId, watch, watchEffect } from 'vue'
 import { props as dProps, emits } from './ctx'
 import { useSprite } from './useSprite'
 
@@ -44,7 +44,7 @@ watchEffect(() => {
     Assets.load(alias).then((res) => {
       res._meta = props.data[key]
       textureMap.set(alias, res)
-      if (key === '0') {
+      if (props.prerender && key === '0') {
         sprite.texture = res
         resizeSprite()
       }
@@ -112,11 +112,11 @@ function startFrameLoop () {
 
 onBeforeUnmount(stop)
 
-watchEffect(() => {
-  props.status === TickerStatus.play && play()
-  props.status === TickerStatus.pause && pause()
-  props.status === TickerStatus.stop && stop()
-})
+watch(() => props.status, (newStatus) => {
+  newStatus === TickerStatus.play && play()
+  newStatus === TickerStatus.pause && pause()
+  newStatus === TickerStatus.stop && stop()
+}, { immediate: true })
 
 // 开始播放动画
 function play () {

@@ -33,8 +33,13 @@ export const props = {
     default: null,
   },
 
+  finished: {
+    type: Boolean,
+  },
+
 }
 
 export const emits = {
-  typing: null,
+  'typing': null,
+  'update:finished': null,
 }

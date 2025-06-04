@@ -45,6 +45,14 @@ export const props = {
     default: undefined,
   },
 
+  /**
+   * @description  是否在有资源时预渲染第一帧
+   */
+  prerender: {
+    type: Boolean,
+    default: false,
+  },
+
 }
 
 export const emits = {
