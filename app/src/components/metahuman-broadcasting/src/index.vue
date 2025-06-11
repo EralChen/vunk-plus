@@ -10,6 +10,7 @@ import { TickerStatus, VkPixiFrameCore } from '@vunk-plus/components/pixi-frame'
 import { setData } from '@vunk/core'
 import { useDeferred } from '@vunk/core/composables'
 import { waiting } from '@vunk/shared/promise'
+import { consola } from 'consola'
 import { computed, reactive, ref, watchEffect } from 'vue'
 
 interface FrameDatum {
@@ -91,11 +92,13 @@ const handleResize: __VkPixiFrame.Resize = ({
 
   if (video && meta && meta.index !== 0) {
     // 设置一个 0.1秒的阈值，来决定是否校准
-    if (Math.abs(video.currentTime - meta.currentTime) > 0.04) {
-      if (video.seeking) {
-        return
+    if (Math.abs(video.currentTime - meta.currentTime) > 0.08) {
+      consola.warn(
+        `${video.currentTime} vs ${meta.currentTime}`,
+      )
+      if (meta.currentTime === 0) {
+        video.currentTime = meta.currentTime
       }
-      video.currentTime = meta.currentTime
     }
   }
 }
@@ -201,7 +204,7 @@ defineExpose({
     :keep-read="keepRead"
     :data="paragraphData"
     :processing="processingParagraph"
-    :separators="[]"
+    :separators="['\n\n', '\n']"
     @set-data="setData(paragraphData, $event)"
     @paragraph-load="paragraphLoad"
     @update:completed="paragraphCompleted"
