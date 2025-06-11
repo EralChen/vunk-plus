@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import type { Texture } from 'pixi.js'
 import type { PropType } from 'vue'
-import type { Datum } from './types'
+import type { Datum, LoadEvent } from './types'
 import { TickerStatus } from '@vunk/shared/enum'
 import { sleep } from '@vunk/shared/promise'
 import { Assets } from 'pixi.js'
@@ -16,11 +16,14 @@ const props = defineProps({
     required: true,
   },
 })
-const emit = defineEmits(emits)
+const emit = defineEmits({
+  ...emits,
+  load: (e: LoadEvent) => e,
+})
 const compId = useId()
 const getAlias = (key: string | number) => `${compId}-${key}`
 // 创建精灵并将其添加到舞台
-const { sprite, resizeSprite } = useSprite(props)
+const { sprite, resizeSprite, application } = useSprite(props)
 
 const textureMap = new Map<string, Texture>()
 
@@ -52,13 +55,43 @@ watchEffect(() => {
   }
 })
 
+emit('load', {
+  application,
+  sprite,
+})
+
 const index = ref(0)
-let timer: number | null = null
+let animationId: number | null = null
+let lastFrameTime = 0
+
 function startFrameLoop () {
-  if (timer !== null)
+  if (animationId !== null)
     return // 防止重复启动
 
-  timer = window.setInterval(() => {
+  lastFrameTime = performance.now()
+
+  function renderFrame () {
+    const now = performance.now()
+    const frameDuration = 1000 / props.frameRate
+    const delta = now - lastFrameTime
+
+    if (delta >= frameDuration) {
+      lastFrameTime = now - (delta % frameDuration) // 修正误差抖动
+
+      // 执行绘制逻辑
+      drawFrame()
+    }
+
+    // 只有在播放状态下才继续请求下一帧
+    if (props.status === TickerStatus.playing) {
+      animationId = requestAnimationFrame(renderFrame)
+    }
+    else {
+      animationId = null
+    }
+  }
+
+  function drawFrame () {
     if (
       props.data.length === 0
       || props.status !== TickerStatus.playing
@@ -96,7 +129,6 @@ function startFrameLoop () {
       /* 清理上一帧 END */
 
       sprite.texture = currentTexture
-
       resizeSprite()
 
       index.value = props.loop
@@ -107,7 +139,10 @@ function startFrameLoop () {
       if (!props.loop)
         emit('update:status', TickerStatus.paused)
     }
-  }, 1000 / props.frameRate) // 每 40ms 一帧
+  }
+
+  // 启动动画循环
+  animationId = requestAnimationFrame(renderFrame)
 }
 
 onBeforeUnmount(stop)
@@ -135,9 +170,9 @@ function pause () {
 
 function stop () {
   emit('update:status', TickerStatus.stopped)
-  if (timer !== null) {
-    clearInterval(timer)
-    timer = null
+  if (animationId !== null) {
+    cancelAnimationFrame(animationId)
+    animationId = null
   }
   emit('update:data', [])
   textureMap.clear()

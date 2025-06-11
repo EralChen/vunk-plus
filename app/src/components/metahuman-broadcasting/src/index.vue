@@ -3,7 +3,7 @@ import type { UseWebSocketReturn } from '@vueuse/core'
 import type { __VkBroadcastingMarkdown } from '@vunk-plus/components/broadcasting-markdown'
 import type { __VkBubbleTemplates } from '@vunk-plus/components/bubble-templates'
 import type { __VkPixiFrame } from '@vunk-plus/components/pixi-frame'
-import type { Sprite } from 'pixi.js'
+import type { Application, Sprite } from 'pixi.js'
 import type { PropType, Ref } from 'vue'
 import { ParagraphStatus, VkBroadcastingMarkdown } from '@vunk-plus/components/broadcasting-markdown'
 import { TickerStatus, VkPixiFrameCore } from '@vunk-plus/components/pixi-frame'
@@ -42,6 +42,24 @@ const broadcastingMarkdownDef = useDeferred<__VkBubbleTemplates.Interruptable>()
 const frameStatus = ref(TickerStatus.pending)
 const paragraphData = ref([]) as Ref<__VkBroadcastingMarkdown.Paragraph[]>
 
+const frameAppDef = useDeferred<Application>()
+const frameSpriteDef = useDeferred<Sprite>()
+
+const handleLoadFrame: __VkPixiFrame.OnLoad = ({
+  application,
+  sprite,
+}) => {
+  frameAppDef.resolve(application)
+  frameSpriteDef.resolve(sprite)
+}
+
+const relativeSprite = computed(() => {
+  return frameAppDef.value?.stage.getChildAt(0) as Sprite | undefined
+})
+const relativeSpriteVideo = computed(() => {
+  return relativeSprite.value?.texture?.source?.resource as HTMLVideoElement | undefined
+})
+
 const isParagraphUnplayed = computed(() => {
   return paragraphData.value.some(
     item => item.status === ParagraphStatus.pending
@@ -53,6 +71,7 @@ const { data, send } = props.webSocket
 
 const frameShow = ref(true)
 const frameUrls = reactive<FrameDatum[]>([])
+
 const handleResize: __VkPixiFrame.Resize = ({
   sprite,
   application,
@@ -72,11 +91,11 @@ const handleResize: __VkPixiFrame.Resize = ({
 
   if (video && meta && meta.index !== 0) {
     // 设置一个 0.1秒的阈值，来决定是否校准
-    if (Math.abs(video.currentTime - meta.currentTime) > 0.05) {
-      console.warn(
-        `视频时间不一致, 当前: ${video.currentTime}, 期望: ${meta.currentTime}`,
-      )
-      video.currentTime = meta.currentTime + 0.01
+    if (Math.abs(video.currentTime - meta.currentTime) > 0.04) {
+      if (video.seeking) {
+        return
+      }
+      video.currentTime = meta.currentTime
     }
   }
 }
@@ -139,7 +158,6 @@ function paragraphLoad ({ data }: {
   if (frameStatus.value === TickerStatus.playing) {
     return
   }
-
   data.broadcast = TickerStatus.pause
   waiting(
     () => frameStatus.value === TickerStatus.playing,
@@ -174,12 +192,16 @@ defineExpose({
 </script>
 
 <template>
+  <ElButton @click="() => console.log(paragraphData)">
+    log
+  </ElButton>
   <VkBroadcastingMarkdown
     v-bind="$attrs"
     :ref="broadcastingMarkdownDef.resolve"
     :keep-read="keepRead"
     :data="paragraphData"
     :processing="processingParagraph"
+    :separators="[]"
     @set-data="setData(paragraphData, $event)"
     @paragraph-load="paragraphLoad"
     @update:completed="paragraphCompleted"
@@ -190,6 +212,7 @@ defineExpose({
     v-model:status="frameStatus"
     v-model:data="frameUrls"
     :resize="handleResize"
+    @load="handleLoadFrame"
     @set-data="setData(frameUrls, $event)"
   ></VkPixiFrameCore>
 </template>

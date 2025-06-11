@@ -55,5 +55,6 @@ export function useSprite (props: {
   return {
     sprite,
     resizeSprite,
+    application: app,
   }
 }

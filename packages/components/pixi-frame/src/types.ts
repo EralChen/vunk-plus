@@ -12,4 +12,10 @@ export interface ResizeEvent {
   meta: any
 }
 
+export interface LoadEvent {
+  application: Application
+  sprite: Sprite
+}
+export type OnLoad = (e: LoadEvent) => ReturnVoid
+
 export type Resize = (e: ResizeEvent) => ReturnVoid

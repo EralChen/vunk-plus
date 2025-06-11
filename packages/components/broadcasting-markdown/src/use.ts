@@ -137,10 +137,12 @@ export function useHowlerParagraph (
   const handleVisibilityChange = () => {
     if (document.hidden) {
       // 页面不可见（锁屏或切换到其他标签页）
-      emit('setData', {
-        k: 'broadcast',
-        v: Broadcast.pause,
-      })
+      if (broadcast.value === Broadcast.playing) {
+        emit('setData', {
+          k: 'broadcast',
+          v: Broadcast.pause,
+        })
+      }
     }
     else {
       // 页面可见
