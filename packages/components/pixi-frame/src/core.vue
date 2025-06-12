@@ -102,6 +102,7 @@ function startFrameLoop () {
     const currentTexture = textureMap.get(
       getAlias(index.value),
     )
+
     if (currentTexture) {
       /* 清理上一帧 */
       const originTexture = sprite.texture
@@ -136,6 +137,9 @@ function startFrameLoop () {
         : index.value + 1 // 非循环播放
     }
     else {
+      console.warn(
+        `Texture for index ${index.value} not found. Ensure the texture is loaded.`,
+      )
       if (!props.loop)
         emit('update:status', TickerStatus.paused)
     }

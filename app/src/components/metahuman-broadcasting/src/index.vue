@@ -72,7 +72,7 @@ const { data, send } = props.webSocket
 
 const frameShow = ref(true)
 const frameUrls = reactive<FrameDatum[]>([])
-const frameRate = ref(24)
+const frameRate = ref(25)
 const handleResize: __VkPixiFrame.Resize = ({
   sprite,
   application,
@@ -102,12 +102,12 @@ const handleResize: __VkPixiFrame.Resize = ({
       }
       else {
         // 动态调整 frameRate
-        if (video.currentTime > meta.currentTime) {
-          frameRate.value += 1
-        }
-        else {
-          frameRate.value = Math.max(1, frameRate.value - 1)
-        }
+        // if (video.currentTime > meta.currentTime) {
+        //   frameRate.value += 1
+        // }
+        // else {
+        //   frameRate.value = Math.max(1, frameRate.value - 1)
+        // }
       }
     }
   }
@@ -133,7 +133,7 @@ watchEffect(() => {
   }
 
   if ( // 选择一个合适的时机（有足够的缓冲帧）开始播放
-    (json.type === 'progress' && json.frame === 80)
+    (json.type === 'progress' && json.frame === 180)
     || json.type === 'streaming_complete'
   ) {
     if (
@@ -214,7 +214,7 @@ defineExpose({
     :keep-read="keepRead"
     :data="paragraphData"
     :processing="processingParagraph"
-    :separators="['\n\n']"
+    :separators="[]"
     @set-data="setData(paragraphData, $event)"
     @paragraph-load="paragraphLoad"
     @update:completed="paragraphCompleted"
