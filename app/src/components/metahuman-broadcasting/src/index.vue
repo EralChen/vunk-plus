@@ -72,7 +72,7 @@ const { data, send } = props.webSocket
 
 const frameShow = ref(true)
 const frameUrls = reactive<FrameDatum[]>([])
-
+const frameRate = ref(24)
 const handleResize: __VkPixiFrame.Resize = ({
   sprite,
   application,
@@ -96,8 +96,18 @@ const handleResize: __VkPixiFrame.Resize = ({
       consola.warn(
         `${video.currentTime} vs ${meta.currentTime}`,
       )
+
       if (meta.currentTime === 0) {
         video.currentTime = meta.currentTime
+      }
+      else {
+        // 动态调整 frameRate
+        if (video.currentTime > meta.currentTime) {
+          frameRate.value += 1
+        }
+        else {
+          frameRate.value = Math.max(1, frameRate.value - 1)
+        }
       }
     }
   }
@@ -204,7 +214,7 @@ defineExpose({
     :keep-read="keepRead"
     :data="paragraphData"
     :processing="processingParagraph"
-    :separators="['\n\n', '\n']"
+    :separators="['\n\n']"
     @set-data="setData(paragraphData, $event)"
     @paragraph-load="paragraphLoad"
     @update:completed="paragraphCompleted"
@@ -215,6 +225,7 @@ defineExpose({
     v-model:status="frameStatus"
     v-model:data="frameUrls"
     :resize="handleResize"
+    :frame-rate="frameRate"
     @load="handleLoadFrame"
     @set-data="setData(frameUrls, $event)"
   ></VkPixiFrameCore>
