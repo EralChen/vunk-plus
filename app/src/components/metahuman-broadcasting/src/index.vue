@@ -57,7 +57,7 @@ const handleLoadFrame: __VkPixiFrame.OnLoad = ({
 const relativeSprite = computed(() => {
   return frameAppDef.value?.stage.getChildAt(0) as Sprite | undefined
 })
-const relativeSpriteVideo = computed(() => {
+const _relativeSpriteVideo = computed(() => {
   return relativeSprite.value?.texture?.source?.resource as HTMLVideoElement | undefined
 })
 
@@ -96,7 +96,6 @@ const handleResize: __VkPixiFrame.Resize = ({
       consola.warn(
         `${video.currentTime} vs ${meta.currentTime}`,
       )
-
       if (meta.currentTime === 0) {
         video.currentTime = meta.currentTime
       }
