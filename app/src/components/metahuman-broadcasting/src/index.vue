@@ -39,7 +39,7 @@ const props = defineProps({
 })
 
 const broadcastingMarkdownDef = useDeferred<__VkBubbleTemplates.Interruptable>()
-
+const broadcastingStatus = ref(TickerStatus.pending)
 const frameStatus = ref(TickerStatus.pending)
 const paragraphData = ref([]) as Ref<__VkBroadcastingMarkdown.Paragraph[]>
 
@@ -61,18 +61,13 @@ const _relativeSpriteVideo = computed(() => {
   return relativeSprite.value?.texture?.source?.resource as HTMLVideoElement | undefined
 })
 
-const isParagraphUnplayed = computed(() => {
-  return paragraphData.value.some(
-    item => item.status === ParagraphStatus.pending
-      && item.broadcast !== TickerStatus.playing,
-  )
-})
-
 const { data, send } = props.webSocket
 
 const frameShow = ref(true)
 const frameUrls = reactive<FrameDatum[]>([])
 const frameRate = ref(25)
+const frameIndex = ref(0)
+
 const handleResize: __VkPixiFrame.Resize = ({
   sprite,
   application,
@@ -95,18 +90,12 @@ const handleResize: __VkPixiFrame.Resize = ({
     if (Math.abs(video.currentTime - meta.currentTime) > 0.08) {
       consola.warn(
         `${video.currentTime} vs ${meta.currentTime}`,
+        frameUrls.length,
+        frameUrls,
+        meta?.index,
       )
-      if (meta.currentTime === 0) {
+      if (meta.currentTime < 0.05) {
         video.currentTime = meta.currentTime
-      }
-      else {
-        // 动态调整 frameRate
-        // if (video.currentTime > meta.currentTime) {
-        //   frameRate.value += 1
-        // }
-        // else {
-        //   frameRate.value = Math.max(1, frameRate.value - 1)
-        // }
       }
     }
   }
@@ -144,8 +133,6 @@ watchEffect(() => {
 
     if ( // 帧或者段落未播放时, 重新激活播放
       frameStatus.value === TickerStatus.pending
-      || frameStatus.value === TickerStatus.stopped
-      || isParagraphUnplayed.value
     ) {
       frameStatus.value = TickerStatus.play
     }
@@ -207,13 +194,15 @@ defineExpose({
   <ElButton @click="() => console.log(paragraphData)">
     log
   </ElButton>
+  {{ broadcastingStatus }}
   <VkBroadcastingMarkdown
     v-bind="$attrs"
     :ref="broadcastingMarkdownDef.resolve"
+    v-model:status="broadcastingStatus"
     :keep-read="keepRead"
     :data="paragraphData"
     :processing="processingParagraph"
-    :separators="[]"
+    :separators="['\n']"
     @set-data="setData(paragraphData, $event)"
     @paragraph-load="paragraphLoad"
     @update:completed="paragraphCompleted"
@@ -223,6 +212,7 @@ defineExpose({
     v-if="frameShow"
     v-model:status="frameStatus"
     v-model:data="frameUrls"
+    v-model:frame-index="frameIndex"
     :resize="handleResize"
     :frame-rate="frameRate"
     @load="handleLoadFrame"

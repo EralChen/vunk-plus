@@ -62,6 +62,7 @@ export function useHowlerParagraph (
           k: 'broadcast',
           v: Broadcast.paused,
         })
+        console.log('onpause', props.data)
       },
       onend: () => {
         // theData.value.broadcast = Broadcast.ended

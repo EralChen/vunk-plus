@@ -2,10 +2,11 @@
 import type { Texture } from 'pixi.js'
 import type { PropType } from 'vue'
 import type { Datum, LoadEvent } from './types'
+import { useModelComputed } from '@vunk/core/composables'
 import { TickerStatus } from '@vunk/shared/enum'
 import { sleep } from '@vunk/shared/promise'
 import { Assets } from 'pixi.js'
-import { onBeforeUnmount, ref, useId, watch, watchEffect } from 'vue'
+import { computed, onBeforeUnmount, ref, useId, watch, watchEffect } from 'vue'
 import { props as dProps, emits } from './ctx'
 import { useSprite } from './useSprite'
 
@@ -15,10 +16,16 @@ const props = defineProps({
     type: undefined as unknown as PropType<Datum[] | string[]>,
     required: true,
   },
+  frameIndex: {
+    type: Number,
+    default: 0,
+  },
 })
 const emit = defineEmits({
   ...emits,
-  load: (e: LoadEvent) => e,
+  'load': (e: LoadEvent) => e,
+  'update:frameIndex': null,
+  'notFound': (_index: number) => true,
 })
 const compId = useId()
 const getAlias = (key: string | number) => `${compId}-${key}`
@@ -26,13 +33,22 @@ const getAlias = (key: string | number) => `${compId}-${key}`
 const { sprite, resizeSprite, application } = useSprite(props)
 
 const textureMap = new Map<string, Texture>()
+const completedIndex = ref(0)
+const enabledData = computed(() => {
+  return props.data.slice(completedIndex.value)
+})
 
 watchEffect(() => {
-  for (const key in props.data) {
-    const alias = `${compId}-${key}`
-    const src = typeof props.data[key] === 'string'
-      ? props.data[key]
-      : props.data[key].src
+  for (const key in enabledData.value) {
+    const theKey = +key + completedIndex.value
+    const alias = `${compId}-${theKey}`
+    const src = typeof enabledData.value[key] === 'string'
+      ? enabledData.value[key]
+      : enabledData.value[key]?.src
+
+    if (!src) {
+      continue
+    }
 
     if (textureMap.has(alias)) {
       continue
@@ -45,9 +61,9 @@ watchEffect(() => {
     textureMap.set(alias, undefined as never)
 
     Assets.load(alias).then((res) => {
-      res._meta = props.data[key]
+      res._meta = enabledData.value[key]
       textureMap.set(alias, res)
-      if (props.prerender && key === '0') {
+      if (props.prerender && theKey === 0) {
         sprite.texture = res
         resizeSprite()
       }
@@ -60,7 +76,10 @@ emit('load', {
   sprite,
 })
 
-const index = ref(0)
+const index = useModelComputed({
+  default: 0,
+  key: 'frameIndex',
+}, props, emit)
 let animationId: number | null = null
 let lastFrameTime = 0
 
@@ -77,7 +96,6 @@ function startFrameLoop () {
 
     if (delta >= frameDuration) {
       lastFrameTime = now - (delta % frameDuration) // 修正误差抖动
-
       // 执行绘制逻辑
       drawFrame()
     }
@@ -125,6 +143,7 @@ function startFrameLoop () {
               k: originIndex,
               v: '',
             })
+            completedIndex.value = originIndex
           })
       }
       /* 清理上一帧 END */
@@ -140,6 +159,7 @@ function startFrameLoop () {
       console.warn(
         `Texture for index ${index.value} not found. Ensure the texture is loaded.`,
       )
+      emit('notFound', index.value)
       if (!props.loop)
         emit('update:status', TickerStatus.paused)
     }

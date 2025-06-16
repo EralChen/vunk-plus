@@ -3,7 +3,8 @@ import type { Paragraph } from './types'
 import { VkTypingMarkdown } from '@vunk-plus/components/typing-markdown'
 import { setData } from '@vunk/core'
 import { useDataComputed } from '@vunk/core/composables'
-import { computed, defineComponent, ref, watch, watchEffect } from 'vue'
+import { TickerStatus } from '@vunk/shared/enum'
+import { computed, defineComponent, nextTick, ref, watch, watchEffect } from 'vue'
 import { Broadcast, ParagraphStatus } from './const'
 import { emits, props } from './ctx'
 import HowlerSpeechView from './howler-speech.vue'
@@ -137,7 +138,7 @@ export default defineComponent({
               // 上一段落已经在处理中, 无需合并 separator
             }
           }
-          else {
+          else if (value.length > props.paragraphMinlength) {
             const paragraph = {
               start,
               separator,
@@ -209,6 +210,23 @@ export default defineComponent({
     /* 打断当前播报 END */
 
     /* 收集段落状态 */
+    const currentParagraph = computed(() => {
+      return theData.value.find(
+        item => item.status === ParagraphStatus.pending,
+      )
+    })
+
+    watchEffect(() => {
+      if (!currentParagraph.value) {
+        return
+      }
+      if (currentParagraph.value.broadcast === props.status) {
+        return
+      }
+      props.status === TickerStatus.play && (currentParagraph.value.broadcast = TickerStatus.play)
+      props.status === TickerStatus.pause && (currentParagraph.value.broadcast = TickerStatus.pause)
+      props.status === TickerStatus.stop && (currentParagraph.value.broadcast = TickerStatus.stop)
+    })
 
     const isPaused = computed(() => {
       return theData.value.some(
@@ -216,13 +234,18 @@ export default defineComponent({
           && item.broadcast === Broadcast.paused,
       )
     })
+    watchEffect(() => {
+      isPaused.value && emit('update:status', TickerStatus.paused)
+    })
+
     const isBroadcasting = computed(() => {
       return theData.value.some(
         item => item.broadcast === Broadcast.playing,
       )
     })
     watchEffect(() => {
-      emit('update:broadcasting', isBroadcasting.value)
+      isBroadcasting.value && emit('update:broadcasting', isBroadcasting.value)
+      emit('update:status', TickerStatus.playing)
     })
 
     const isTypingFinished = ref(!!slots.paragraphs)
@@ -234,6 +257,7 @@ export default defineComponent({
 
     watchEffect(() => {
       emit('update:completed', isCompleted.value)
+      isCompleted.value && emit('update:status', TickerStatus.stopped)
     })
 
     const isError = computed(() => {
@@ -275,6 +299,7 @@ export default defineComponent({
       Broadcast,
       isPaused,
       isTypingFinished,
+      currentParagraph,
     }
   },
 })
@@ -288,6 +313,9 @@ export default defineComponent({
       :delay="120"
       :pause="isInterrupted || isPaused"
     ></VkTypingMarkdown>
+    <ElButton @click="() => console.log(currentParagraph)">
+      log2
+    </ElButton>
   </slot>
 
   <ParagraphView
