@@ -21,6 +21,10 @@
       {
         "link": "/avatar",
         "text": "Avatar"
+      },
+      {
+        "link": "/text",
+        "text": "Text"
       }
     ]
   },
