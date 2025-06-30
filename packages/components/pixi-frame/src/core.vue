@@ -44,7 +44,7 @@ watchEffect(() => {
     const alias = `${compId}-${theKey}`
     const src = typeof enabledData.value[key] === 'string'
       ? enabledData.value[key]
-      : enabledData.value[key]?.src
+      : (enabledData.value[key] as Datum)?.src
 
     if (!src) {
       continue

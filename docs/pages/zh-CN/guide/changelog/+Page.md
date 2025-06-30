@@ -1,6 +1,6 @@
 # Changelog 更新日志
 
-## 1.5.0
+## 1.5.1
 
 + [Text] 新增 component [Text](../../component/text/+Page.md): 文本组件, 支持文本截断、Tooltip 提示
 
