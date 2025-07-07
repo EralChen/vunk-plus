@@ -54,7 +54,7 @@ function processingParagraph (
     onChunkComplete (result) {
       streamingInferenceService.addChunk(result)
     },
-    onComplete (totalDimensions) {
+    onComplete () {
       streamingInferenceService.finishAddingChunks()
     },
   })
