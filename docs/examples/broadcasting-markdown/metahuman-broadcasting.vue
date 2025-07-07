@@ -5,6 +5,7 @@ import { authentication, textToSpeech } from '#/api/application'
 import { useWebSocket } from '@vueuse/core'
 import { ParagraphStatus, VkBroadcastingMarkdown } from '@vunk-plus/components/broadcasting-markdown'
 import { TickerStatus, VkPixiFrame } from '@vunk-plus/components/pixi-frame'
+import { blobToAudioWindow, StreamingInferenceService } from '@vunk-plus/shared/audioToFrames'
 import { setData } from '@vunk/core'
 import { blobToDataURL } from '@vunk/shared/data'
 import { waiting } from '@vunk/shared/promise'
@@ -18,105 +19,54 @@ const text = `大自然里，草长莺飞，莺歌燕舞，她生活在一个美
 在同伴的叹息中，她笑着流下了激动的泪水。`
 
 const authenticationPromise = authentication({
-  access_token: '859436e6e5fe3e63',
+  access_token: '21c0f2a5067fb1cb',
 }).then((res) => {
   localStorage.setItem('accessToken', res)
+  sessionStorage.setItem('accessToken', res)
 })
 
 const textToSpeechFn: __VkBroadcastingMarkdown.TextToSpeech = async (text) => {
   await authenticationPromise
   return textToSpeech({
-    application_id: '1df6fc34-0483-11f0-ab5c-8e5d3c122c24',
+    application_id: '2c0946f4-02f0-11f0-b881-0242ac170002',
     text,
   }).then((res) => {
     // blob 转 data url
-    return blobToDataURL(res)
+    return res
   })
 }
+
+const streamingInferenceService = new StreamingInferenceService(`${import.meta.env.BASE_URL}sophontalk/model.onnx`)
 
 const frameStatus = ref(TickerStatus.pending)
 const paragraphData = ref([]) as Ref<__VkBroadcastingMarkdown.Paragraph[]>
 
-const isParagraphUnplayed = computed(() => {
-  return paragraphData.value.some(
-    item => item.status === ParagraphStatus.pending
-      && item.broadcast !== TickerStatus.playing,
-  )
-})
-
-const { data, send, close } = useWebSocket('ws://localhost:8001/ws', {
-  autoReconnect: true,
-})
-
-onBeforeUnmount(() => {
-  close()
-})
-
 const frameUrls = reactive<string[]>([])
-
-watchEffect(() => {
-  const json = JSON.parse(data.value)
-  if (!json) {
-    return
-  }
-
-  if (json.type === 'frame') { // 添加帧数据
-    const url = `data:image/jpeg;base64,${json.frame_data}`
-    frameUrls.push(url)
-    consola.info('Frame Data', json, frameUrls.length)
-    return
-  }
-
-  if ( // 选择一个合适的时机（有足够的缓冲帧）开始播放
-    (json.type === 'progress' && json.frame === 120)
-    || json.type === 'streaming_complete'
-  ) {
-    if (
-      frameStatus.value === TickerStatus.playing
-      || frameUrls.length === 0
-    ) {
-      return
-    }
-
-    if ( // 帧或者段落未播放时, 重新激活播放
-      frameStatus.value === TickerStatus.pending
-      || frameStatus.value === TickerStatus.stopped
-      || isParagraphUnplayed.value
-    ) {
-      frameStatus.value = TickerStatus.play
-    }
-  }
-})
 
 function processingParagraph (
   item: __VkBroadcastingMarkdown.Paragraph,
 ) {
-  if (!item.url) {
+  if (!item.blob) {
     return
   }
-  const message = {
-    mode: 'start_from_position',
-    audio_data: item.url.split(',').slice(1).join(),
-  }
-  consola.info('Processing Paragraph', message)
-  send(JSON.stringify(message))
+
+  blobToAudioWindow(item.blob, {
+    onChunkComplete (result) {
+      streamingInferenceService.addChunk(result)
+    },
+    onComplete (totalDimensions) {
+      streamingInferenceService.finishAddingChunks()
+    },
+  })
+  // onFrame img =>
+
+  // 发送音频文件
+  consola.info('Processing Paragraph', item.blob)
 }
 function paragraphLoad ({ data }: {
   data: __VkBroadcastingMarkdown.Paragraph
 }) {
-  if (frameStatus.value === TickerStatus.playing) {
-    return
-  }
-
-  data.broadcast = TickerStatus.pause
-  waiting(
-    () => frameStatus.value === TickerStatus.playing,
-    10,
-    2000,
-  ).then(() => {
-    consola.info('Broadcast Play', Date.now())
-    data.broadcast = TickerStatus.play
-  })
+  consola.info('Paragraph Load', data)
 }
 function paragraphCompleted (v: boolean) {
   if (v && paragraphData.value.length) {
@@ -149,9 +99,9 @@ function paragraphCompleted (v: boolean) {
   </p>
 
   <div h-600px w-400px>
-    <VkPixiFrame
+    <!-- <VkPixiFrame
       v-model:status="frameStatus"
       :data="frameUrls"
-    ></VkPixiFrame>
+    ></VkPixiFrame> -->
   </div>
 </template>

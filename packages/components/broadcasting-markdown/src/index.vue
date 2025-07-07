@@ -3,8 +3,9 @@ import type { Paragraph } from './types'
 import { VkTypingMarkdown } from '@vunk-plus/components/typing-markdown'
 import { setData } from '@vunk/core'
 import { useDataComputed } from '@vunk/core/composables'
+import { blobToDataURL } from '@vunk/shared/data/blob'
 import { TickerStatus } from '@vunk/shared/enum'
-import { computed, defineComponent, nextTick, ref, watch, watchEffect } from 'vue'
+import { computed, defineComponent, ref, watch, watchEffect } from 'vue'
 import { Broadcast, ParagraphStatus } from './const'
 import { emits, props } from './ctx'
 import HowlerSpeechView from './howler-speech.vue'
@@ -44,8 +45,14 @@ export default defineComponent({
         return
       }
       return props.textToSpeech(`${value}`)
-        .then((url) => {
-          paragraph.url = url
+        .then(async (res) => {
+          if (res instanceof Blob) {
+            paragraph.blob = res
+            paragraph.url = await blobToDataURL(res)
+          }
+          if (typeof res === 'string') {
+            paragraph.url = res
+          }
         })
         .then(async () => {
           await props.processing?.(paragraph)
