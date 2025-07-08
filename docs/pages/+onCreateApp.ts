@@ -1,10 +1,13 @@
 import type { OnCreateAppSync } from 'vike-vue/types'
 import { VkClientOnly } from '@vunk/core/components/client-only'
 import ElmentPlus, { ID_INJECTION_KEY } from 'element-plus'
+import { env } from 'onnxruntime-web'
 
 import 'uno.css'
 import '#/src/styles'
 import '#/api/init'
+
+env.wasm.wasmPaths = '/vunk-plus/'
 
 export const onCreateApp: OnCreateAppSync = (pageContext) => {
   const { app } = pageContext

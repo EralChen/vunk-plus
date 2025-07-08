@@ -54,15 +54,18 @@ export interface ImageDataResponse {
  * @returns 包含图像元数据、JSZip实例和zip Blob的对象。
  * @throws 当任一资源加载失败时抛出异常。
  */
-export async function loadImageData (): Promise<{
-  imageData: ImageDataResponse
-  zip: JSZip
-  zipBlob: Blob
-}> {
+export async function loadImageData (
+  dataseUrl = '/complete_dataset.json',
+  sourceUrl = '/processed_images.zip',
+): Promise<{
+    imageData: ImageDataResponse
+    zip: JSZip
+    zipBlob: Blob
+  }> {
   // 并行加载元数据和压缩包
   const [imageDataResponse, imageZipResponse] = await Promise.all([
-    fetch('/complete_dataset.json'),
-    fetch('/processed_images.zip'),
+    fetch(dataseUrl),
+    fetch(sourceUrl),
   ])
 
   if (!imageDataResponse.ok) {

@@ -14,6 +14,7 @@ import type {
   MainThreadMessage,
   StreamingWorkerInitMessage as WorkerInitMessage,
 } from './workers/streaming.inference.worker'
+import { Deferred } from '@vunk/shared/promise'
 
 /**
  * 单个流式推理chunk的数据结构。
@@ -105,6 +106,8 @@ export class StreamingInferenceService {
   /** 是否处于推理处理中 */
   private isProcessing = false
 
+  private _def = new Deferred<void>()
+
   /**
    * 构造函数，初始化Worker并注册消息回调。
    * @param modelPath 模型路径
@@ -124,6 +127,7 @@ export class StreamingInferenceService {
         case 'ready':
           this.isInitialized = true
           onReady?.()
+          this._def.resolve()
           break
         case 'progress':
           this.callbacks.onProgress?.(
@@ -179,6 +183,10 @@ export class StreamingInferenceService {
    */
   public isReady (): boolean {
     return this.isInitialized
+  }
+
+  public when () {
+    return this._def.promise
   }
 
   /**

@@ -21,8 +21,8 @@ import {
   loadTensorFromZip,
 } from '../../media/ImageProcessor'
 
-// 配置wasm路径（相对于public目录）
-env.wasm.wasmPaths = '/'
+// [TODO] 配置wasm路径（相对于public目录）
+env.wasm.wasmPaths = '/vunk-plus/'
 
 // WebGPU 类型声明（用于类型推断，实际未用到WebGPU推理）
 declare interface GPUAdapter {}

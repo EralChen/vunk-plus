@@ -5,12 +5,18 @@ import { authentication, textToSpeech } from '#/api/application'
 import { useWebSocket } from '@vueuse/core'
 import { ParagraphStatus, VkBroadcastingMarkdown } from '@vunk-plus/components/broadcasting-markdown'
 import { TickerStatus, VkPixiFrame } from '@vunk-plus/components/pixi-frame'
-import { blobToAudioWindow, StreamingInferenceService } from '@vunk-plus/shared/audioToFrames'
+import { blobToAudioWindow, getStremingStartData, StreamingInferenceService } from '@vunk-plus/shared/audioToFrames'
 import { setData } from '@vunk/core'
 import { blobToDataURL } from '@vunk/shared/data'
 import { waiting } from '@vunk/shared/promise'
 import { consola } from 'consola'
-import { computed, onBeforeUnmount, reactive, ref, watchEffect } from 'vue'
+import { env, InferenceSession, Tensor } from 'onnxruntime-web'
+
+import { computed, onBeforeUnmount, onMounted, reactive, ref, watchEffect } from 'vue'
+
+const modelUrl = `${import.meta.env.BASE_URL}sophontalk/model.onnx`
+const sourceUrl = `${import.meta.env.BASE_URL}sophontalk/processed_images.zip`
+const datasetUrl = `${import.meta.env.BASE_URL}sophontalk/complete_dataset.json`
 
 const text = `大自然里，草长莺飞，莺歌燕舞，她生活在一个美好的世界里。
 
@@ -36,12 +42,30 @@ const textToSpeechFn: __VkBroadcastingMarkdown.TextToSpeech = async (text) => {
   })
 }
 
-const streamingInferenceService = new StreamingInferenceService(`${import.meta.env.BASE_URL}sophontalk/model.onnx`)
+const streamingInferenceService = new StreamingInferenceService(modelUrl)
 
 const frameStatus = ref(TickerStatus.pending)
 const paragraphData = ref([]) as Ref<__VkBroadcastingMarkdown.Paragraph[]>
 
 const frameUrls = reactive<string[]>([])
+
+onMounted(async () => {
+  await streamingInferenceService.when()
+  const { blendingMaskBitmap, dataset, zipBlob } = await getStremingStartData({
+    datasetUrl,
+    sourceUrl,
+  })
+  consola.info('Blending Mask Bitmap', streamingInferenceService.isReady())
+  streamingInferenceService.startStreaming({
+    blendingMaskBitmap,
+    dataset,
+    zipBlob,
+  }, {
+    onFrame (frame, frameIndex) {
+      consola.info('Frame', frameIndex, frame)
+    },
+  })
+})
 
 function processingParagraph (
   item: __VkBroadcastingMarkdown.Paragraph,
