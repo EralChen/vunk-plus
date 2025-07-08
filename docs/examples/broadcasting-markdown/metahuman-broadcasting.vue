@@ -49,6 +49,7 @@ const paragraphData = ref([]) as Ref<__VkBroadcastingMarkdown.Paragraph[]>
 
 const frameUrls = reactive<string[]>([])
 
+const canvas = document.createElement('canvas')
 onMounted(async () => {
   await streamingInferenceService.when()
   const { blendingMaskBitmap, dataset, zipBlob } = await getStremingStartData({
@@ -62,7 +63,28 @@ onMounted(async () => {
     zipBlob,
   }, {
     onFrame (frame, frameIndex) {
-      consola.info('Frame', frameIndex, frame)
+      // 创建一个 canvas 元素
+      canvas.width = frame.width
+      canvas.height = frame.height
+
+      // 获取 canvas 的 2D 绘图上下文
+      const ctx = canvas.getContext('2d')!
+
+      // 清除 canvas
+      ctx.clearRect(0, 0, canvas.width, canvas.height)
+
+      // 设置随机填充色
+      // ctx.fillStyle = `rgba(${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, 0.5)`
+
+      // 将 ImageBitmap 绘制到 canvas 上
+      ctx.drawImage(frame, 0, 0)
+
+      // ctx.fillRect(0, 0, canvas.width, canvas.height)
+
+      // 将 canvas 转换为 Base64 格式
+      const base64 = canvas.toDataURL('image/png') // 可以指定格式，如 'image/png' 或 'image/jpeg'
+
+      frameUrls.push(base64)
     },
   })
 })
@@ -94,8 +116,8 @@ function paragraphLoad ({ data }: {
 }
 function paragraphCompleted (v: boolean) {
   if (v && paragraphData.value.length) {
-    frameStatus.value = TickerStatus.stop
-    frameUrls.length = 0
+    // frameStatus.value = TickerStatus.stop
+    // frameUrls.length = 0
   }
 }
 </script>
@@ -120,12 +142,16 @@ function paragraphCompleted (v: boolean) {
     <ElButton @click="() => console.log(frameUrls)">
       frameUrls
     </ElButton>
+
+    <ElButton @click="() => frameStatus = TickerStatus.play">
+      frameStatus
+    </ElButton>
   </p>
 
   <div h-600px w-400px>
-    <!-- <VkPixiFrame
+    <VkPixiFrame
       v-model:status="frameStatus"
       :data="frameUrls"
-    ></VkPixiFrame> -->
+    ></VkPixiFrame>
   </div>
 </template>

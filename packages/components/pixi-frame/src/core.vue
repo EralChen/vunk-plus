@@ -18,7 +18,6 @@ const props = defineProps({
   },
   frameIndex: {
     type: Number,
-    default: 0,
   },
 })
 const emit = defineEmits({
@@ -80,6 +79,7 @@ const index = useModelComputed({
   default: 0,
   key: 'frameIndex',
 }, props, emit)
+
 let animationId: number | null = null
 let lastFrameTime = 0
 
@@ -95,7 +95,12 @@ function startFrameLoop () {
     const delta = now - lastFrameTime
 
     if (delta >= frameDuration) {
+      console.debug(
+        `Current frame index: ${index.value}, Time since last frame: ${delta.toFixed(2)}ms`,
+      )
+
       lastFrameTime = now - (delta % frameDuration) // 修正误差抖动
+
       // 执行绘制逻辑
       drawFrame()
     }
@@ -149,6 +154,12 @@ function startFrameLoop () {
       /* 清理上一帧 END */
 
       sprite.texture = currentTexture
+
+      console.log(
+        `Rendering frame ${index.value} with texture:`,
+        currentTexture,
+      )
+
       resizeSprite()
 
       index.value = props.loop

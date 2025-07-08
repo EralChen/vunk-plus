@@ -63,7 +63,9 @@ export default defineComponent({
     ></VideoComp>
     <CoreComp
       v-else
-      v-bind="$props"
+      :data="data"
+      :loop="loop"
+      :status="status"
       @update:status="$emit('update:status', $event)"
     ></CoreComp>
   </ProviderComp>
