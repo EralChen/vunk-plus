@@ -68,7 +68,7 @@ onMounted(async () => {
       if (total < 240 && processed === total || processed === 240) {
         frameStatus.value = TickerStatus.play
       }
-      consola.info(`Processed ${processed} of ${total} frames`)
+      // consola.info(`Processed ${processed} of ${total} frames`)
     },
   })
 })
@@ -137,6 +137,7 @@ function paragraphCompleted (v: boolean) {
     <VkPixiFrame
       v-model:status="frameStatus"
       :data="frameUrls"
+      @set-data="setData(frameUrls, $event)"
     ></VkPixiFrame>
   </div>
 </template>

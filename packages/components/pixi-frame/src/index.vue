@@ -68,6 +68,7 @@ export default defineComponent({
       :data="data"
       :loop="loop"
       :status="status"
+      @set-data="$emit('setData', $event)"
       @update:status="$emit('update:status', $event)"
     ></Bitmap>
   </ProviderComp>

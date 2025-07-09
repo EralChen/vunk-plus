@@ -105,13 +105,14 @@ function drawFrame () {
       Promise
         .resolve(sleep(500))
         .then(() => {
+          originTexture.destroy(true)
           textureMap.set(
             getAlias(originIndex),
             undefined as never,
           )
           emit('setData', {
             k: originIndex,
-            v: '',
+            v: null,
           })
           completedIndex.value = originIndex
         })
