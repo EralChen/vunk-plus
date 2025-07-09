@@ -2,7 +2,8 @@
 import type { } from '@vunk/shared/enum'
 import { computed, defineComponent } from 'vue'
 import ApngComp from './apng.vue'
-import CoreComp from './core.vue'
+import Bitmap from './bitmap.vue'
+// import CoreComp from './core.vue'
 import { emits, props } from './ctx'
 import ProviderComp from './provider.vue'
 import VideoComp from './video.vue'
@@ -12,10 +13,11 @@ export default defineComponent({
   name: 'VkPixiFrame',
   components: {
     ApngComp,
-    CoreComp,
+    // CoreComp,
     ProviderComp,
     ViewComp,
     VideoComp,
+    Bitmap,
   },
   props,
   emits,
@@ -61,12 +63,12 @@ export default defineComponent({
       :status="status"
       @update:status="$emit('update:status', $event)"
     ></VideoComp>
-    <CoreComp
+    <Bitmap
       v-else
       :data="data"
       :loop="loop"
       :status="status"
       @update:status="$emit('update:status', $event)"
-    ></CoreComp>
+    ></Bitmap>
   </ProviderComp>
 </template>

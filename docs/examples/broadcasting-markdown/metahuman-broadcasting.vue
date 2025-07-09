@@ -47,44 +47,22 @@ const streamingInferenceService = new StreamingInferenceService(modelUrl)
 const frameStatus = ref(TickerStatus.pending)
 const paragraphData = ref([]) as Ref<__VkBroadcastingMarkdown.Paragraph[]>
 
-const frameUrls = reactive<string[]>([])
+const frameUrls = reactive<any[]>([])
 
-const canvas = document.createElement('canvas')
 onMounted(async () => {
   await streamingInferenceService.when()
   const { blendingMaskBitmap, dataset, zipBlob } = await getStremingStartData({
     datasetUrl,
     sourceUrl,
   })
-  consola.info('Blending Mask Bitmap', streamingInferenceService.isReady())
+
   streamingInferenceService.startStreaming({
     blendingMaskBitmap,
     dataset,
     zipBlob,
   }, {
-    onFrame (frame, frameIndex) {
-      // 创建一个 canvas 元素
-      canvas.width = frame.width
-      canvas.height = frame.height
-
-      // 获取 canvas 的 2D 绘图上下文
-      const ctx = canvas.getContext('2d')!
-
-      // 清除 canvas
-      ctx.clearRect(0, 0, canvas.width, canvas.height)
-
-      // 设置随机填充色
-      // ctx.fillStyle = `rgba(${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, ${Math.floor(Math.random() * 256)}, 0.5)`
-
-      // 将 ImageBitmap 绘制到 canvas 上
-      ctx.drawImage(frame, 0, 0)
-
-      // ctx.fillRect(0, 0, canvas.width, canvas.height)
-
-      // 将 canvas 转换为 Base64 格式
-      const base64 = canvas.toDataURL('image/png') // 可以指定格式，如 'image/png' 或 'image/jpeg'
-
-      frameUrls.push(base64)
+    onFrame (frame) {
+      frameUrls.push(frame)
     },
   })
 })

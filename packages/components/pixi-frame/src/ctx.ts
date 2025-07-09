@@ -10,7 +10,6 @@ export const props = {
   },
 
   data: {
-    type: Array<string>,
     default: () => [],
   },
 
