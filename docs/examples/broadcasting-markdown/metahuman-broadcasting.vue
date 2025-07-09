@@ -44,7 +44,7 @@ const textToSpeechFn: __VkBroadcastingMarkdown.TextToSpeech = async (text) => {
 
 const streamingInferenceService = new StreamingInferenceService(modelUrl)
 
-const frameStatus = ref(TickerStatus.pending)
+const frameStatus = ref(TickerStatus.paused)
 const paragraphData = ref([]) as Ref<__VkBroadcastingMarkdown.Paragraph[]>
 
 const frameUrls = reactive<any[]>([])
@@ -63,6 +63,12 @@ onMounted(async () => {
   }, {
     onFrame (frame) {
       frameUrls.push(frame)
+    },
+    onProgress (processed, total) {
+      if (total < 240 && processed === total || processed === 240) {
+        frameStatus.value = TickerStatus.play
+      }
+      consola.info(`Processed ${processed} of ${total} frames`)
     },
   })
 })
@@ -102,6 +108,7 @@ function paragraphCompleted (v: boolean) {
 
 <template>
   <VkBroadcastingMarkdown
+    :status="frameStatus"
     :data="paragraphData"
     :text-to-speech="textToSpeechFn"
     :source="text"

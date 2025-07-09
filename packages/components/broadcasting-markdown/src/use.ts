@@ -134,39 +134,39 @@ export function useHowlerParagraph (
   })
 
   // 使用 Page Visibility API 检测页面可见性
-  const handleVisibilityChange = () => {
-    if (document.hidden) {
-      // 页面不可见（锁屏或切换到其他标签页）
-      if (broadcast.value === Broadcast.playing) {
-        emit('setData', {
-          k: 'broadcast',
-          v: Broadcast.pause,
-        })
-      }
-    }
-    else {
-      // 页面可见
-      setTimeout(() => {
-        if (
-          broadcast.value === Broadcast.paused
-        ) {
-          emit('setData', {
-            k: 'broadcast',
-            v: Broadcast.play,
-          })
-        }
-      }, 400)
-    }
-  }
+  // const handleVisibilityChange = () => {
+  //   if (document.hidden) {
+  //     // 页面不可见（锁屏或切换到其他标签页）
+  //     if (broadcast.value === Broadcast.playing) {
+  //       emit('setData', {
+  //         k: 'broadcast',
+  //         v: Broadcast.pause,
+  //       })
+  //     }
+  //   }
+  //   else {
+  //     // 页面可见
+  //     setTimeout(() => {
+  //       if (
+  //         broadcast.value === Broadcast.paused
+  //       ) {
+  //         emit('setData', {
+  //           k: 'broadcast',
+  //           v: Broadcast.play,
+  //         })
+  //       }
+  //     }, 400)
+  //   }
+  // }
 
-  onMounted(() => {
-    // 添加事件监听器
-    document.addEventListener('visibilitychange', handleVisibilityChange)
-  })
-  onBeforeUnmount(() => {
-    // 移除事件监听器
-    document.removeEventListener('visibilitychange', handleVisibilityChange)
-  })
+  // onMounted(() => {
+  //   // 添加事件监听器
+  //   document.addEventListener('visibilitychange', handleVisibilityChange)
+  // })
+  // onBeforeUnmount(() => {
+  //   // 移除事件监听器
+  //   document.removeEventListener('visibilitychange', handleVisibilityChange)
+  // })
 
   return {
     url,

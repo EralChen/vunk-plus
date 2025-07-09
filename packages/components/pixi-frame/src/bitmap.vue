@@ -1,10 +1,10 @@
 <script lang="ts" setup>
 import type { PropType } from 'vue'
-import type { Datum, LoadEvent } from './types'
+import type { LoadEvent } from './types'
 import { useModelComputed } from '@vunk/core/composables'
 import { TickerStatus } from '@vunk/shared/enum'
 import { sleep } from '@vunk/shared/promise'
-import { Assets, ImageSource, Texture } from 'pixi.js'
+import { ImageSource, Texture } from 'pixi.js'
 
 import { computed, nextTick, onBeforeUnmount, ref, useId, watch, watchEffect } from 'vue'
 import { props as dProps, emits } from './ctx'
@@ -82,104 +82,58 @@ const index = useModelComputed({
   key: 'frameIndex',
 }, props, emit)
 
-let animationId: number | null = null
-let lastFrameTime = 0
-
-function startFrameLoop () {
-  if (animationId !== null)
-    return // 防止重复启动
-
-  lastFrameTime = performance.now()
-
-  function renderFrame () {
-    const now = performance.now()
-    const frameDuration = 1000 / props.frameRate
-    const delta = now - lastFrameTime
-
-    if (delta >= frameDuration) {
-      console.debug(
-        `Current frame index: ${index.value}, Time since last frame: ${delta.toFixed(2)}ms`,
-      )
-
-      lastFrameTime = now - (delta % frameDuration) // 修正误差抖动
-
-      // 执行绘制逻辑
-      drawFrame()
-    }
-
-    // 只有在播放状态下才继续请求下一帧
-    if (props.status === TickerStatus.playing) {
-      animationId = requestAnimationFrame(renderFrame)
-    }
-    else {
-      animationId = null
-    }
+function drawFrame () {
+  if (
+    props.data.length === 0
+    || props.status !== TickerStatus.playing
+  ) {
+    return
   }
 
-  function drawFrame () {
+  const currentTexture = textureMap.get(
+    getAlias(index.value),
+  )
+
+  if (currentTexture) {
+    /* 清理上一帧 */
+    const originTexture = sprite.texture
+    const originIndex = index.value - 1
     if (
-      props.data.length === 0
-      || props.status !== TickerStatus.playing
+      originTexture && originIndex >= 0
+      && !props.loop
     ) {
-      return
-    }
-
-    const currentTexture = textureMap.get(
-      getAlias(index.value),
-    )
-
-    if (currentTexture) {
-      /* 清理上一帧 */
-      const originTexture = sprite.texture
-      const originIndex = index.value - 1
-      if (
-        originTexture && originIndex >= 0
-        && !props.loop
-      ) {
-        Promise
-          .resolve(sleep(500))
-          .then(() => Assets.unload(
+      Promise
+        .resolve(sleep(500))
+        .then(() => {
+          textureMap.set(
             getAlias(originIndex),
-          ))
-          .then(() => {
-            textureMap.set(
-              getAlias(originIndex),
-              undefined as never,
-            )
-            emit('setData', {
-              k: originIndex,
-              v: '',
-            })
-            completedIndex.value = originIndex
+            undefined as never,
+          )
+          emit('setData', {
+            k: originIndex,
+            v: '',
           })
-      }
-      /* 清理上一帧 END */
-
-      sprite.texture = currentTexture
-
-      console.log(
-        `Rendering frame ${index.value} with texture:`,
-        currentTexture,
-      )
-
-      resizeSprite()
-
-      index.value = props.loop
-        ? (index.value + 1) % props.data.length // 循环播放
-        : index.value + 1 // 非循环播放
+          completedIndex.value = originIndex
+        })
     }
-    else {
-      console.warn(
-        `Texture for index ${index.value} not found. Ensure the texture is loaded.`,
-      )
-      emit('notFound', index.value)
-      if (!props.loop)
-        emit('update:status', TickerStatus.paused)
-    }
+    /* 清理上一帧 END */
+
+    sprite.texture = currentTexture
+
+    resizeSprite()
+
+    index.value = props.loop
+      ? (index.value + 1) % props.data.length // 循环播放
+      : index.value + 1 // 非循环播放
   }
-
-  // 启动动画循环
-  animationId = requestAnimationFrame(renderFrame)
+  else {
+    console.warn(
+      `Texture for index ${index.value} not found. Ensure the texture is loaded.`,
+    )
+    emit('notFound', index.value)
+    if (!props.loop)
+      emit('update:status', TickerStatus.paused)
+  }
 }
 
 onBeforeUnmount(stop)
@@ -193,8 +147,11 @@ watch(() => props.status, (newStatus) => {
 // 开始播放动画
 function play () {
   if (props.data.length > 0) {
+    application.ticker.minFPS = props.frameRate
+    application.ticker.maxFPS = props.frameRate
+
     emit('update:status', TickerStatus.playing)
-    startFrameLoop()
+    application.ticker.add(drawFrame)
   }
   else {
     emit('update:status', TickerStatus.stopped)
@@ -207,10 +164,7 @@ function pause () {
 
 function stop () {
   emit('update:status', TickerStatus.stopped)
-  if (animationId !== null) {
-    cancelAnimationFrame(animationId)
-    animationId = null
-  }
+  application.ticker.remove(drawFrame)
   emit('update:data', [])
   textureMap.clear()
   index.value = 0
