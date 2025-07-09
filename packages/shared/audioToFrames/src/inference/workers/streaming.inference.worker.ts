@@ -20,6 +20,7 @@ import {
   convertTensorToImageData,
   loadTensorFromZip,
 } from '../../media/ImageProcessor'
+import { BATCH_SIZE } from '../../core/constants'
 
 // [TODO] 配置wasm路径（相对于public目录）
 env.wasm.wasmPaths = '/vunk-plus/'
@@ -421,6 +422,10 @@ const chunkQueue = new Map<number, StreamingChunkData>() // chunk队列，按chu
 let isProcessingQueue = false // 是否正在处理队列
 let nextChunkToProcess = 0 // 下一个待处理chunk的索引
 
+// --- 性能统计 ---
+let fpsStartTime = 0 // FPS统计开始时间
+let fpsFrameCount = 0 // FPS统计帧数
+
 // #endregion
 
 // #region --- Canvas and Cache Management ---
@@ -498,7 +503,7 @@ async function loadImageBitmapFromZip (
 // #region --- Chunk Processing ---
 
 /**
- * 处理单个chunk，逐帧推理并合成
+ * 处理单个chunk，支持批处理推理
  * @param chunkData chunk数据
  */
 async function processChunk (chunkData: StreamingChunkData): Promise<void> {
@@ -509,7 +514,7 @@ async function processChunk (chunkData: StreamingChunkData): Promise<void> {
   const { chunkIndex, audioFeatures, audioDimensions, startFrame, endFrame }
     = chunkData
 
-  console.log(`开始处理chunk ${chunkIndex}，帧范围: ${startFrame}-${endFrame}`)
+  console.log(`开始处理chunk ${chunkIndex}，帧范围: ${startFrame}-${endFrame}，批处理大小: ${BATCH_SIZE}`)
 
   // 记录各阶段耗时
   const timings = {
@@ -537,114 +542,190 @@ async function processChunk (chunkData: StreamingChunkData): Promise<void> {
   const audioWindowSize = 32 // 固定音频窗口长度
   const numFramesToProcess = audioDimensions[0]
 
-  for (let i = 0; i < numFramesToProcess; i++) {
-    const globalFrameIndex = startFrame + i
-    const imageFrameMeta = imageFrames[imageIndex]
+  // 批处理逻辑
+  for (let i = 0; i < numFramesToProcess; i += BATCH_SIZE) {
+    const batchEndIndex = Math.min(i + BATCH_SIZE, numFramesToProcess)
+    const batchSize = batchEndIndex - i
 
-    // 1. 加载图片张量
+    // 收集批处理数据
+    const batchImageTensors: Tensor[] = []
+    const batchAudioTensors: Tensor[] = []
+    const batchFrameMetas: ImageMetadata[] = []
+    const batchGlobalFrameIndices: number[] = []
+
+    // 1. 加载批处理所需的张量
     let t0 = performance.now()
-    const imageTensor = await loadTensorFromZip(
-      imageFrameMeta.tensor_file,
-      sharedZip,
-      sharedDataset.dataset_info.config.crop_size,
-      sharedDataset.dataset_info.config.mask_region,
-    )
+    for (let j = 0; j < batchSize; j++) {
+      const frameIndex = i + j
+      const globalFrameIndex = startFrame + frameIndex
+      const imageFrameMeta = imageFrames[imageIndex]
+
+      // 加载图片张量
+      const imageTensor = await loadTensorFromZip(
+        imageFrameMeta.tensor_file,
+        sharedZip,
+        sharedDataset.dataset_info.config.crop_size,
+        sharedDataset.dataset_info.config.mask_region,
+      )
+
+      // 获取音频窗口并构造音频张量
+      const audioWindowData = getAudioWindow(audioFeatures, audioDimensions, frameIndex)
+      const audioTensor = new Tensor('float32', audioWindowData, [
+        1,
+        audioWindowSize,
+        chunk_size,
+        mel_bins,
+      ])
+
+      batchImageTensors.push(imageTensor)
+      batchAudioTensors.push(audioTensor)
+      batchFrameMetas.push(imageFrameMeta)
+      batchGlobalFrameIndices.push(globalFrameIndex)
+
+      // 更新图片帧索引
+      const { nextIndex, nextDirection } = calculatePingPongState(
+        imageIndex,
+        numImageFrames,
+        imageStep,
+      )
+      imageIndex = nextIndex
+      imageStep = nextDirection
+    }
     timings.loadTensor += performance.now() - t0
 
-    // 2. 获取音频窗口并构造音频张量
+    // 2. 构造批处理张量
     t0 = performance.now()
-    const audioWindowData = getAudioWindow(audioFeatures, audioDimensions, i)
-    const audioTensor = new Tensor('float32', audioWindowData, [
-      1,
-      audioWindowSize,
-      chunk_size,
-      mel_bins,
-    ])
+    const batchImageTensor = batchSize === 1 
+      ? batchImageTensors[0]
+      : new Tensor('float32', 
+          new Float32Array(batchImageTensors.flatMap(t => Array.from(t.data as Float32Array))),
+          [batchSize, ...batchImageTensors[0].dims.slice(1)]
+        )
+    
+    const batchAudioTensor = batchSize === 1
+      ? batchAudioTensors[0]
+      : new Tensor('float32',
+          new Float32Array(batchAudioTensors.flatMap(t => Array.from(t.data as Float32Array))),
+          [batchSize, audioWindowSize, chunk_size, mel_bins]
+        )
     timings.getAudio += performance.now() - t0
 
-    // 3. ONNX推理
+    // 3. 批处理ONNX推理
     t0 = performance.now()
-    const outputTensor = await onnxRunner.runInference(
-      imageTensor,
-      audioTensor,
+    const batchOutputTensor = await onnxRunner.runInference(
+      batchImageTensor,
+      batchAudioTensor,
     )
     timings.onnxRun += performance.now() - t0
 
-    try {
-      // 4. 从ZIP加载全图与人脸ImageBitmap
-      const fullImageBitmap = await loadImageBitmapFromZip(
-        imageFrameMeta.full_image,
-        sharedZip,
-      )
-      const faceImageBitmap = await loadImageBitmapFromZip(
-        imageFrameMeta.face_image,
-        sharedZip,
-      )
+    // 4. 处理批处理结果
+    const outputShape = batchOutputTensor.dims
+    const outputData = batchOutputTensor.data as Float32Array
+    const singleOutputSize = outputData.length / batchSize
 
-      // 临时bitmaps集合，供合成函数使用
-      const tempBitmaps = new Map<string, ImageBitmap>()
-      tempBitmaps.set(imageFrameMeta.full_image, fullImageBitmap)
-      tempBitmaps.set(imageFrameMeta.face_image, faceImageBitmap)
+    for (let j = 0; j < batchSize; j++) {
+      const frameIndex = i + j
+      const globalFrameIndex = batchGlobalFrameIndices[j]
+      const imageFrameMeta = batchFrameMetas[j]
 
-      // 5. 合成最终帧
-      t0 = performance.now()
-      const [finalFrameBitmap, frameTimings] = await compositeFrame(
-        outputTensor,
-        imageFrameMeta,
-        sharedDataset.dataset_info,
-        tempBitmaps,
-        sharedBlendingMask,
-      )
-      timings.composite += performance.now() - t0
+      // 提取单帧输出张量
+      const singleOutputData = outputData.slice(j * singleOutputSize, (j + 1) * singleOutputSize)
+      const singleOutputTensor = new Tensor('float32', singleOutputData, [1, ...outputShape.slice(1)])
 
-      // 6. 发送帧数据，包含全局帧索引，并显式转移ImageBitmap
-      self.postMessage(
-        {
-          type: 'frame',
-          payload: {
-            frame: finalFrameBitmap,
-            frameIndex: globalFrameIndex,
+      try {
+        // 5. 从ZIP加载全图与人脸ImageBitmap
+        const fullImageBitmap = await loadImageBitmapFromZip(
+          imageFrameMeta.full_image,
+          sharedZip,
+        )
+        const faceImageBitmap = await loadImageBitmapFromZip(
+          imageFrameMeta.face_image,
+          sharedZip,
+        )
+
+        // 临时bitmaps集合，供合成函数使用
+        const tempBitmaps = new Map<string, ImageBitmap>()
+        tempBitmaps.set(imageFrameMeta.full_image, fullImageBitmap)
+        tempBitmaps.set(imageFrameMeta.face_image, faceImageBitmap)
+
+        // 6. 合成最终帧
+        t0 = performance.now()
+        const [finalFrameBitmap, frameTimings] = await compositeFrame(
+          singleOutputTensor,
+          imageFrameMeta,
+          sharedDataset.dataset_info,
+          tempBitmaps,
+          sharedBlendingMask,
+        )
+        timings.composite += performance.now() - t0
+
+        // 7. 发送帧数据，包含全局帧索引，并显式转移ImageBitmap
+        self.postMessage(
+          {
+            type: 'frame',
+            payload: {
+              frame: finalFrameBitmap,
+              frameIndex: globalFrameIndex,
+            },
+          } as MainThreadFrameMessage,
+          {
+            transfer: [finalFrameBitmap],
           },
-        } as MainThreadFrameMessage,
-        {
-          transfer: [finalFrameBitmap],
-        },
-      )
+        )
 
-      // 7. 发送进度
-      processedFrames++
-      self.postMessage({
-        type: 'progress',
-        payload: { processed: processedFrames, total: totalExpectedFrames },
-      } as MainThreadProgressMessage)
+        // 8. 发送进度
+        processedFrames++
+        self.postMessage({
+          type: 'progress',
+          payload: { processed: processedFrames, total: totalExpectedFrames },
+        } as MainThreadProgressMessage)
 
-      // 8. 累加合成阶段详细耗时
-      timings.t_convertTensor += frameTimings.convertTensor
-      timings.t_createPredCanvas += frameTimings.createPredCanvas
-      timings.t_createPastedCanvas += frameTimings.createPastedCanvas
-      timings.t_blendOps += frameTimings.blendOps
-      timings.t_compositeFinal += frameTimings.compositeFinal
-      timings.t_createImageBitmap += frameTimings.createImageBitmap
+        // 9. 统计FPS
+        if (fpsStartTime === 0) {
+          fpsStartTime = performance.now()
+          fpsFrameCount = 0
+        }
+        fpsFrameCount++
+        
+        const currentTime = performance.now()
+        const elapsedTime = (currentTime - fpsStartTime) / 1000 // 转换为秒
+        
+        if (elapsedTime >= 1.0) { // 每秒输出一次FPS
+          const fps = fpsFrameCount / elapsedTime
+          console.log(`推理FPS: ${fps.toFixed(2)} 帧/秒 (批处理大小: ${BATCH_SIZE})`)
+          fpsStartTime = currentTime
+          fpsFrameCount = 0
+        }
+
+        // 10. 累加合成阶段详细耗时
+        timings.t_convertTensor += frameTimings.convertTensor
+        timings.t_createPredCanvas += frameTimings.createPredCanvas
+        timings.t_createPastedCanvas += frameTimings.createPastedCanvas
+        timings.t_blendOps += frameTimings.blendOps
+        timings.t_compositeFinal += frameTimings.compositeFinal
+        timings.t_createImageBitmap += frameTimings.createImageBitmap
+
+        // 11. 释放单帧输出张量
+        singleOutputTensor.dispose()
+      }
+      catch (error) {
+        console.error(`处理帧 ${globalFrameIndex} 时发生错误:`, error)
+        throw error
+      }
+
+      timings.totalFrames++
     }
-    catch (error) {
-      console.error(`处理帧 ${globalFrameIndex} 时发生错误:`, error)
-      throw error
+
+    // 12. 释放批处理张量资源
+    if (batchSize > 1) {
+      batchImageTensor.dispose()
+      batchAudioTensor.dispose()
     }
-
-    // 9. 使用共享的辅助函数更新图片帧索引
-    const { nextIndex, nextDirection } = calculatePingPongState(
-      imageIndex,
-      numImageFrames,
-      imageStep,
-    )
-    imageIndex = nextIndex
-    imageStep = nextDirection
-    timings.totalFrames++
-
-    // 10. 释放张量资源
-    imageTensor.dispose()
-    audioTensor.dispose()
-    outputTensor.dispose()
+    batchOutputTensor.dispose()
+    
+    // 释放单帧张量资源
+    batchImageTensors.forEach(tensor => tensor.dispose())
+    batchAudioTensors.forEach(tensor => tensor.dispose())
   }
 
   console.log(`Chunk ${chunkIndex} 处理完成`)
@@ -770,6 +851,11 @@ self.onmessage = async (event: MessageEvent<StreamingWorkerMessage>) => {
       chunkQueue.clear()
       isProcessingQueue = false
       nextChunkToProcess = 0
+      
+      // 重置FPS统计
+      fpsStartTime = 0
+      fpsFrameCount = 0
+      
       console.log('流式推理初始化完成，队列已重置，Canvas实例已初始化')
     }
     else if (type === 'streaming_run') {

@@ -32,7 +32,7 @@ export const props = {
 
   frameRate: {
     type: Number,
-    default: 24,
+    default: 25,
   },
 
   label: {

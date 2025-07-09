@@ -14,6 +14,7 @@ import type {
   MainThreadMessage,
   StreamingWorkerInitMessage as WorkerInitMessage,
 } from './workers/streaming.inference.worker'
+import { BATCH_SIZE } from '../core/constants'
 import { Deferred } from '@vunk/shared/promise'
 
 /**
@@ -114,6 +115,7 @@ export class StreamingInferenceService {
    * @param onReady Worker初始化完成回调
    */
   constructor (modelPath: string, onReady?: () => void) {
+    console.log(`StreamingInferenceService 初始化，批处理大小: ${BATCH_SIZE}`)
     this.worker = new Worker(
       new URL('./workers/streaming.inference.worker.ts', import.meta.url),
       {
