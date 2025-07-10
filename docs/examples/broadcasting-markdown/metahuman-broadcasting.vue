@@ -2,17 +2,12 @@
 import type { __VkBroadcastingMarkdown } from '@vunk-plus/components/broadcasting-markdown'
 import type { Ref } from 'vue'
 import { authentication, textToSpeech } from '#/api/application'
-import { useWebSocket } from '@vueuse/core'
-import { ParagraphStatus, VkBroadcastingMarkdown } from '@vunk-plus/components/broadcasting-markdown'
+import { VkBroadcastingMarkdown } from '@vunk-plus/components/broadcasting-markdown'
 import { TickerStatus, VkPixiFrame } from '@vunk-plus/components/pixi-frame'
 import { blobToAudioWindow, getStremingStartData, StreamingInferenceService } from '@vunk-plus/shared/audioToFrames'
 import { setData } from '@vunk/core'
-import { blobToDataURL } from '@vunk/shared/data'
-import { waiting } from '@vunk/shared/promise'
 import { consola } from 'consola'
-import { env, InferenceSession, Tensor } from 'onnxruntime-web'
-
-import { computed, onBeforeUnmount, onMounted, reactive, ref, watchEffect } from 'vue'
+import { onMounted, reactive, ref } from 'vue'
 
 const modelUrl = `${import.meta.env.BASE_URL}sophontalk/model.onnx`
 const sourceUrl = `${import.meta.env.BASE_URL}sophontalk/processed_images.zip`
@@ -22,7 +17,8 @@ const text = `大自然里，草长莺飞，莺歌燕舞，她生活在一个美
 
 然而，当她经过茧里的痛苦与挣扎，终于破茧而出时，却不是一只在空中轻盈飞舞的花蝴蝶，而是蜕变成为了一只灰色的小飞蛾。
 
-在同伴的叹息中，她笑着流下了激动的泪水。`
+在同伴的叹息中，她笑着流下了激动的泪水。
+`
 
 const authenticationPromise = authentication({
   access_token: '21c0f2a5067fb1cb',
@@ -85,7 +81,7 @@ function processingParagraph (
       streamingInferenceService.addChunk(result)
     },
     onComplete () {
-      streamingInferenceService.finishAddingChunks()
+      // streamingInferenceService.finishAddingChunks()
     },
   })
   // onFrame img =>
@@ -98,10 +94,10 @@ function paragraphLoad ({ data }: {
 }) {
   consola.info('Paragraph Load', data)
 }
-function paragraphCompleted (v: boolean) {
+function allParagraphCompleted (v: boolean) {
   if (v && paragraphData.value.length) {
-    // frameStatus.value = TickerStatus.stop
-    // frameUrls.length = 0
+    frameStatus.value = TickerStatus.stop
+    frameUrls.length = 0
   }
 }
 </script>
@@ -115,7 +111,7 @@ function paragraphCompleted (v: boolean) {
     :processing="processingParagraph"
     @set-data="setData(paragraphData, $event)"
     @paragraph-load="paragraphLoad"
-    @update:completed="paragraphCompleted"
+    @update:completed="allParagraphCompleted"
   >
   </VkBroadcastingMarkdown>
 

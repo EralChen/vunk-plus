@@ -80,7 +80,7 @@ export const props = {
 
   paragraphMinlength: {
     type: Number,
-    default: 100,
+    default: 20,
   },
 
 }
