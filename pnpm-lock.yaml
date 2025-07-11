@@ -14,6 +14,9 @@ importers:
       '@element-plus/icons-vue':
         specifier: ^2.3.1
         version: 2.3.1(vue@3.5.13(typescript@5.8.3))
+      '@sapphire/async-queue':
+        specifier: ^1.5.5
+        version: 1.5.5
       '@vueuse/core':
         specifier: ^10.9.0
         version: 10.11.1(vue@3.5.13(typescript@5.8.3))
@@ -2192,6 +2195,10 @@ packages:
     resolution: {integrity: sha512-lpPE1cLfP5oPzVjKMx10pgBmKELQnFJXHgvtHCtuJWOv8MxqdEIMNtgHgBFf7Ea2/7EuVwa9fodWUfXAlXZLZQ==}
     cpu: [x64]
     os: [win32]
+
+  '@sapphire/async-queue@1.5.5':
+    resolution: {integrity: sha512-cvGzxbba6sav2zZkH8GPf2oGk9yYoD5qrNWdu9fRehifgnFZJMV+nuy2nON2roRO4yQQ+v7MK/Pktl/HgfsUXg==}
+    engines: {node: '>=v14.0.0', npm: '>=7.0.0'}
 
   '@sec-ant/readable-stream@0.4.1':
     resolution: {integrity: sha512-831qok9r2t8AlxLko40y2ebgSDhenenCatLVeW/uBtnHPyhHOvG0C7TvfgecV+wHzIm5KUICgzmVpWS+IMEAeg==}
@@ -8808,6 +8815,8 @@ snapshots:
 
   '@rollup/rollup-win32-x64-msvc@4.40.0':
     optional: true
+
+  '@sapphire/async-queue@1.5.5': {}
 
   '@sec-ant/readable-stream@0.4.1': {}
 

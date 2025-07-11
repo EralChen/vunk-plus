@@ -20,6 +20,7 @@
   "dependencies": {
     "@alexanderolsen/libsamplerate-js": "^2.1.2",
     "@element-plus/icons-vue": "^2.3.1",
+    "@sapphire/async-queue": "^1.5.5",
     "@vueuse/core": "^10.9.0",
     "@vunk-plus/components": "workspace:*",
     "@vunk-plus/composables": "workspace:*",

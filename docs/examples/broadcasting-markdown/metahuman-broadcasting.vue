@@ -2,9 +2,10 @@
 import type { __VkBroadcastingMarkdown } from '@vunk-plus/components/broadcasting-markdown'
 import type { Ref } from 'vue'
 import { authentication, textToSpeech } from '#/api/application'
+import { AsyncQueue } from '@sapphire/async-queue'
 import { VkBroadcastingMarkdown } from '@vunk-plus/components/broadcasting-markdown'
 import { TickerStatus, VkPixiFrame } from '@vunk-plus/components/pixi-frame'
-import { blobToAudioWindow, getStremingStartData, StreamingInferenceService } from '@vunk-plus/shared/audioToFrames'
+import { blobToAudioBuffer, getStremingStartData, processStreaming, StreamingInferenceService } from '@vunk-plus/shared/audioToFrames'
 import { setData } from '@vunk/core'
 import { consola } from 'consola'
 import { onMounted, reactive, ref } from 'vue'
@@ -69,22 +70,33 @@ onMounted(async () => {
   })
 })
 
+const audioTasks = new AsyncQueue()
+
+async function requestProcessStreaming (
+  buffer: AudioBuffer,
+) {
+  await audioTasks.wait()
+  try {
+    await processStreaming(buffer, {
+      onChunkComplete (result) {
+        streamingInferenceService.addChunk(result)
+      },
+    })
+  }
+  finally {
+    audioTasks.shift()
+  }
+}
+
 function processingParagraph (
   item: __VkBroadcastingMarkdown.Paragraph,
 ) {
   if (!item.blob) {
     return
   }
-
-  blobToAudioWindow(item.blob, {
-    onChunkComplete (result) {
-      streamingInferenceService.addChunk(result)
-    },
-    onComplete () {
-      // streamingInferenceService.finishAddingChunks()
-    },
+  blobToAudioBuffer(item.blob).then((audioBuffer) => {
+    requestProcessStreaming(audioBuffer)
   })
-  // onFrame img =>
 
   // 发送音频文件
   consola.info('Processing Paragraph', item.blob)

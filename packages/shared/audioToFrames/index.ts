@@ -8,19 +8,25 @@ export {
   StreamingInferenceService,
 }
 
-export async function blobToAudioWindow (blob: Blob, options?: {
-  onChunkComplete?: (result: ChunkFeatureResult) => void
-  onComplete?: (totalDimensions: number[]) => void
-}) {
-  const servie = new StreamingFeatureExtractorService()
-
+export async function blobToAudioBuffer (blob: Blob): Promise<AudioBuffer> {
   const audioContext = await createAudioContext()
   const buffer = await blob.arrayBuffer()
-  const audioBuffer = await audioContext.decodeAudioData(buffer)
+  return audioContext.decodeAudioData(buffer)
+}
 
-  servie.processStreaming(audioBuffer, {
-    onChunkComplete: options?.onChunkComplete,
-    onComplete: options?.onComplete,
+export async function processStreaming (
+  buffer: AudioBuffer,
+  callbacks?: {
+    onChunkComplete?: (result: ChunkFeatureResult) => void
+  },
+) {
+  return new Promise<number[]>((resolve) => {
+    const service = new StreamingFeatureExtractorService()
+
+    service.processStreaming(buffer, {
+      onChunkComplete: callbacks?.onChunkComplete,
+      onComplete: resolve,
+    })
   })
 }
 
