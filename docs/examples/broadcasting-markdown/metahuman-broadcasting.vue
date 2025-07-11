@@ -77,11 +77,13 @@ async function requestProcessStreaming (
 ) {
   await audioTasks.wait()
   try {
+    console.debug('开始处理音频流')
     await processStreaming(buffer, {
       onChunkComplete (result) {
         streamingInferenceService.addChunk(result)
       },
     })
+    console.debug('音频流处理完成')
   }
   finally {
     audioTasks.shift()
