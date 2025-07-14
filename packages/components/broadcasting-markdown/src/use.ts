@@ -64,11 +64,13 @@ export function useHowlerParagraph (
         })
       },
       onend: () => {
+        console.debug('Audio ended for paragraph:', props.data.value.substring(0, 30) + '...')
         // theData.value.broadcast = Broadcast.ended
         emit('setData', {
           k: 'broadcast',
           v: Broadcast.stopped,
         })
+        console.debug('Set paragraph broadcast to stopped after audio end')
         // 销毁实例
         setTimeout(() => {
           if (sound.value) {
@@ -77,6 +79,7 @@ export function useHowlerParagraph (
           }
         }, 400)
         props.deferred.resolve(true)
+        console.debug('Deferred resolved for paragraph')
       },
       onstop: () => {
         emit('setData', {
@@ -122,13 +125,25 @@ export function useHowlerParagraph (
   })
 
   watchEffect(() => {
+    const paragraphPreview = props.data.value.substring(0, 30) + '...'
+    console.debug(`Audio broadcast state changed to: ${broadcast.value} for paragraph: "${paragraphPreview}"`)
+    console.debug('Sound instance exists:', !!sound.value, 'URL exists:', !!url.value)
+    
     if (broadcast.value === Broadcast.play) {
-      sound.value?.play()
+      console.debug('Playing audio for paragraph:', paragraphPreview)
+      if (sound.value) {
+        sound.value.play()
+        console.debug('Called sound.play()')
+      } else {
+        console.debug('ERROR: No sound instance available for play')
+      }
     }
     else if (broadcast.value === Broadcast.pause) {
+      console.debug('Pausing audio for paragraph:', paragraphPreview)
       sound.value?.pause()
     }
     else if (broadcast.value === Broadcast.stop) {
+      console.debug('Stopping audio for paragraph:', paragraphPreview)
       sound.value?.stop()
     }
   })

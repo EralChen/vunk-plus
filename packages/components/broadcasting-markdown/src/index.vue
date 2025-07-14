@@ -227,12 +227,71 @@ export default defineComponent({
       if (!currentParagraph.value) {
         return
       }
+      console.debug('Current paragraph broadcast state:', currentParagraph.value.broadcast, 'Global status:', props.status)
       if (currentParagraph.value.broadcast === props.status) {
         return
       }
       props.status === TickerStatus.play && (currentParagraph.value.broadcast = TickerStatus.play)
       props.status === TickerStatus.pause && (currentParagraph.value.broadcast = TickerStatus.pause)
       props.status === TickerStatus.stop && (currentParagraph.value.broadcast = TickerStatus.stop)
+      console.debug('Updated paragraph broadcast to:', currentParagraph.value.broadcast)
+    })
+
+    // Debug: Log all paragraph states
+    watchEffect(() => {
+      console.debug('=== All Paragraph States ===')
+      theData.value.forEach((item, index) => {
+        console.debug(`Paragraph ${index}: status=${item.status}, broadcast=${item.broadcast}, value="${item.value.substring(0, 30)}..."`)
+      })
+      console.debug('Current paragraph:', currentParagraph.value ? `${currentParagraph.value.status}/${currentParagraph.value.broadcast}` : 'none')
+      console.debug('=============================')
+    })
+
+    // Auto-advance to next paragraph when current one completes
+    watchEffect(() => {
+      console.debug('Auto-advancement watchEffect triggered')
+      
+      if (isInterrupted.value) {
+        console.debug('Skipping auto-advancement: interrupted')
+        return
+      }
+      
+      // Check if we have any completed paragraphs (fulfilled status)
+      const fulfilledCount = theData.value.filter(item => item.status === ParagraphStatus.fulfilled).length
+      console.debug('Fulfilled paragraphs count:', fulfilledCount)
+      
+      // Find the next paragraph that should play (pending status with pending broadcast)
+      const nextParagraph = theData.value.find(
+        item => item.status === ParagraphStatus.pending && item.broadcast === Broadcast.pending
+      )
+      
+      console.debug('Next paragraph to play:', nextParagraph ? `status=${nextParagraph.status}, broadcast=${nextParagraph.broadcast}` : 'none found')
+      
+      // If we have fulfilled paragraphs and a next paragraph waiting, start it
+      if (fulfilledCount > 0 && nextParagraph) {
+        // Check if no paragraph is currently playing
+        const currentlyPlaying = theData.value.find(
+          item => item.broadcast === Broadcast.playing || item.broadcast === Broadcast.play
+        )
+        
+        console.debug('Currently playing paragraph:', currentlyPlaying ? 'exists' : 'none')
+        
+        if (!currentlyPlaying) {
+          console.debug('Auto-advancing to next paragraph:', nextParagraph.value.substring(0, 50) + '...')
+          nextParagraph.broadcast = Broadcast.play
+          console.debug('Set next paragraph broadcast to:', Broadcast.play)
+        }
+      } else {
+        console.debug('Auto-advancement conditions not met:')
+        console.debug('- Fulfilled count:', fulfilledCount)
+        console.debug('- Next paragraph available:', !!nextParagraph)
+        
+        // Debug: show all paragraph states
+        const allStates = theData.value.map((item, index) => 
+          `${index}: ${item.status}/${item.broadcast}`
+        ).join(', ')
+        console.debug('All paragraph states:', allStates)
+      }
     })
 
     const isPaused = computed(() => {

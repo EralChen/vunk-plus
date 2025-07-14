@@ -336,8 +336,19 @@ async function compositeFrame (
     )
   }
 
-  const border = datasetInfo.config.mask_region[0]
   const cropSize = datasetInfo.config.crop_size
+  
+  // 使用与后端一致的border计算逻辑
+  let border: number;
+  if (cropSize === 252) {
+    border = 6;
+  } else if (cropSize === 192) {
+    border = 6;
+  } else if (cropSize === 128) {
+    border = 4;
+  } else { // cropSize === 96 (nano/tiny)
+    border = 3;
+  }
 
   // 2. 生成推理结果画布（使用可复用实例）
   t0 = performance.now()
@@ -565,7 +576,6 @@ async function processChunk (chunkData: StreamingChunkData): Promise<void> {
         imageFrameMeta.tensor_file,
         sharedZip,
         sharedDataset.dataset_info.config.crop_size,
-        sharedDataset.dataset_info.config.mask_region,
       )
 
       // 获取音频窗口并构造音频张量
@@ -802,7 +812,19 @@ self.onmessage = async (event: MessageEvent<StreamingWorkerMessage>) => {
       // 初始化可复用的Canvas实例
       const datasetInfo = sharedDataset.dataset_info
       const cropSize = datasetInfo.config.crop_size
-      const border = datasetInfo.config.mask_region[0]
+      
+      // 使用与后端一致的border计算逻辑
+      let border: number;
+      if (cropSize === 252) {
+        border = 6;
+      } else if (cropSize === 192) {
+        border = 6;
+      } else if (cropSize === 128) {
+        border = 4;
+      } else { // cropSize === 96 (nano/tiny)
+        border = 3;
+      }
+      
       const sourceDims = datasetInfo.source_image_dimensions
 
       if (!sourceDims) {

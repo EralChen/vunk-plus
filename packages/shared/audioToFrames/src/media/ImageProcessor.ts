@@ -99,23 +99,30 @@ export function calculatePingPongState (
  * 从 JSZip 实例中按需加载并解析图像张量。
  * @param tensorFileName 要加载的 .bin 文件的名称。
  * @param zip JSZip 实例。
- * @param cropSize 裁剪尺寸。
- * @param maskRegion 遮罩区域，格式为 [border, ...]。
+ * @param cropSize 裁剪尺寸，用于计算正确的边界和内部尺寸。
  * @returns 一个 ONNX Tensor。
  */
 export async function loadTensorFromZip (
   tensorFileName: string,
   zip: JSZip,
   cropSize: number,
-  maskRegion: [number, number, number, number],
 ): Promise<Tensor> {
   const zipFile = zip.file(tensorFileName)
   if (!zipFile) {
     throw new Error(`无法在解压数据中找到张量文件: ${tensorFileName}`)
   }
 
-  // 1. 计算有效区域尺寸
-  const border = maskRegion[0]
+  // 1. 计算有效区域尺寸 - 使用与后端一致的border计算逻辑
+  let border: number;
+  if (cropSize === 252) {
+    border = 6;
+  } else if (cropSize === 192) {
+    border = 6;
+  } else if (cropSize === 128) {
+    border = 4;
+  } else { // cropSize === 96 (nano/tiny)
+    border = 3;
+  }
   const innerSize = cropSize - 2 * border
   /** 张量形状 [N, C, H, W]，此处 N=1, C=6 */
   const tensorShape = [1, 6, innerSize, innerSize]
