@@ -106,6 +106,8 @@ export class StreamingInferenceService {
   private totalFrames = 0
   /** 是否处于推理处理中 */
   private isProcessing = false
+  /** 全局chunk索引计数器，确保每个chunk有唯一索引 */
+  private globalChunkIndex = 0
 
   private _def = new Deferred<void>()
 
@@ -157,9 +159,11 @@ export class StreamingInferenceService {
             chunkData.timings,
           )
           // 检查是否所有chunk都已完成
-          if (this.completedChunks.size === this.pendingChunks.size) {
+          // 对于连续的音频流处理，不要在每个音频文件完成后清理
+          if (this.completedChunks.size === this.pendingChunks.size && this.pendingChunks.size > 0) {
             this.callbacks.onAllComplete?.({})
-            this.cleanup()
+            // 使用轻度清理，保持帧计数和chunk索引的连续性
+            this.lightCleanup()
           }
           break
         case 'error':
@@ -245,21 +249,24 @@ export class StreamingInferenceService {
     const endFrame = startFrame + chunkFrames
     this.totalFrames = endFrame
 
+    // 使用全局唯一的chunk索引，而不是原始的从0开始的索引
+    const uniqueChunkIndex = this.globalChunkIndex++
+
     // 注意：不再复制特征数组。其所有权将直接转移到Worker，
     // 这可以减少内存分配和复制开销。
     // 上游服务 (StreamingFeatureExtractorService) 在回调后不会再使用此数据。
     const chunkData: StreamingChunkData = {
-      chunkIndex: chunkResult.chunkIndex,
+      chunkIndex: uniqueChunkIndex, // 使用全局唯一索引
       audioFeatures: chunkResult.features, // 直接使用，不复制
       audioDimensions: chunkResult.dimensions,
       startFrame,
       endFrame,
     }
 
-    this.pendingChunks.set(chunkResult.chunkIndex, chunkData)
+    this.pendingChunks.set(uniqueChunkIndex, chunkData)
 
     console.log(
-      `添加chunk ${chunkResult.chunkIndex} 进行推理，帧范围: ${startFrame}-${endFrame}`,
+      `添加chunk ${uniqueChunkIndex} (原始:${chunkResult.chunkIndex}) 进行推理，帧范围: ${startFrame}-${endFrame}`,
     )
 
     // 立即发送该chunk进行推理
@@ -298,6 +305,16 @@ export class StreamingInferenceService {
     this.pendingChunks.clear()
     this.completedChunks.clear()
     this.totalFrames = 0
+    this.globalChunkIndex = 0
+  }
+
+  /**
+   * 轻度清理，保持连续性，用于音频文件间的清理。
+   */
+  private lightCleanup (): void {
+    this.completedChunks.clear()
+    this.pendingChunks.clear()
+    // 保持 totalFrames 和 globalChunkIndex 的连续性
   }
 
   /**

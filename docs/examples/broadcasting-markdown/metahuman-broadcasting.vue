@@ -2,7 +2,6 @@
 import type { __VkBroadcastingMarkdown } from '@vunk-plus/components/broadcasting-markdown'
 import type { Ref } from 'vue'
 import { authentication, textToSpeech } from '#/api/application'
-import { AsyncQueue } from '@sapphire/async-queue'
 import { VkBroadcastingMarkdown } from '@vunk-plus/components/broadcasting-markdown'
 import { TickerStatus, VkPixiFrame } from '@vunk-plus/components/pixi-frame'
 import { blobToAudioBuffer, getStremingStartData, processStreaming, StreamingInferenceService } from '@vunk-plus/shared/audioToFrames'
@@ -46,6 +45,13 @@ const paragraphData = ref([]) as Ref<__VkBroadcastingMarkdown.Paragraph[]>
 
 const frameUrls = reactive<any[]>([])
 
+// Create a promise to track when the streaming service is ready
+let streamingServiceReady: Promise<void>
+const streamingServiceReadyResolver = { resolve: null as any }
+streamingServiceReady = new Promise((resolve) => {
+  streamingServiceReadyResolver.resolve = resolve
+})
+
 onMounted(async () => {
   await streamingInferenceService.when()
   const { blendingMaskBitmap, dataset, zipBlob } = await getStremingStartData({
@@ -53,7 +59,7 @@ onMounted(async () => {
     sourceUrl,
   })
 
-  streamingInferenceService.startStreaming({
+  await streamingInferenceService.startStreaming({
     blendingMaskBitmap,
     dataset,
     zipBlob,
@@ -68,40 +74,55 @@ onMounted(async () => {
       // consola.info(`Processed ${processed} of ${total} frames`)
     },
   })
+  
+  // Add a small delay to ensure worker initialization completes
+  await new Promise(resolve => setTimeout(resolve, 100))
+  
+  // Signal that the streaming service is ready
+  streamingServiceReadyResolver.resolve()
+  console.debug('Streaming service is now ready to accept chunks')
 })
-
-const audioTasks = new AsyncQueue()
 
 async function requestProcessStreaming (
   buffer: AudioBuffer,
 ) {
-  await audioTasks.wait()
+  // Wait for streaming service to be ready before processing
+  await streamingServiceReady
+  
   try {
-    console.debug('开始处理音频流')
+    console.debug('开始处理音频流，时长:', buffer.duration.toFixed(2), 's')
     await processStreaming(buffer, {
       onChunkComplete (result) {
+        console.debug('Chunk complete, adding to inference service. Chunk:', result.chunkIndex, 'Frame range:', result.startTimeSeconds.toFixed(2), '-', result.endTimeSeconds.toFixed(2))
         streamingInferenceService.addChunk(result)
       },
     })
     console.debug('音频流处理完成')
   }
-  finally {
-    audioTasks.shift()
+  catch (error) {
+    console.error('音频处理错误:', error)
   }
 }
 
-function processingParagraph (
+async function processingParagraph (
   item: __VkBroadcastingMarkdown.Paragraph,
 ) {
   if (!item.blob) {
     return
   }
-  blobToAudioBuffer(item.blob).then((audioBuffer) => {
-    requestProcessStreaming(audioBuffer)
-  })
-
+  
   // 发送音频文件
   consola.info('Processing Paragraph', item.blob)
+  console.debug('开始处理段落，索引:', item.start, '状态:', item.status)
+  
+  try {
+    const audioBuffer = await blobToAudioBuffer(item.blob)
+    console.debug('音频转换完成，开始请求流处理')
+    await requestProcessStreaming(audioBuffer)
+    console.debug('段落处理完成')
+  } catch (error) {
+    consola.error('Error processing paragraph:', error)
+  }
 }
 function paragraphLoad ({ data }: {
   data: __VkBroadcastingMarkdown.Paragraph
