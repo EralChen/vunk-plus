@@ -219,6 +219,3 @@ export class ImageProcessingService {
     }
   }
 }
-
-// 全局单例实例
-export const globalImageProcessingService = new ImageProcessingService()

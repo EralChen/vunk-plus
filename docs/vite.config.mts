@@ -12,8 +12,6 @@ import { workRoot } from '@lib-env/path'
 import { fixPath } from '@lib-env/build-utils'
 import { createMarkdownPlugin } from '@vunk/shared/vite/markdown'
 import unocss from 'unocss/vite'
-import { viteStaticCopy } from 'vite-plugin-static-copy'
-
 
 const alias: AliasOptions = [
   {
@@ -77,21 +75,6 @@ export default defineConfig(async ({ mode }) => {
 
     plugins: [
       vueDevTools(),
-
-      viteStaticCopy({
-        targets: [
-          {
-            // 复制所有 wasm 文件到最终输出根目录，开发/生产均可访问
-            src: "../node_modules/onnxruntime-web/dist/*.wasm",
-            dest: ".",
-          },
-          {
-            // 同时复制对应的 mjs 包装文件
-            src: "../node_modules/onnxruntime-web/dist/*.mjs",
-            dest: ".",
-          },
-        ],
-      }),
 
       vike(),
 
