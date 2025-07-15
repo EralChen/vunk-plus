@@ -1,18 +1,16 @@
 import type { ChunkFeatureResult } from './src/audio'
-import { AsyncQueue } from '@sapphire/async-queue'
+
 import maskUrl from './src/assets/mask'
 import { createAudioContext, StreamingFeatureExtractorService } from './src/audio'
 import { workerConfig } from './src/config'
 import { StreamingInferenceService } from './src/inference'
-import { loadImageData } from './src/media'
+import { loadImageData, PredictiveFrameLoader } from './src/media'
 
 export {
+  PredictiveFrameLoader,
   StreamingInferenceService,
   workerConfig,
 }
-
-// Create a singleton queue instance for audio processing
-const audioProcessingQueue = new AsyncQueue()
 
 export async function blobToAudioBuffer (blob: Blob): Promise<AudioBuffer> {
   const audioContext = await createAudioContext()
@@ -26,28 +24,19 @@ export async function processStreaming (
     onChunkComplete?: (result: ChunkFeatureResult) => void
   },
 ) {
-  // Wait for the queue to ensure serialized processing
-  await audioProcessingQueue.wait()
+  return new Promise<number[]>((resolve, reject) => {
+    const service = new StreamingFeatureExtractorService()
 
-  try {
-    return await new Promise<number[]>((resolve, reject) => {
-      const service = new StreamingFeatureExtractorService()
-
-      service.processStreaming(buffer, {
-        onChunkComplete: callbacks?.onChunkComplete,
-        onComplete: (dimensions) => {
-          resolve(dimensions)
-        },
-        onError: (error) => {
-          reject(new Error(error))
-        },
-      })
+    service.processStreaming(buffer, {
+      onChunkComplete: callbacks?.onChunkComplete,
+      onComplete: (dimensions) => {
+        resolve(dimensions)
+      },
+      onError: (error) => {
+        reject(new Error(error))
+      },
     })
-  }
-  finally {
-    // Always shift the queue, whether success or error
-    audioProcessingQueue.shift()
-  }
+  })
 }
 
 export async function getStremingStartData (options: {

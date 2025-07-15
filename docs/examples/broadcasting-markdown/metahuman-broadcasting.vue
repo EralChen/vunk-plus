@@ -17,8 +17,7 @@ const text = `大自然里，草长莺飞，莺歌燕舞，她生活在一个美
 
 然而，当她经过茧里的痛苦与挣扎，终于破茧而出时，却不是一只在空中轻盈飞舞的花蝴蝶，而是蜕变成为了一只灰色的小飞蛾。
 
-在同伴的叹息中，她笑着流下了激动的泪水。
-`
+在同伴的叹息中，她笑着流下了激动的泪水。`
 
 const authenticationPromise = authentication({
   access_token: '21c0f2a5067fb1cb',
@@ -45,13 +44,6 @@ const paragraphData = ref([]) as Ref<__VkBroadcastingMarkdown.Paragraph[]>
 
 const frameUrls = reactive<any[]>([])
 
-// Create a promise to track when the streaming service is ready
-let streamingServiceReady: Promise<void>
-const streamingServiceReadyResolver = { resolve: null as any }
-streamingServiceReady = new Promise((resolve) => {
-  streamingServiceReadyResolver.resolve = resolve
-})
-
 onMounted(async () => {
   await streamingInferenceService.when()
   const { blendingMaskBitmap, dataset, zipBlob } = await getStremingStartData({
@@ -74,21 +66,14 @@ onMounted(async () => {
       // consola.info(`Processed ${processed} of ${total} frames`)
     },
   })
-  
-  // Add a small delay to ensure worker initialization completes
-  await new Promise(resolve => setTimeout(resolve, 100))
-  
-  // Signal that the streaming service is ready
-  streamingServiceReadyResolver.resolve()
-  console.debug('Streaming service is now ready to accept chunks')
 })
 
 async function requestProcessStreaming (
   buffer: AudioBuffer,
 ) {
   // Wait for streaming service to be ready before processing
-  await streamingServiceReady
-  
+  await streamingInferenceService.when()
+
   try {
     console.debug('开始处理音频流，时长:', buffer.duration.toFixed(2), 's')
     await processStreaming(buffer, {
@@ -110,17 +95,18 @@ async function processingParagraph (
   if (!item.blob) {
     return
   }
-  
+
   // 发送音频文件
   consola.info('Processing Paragraph', item.blob)
   console.debug('开始处理段落，索引:', item.start, '状态:', item.status)
-  
+
   try {
     const audioBuffer = await blobToAudioBuffer(item.blob)
     console.debug('音频转换完成，开始请求流处理')
     await requestProcessStreaming(audioBuffer)
     console.debug('段落处理完成')
-  } catch (error) {
+  }
+  catch (error) {
     consola.error('Error processing paragraph:', error)
   }
 }

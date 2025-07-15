@@ -9,6 +9,7 @@
  * @author Zhonghan Li
  */
 
+import { AsyncQueue } from '@sapphire/async-queue'
 import { CHUNK_DURATION_SECONDS } from '../core/constants'
 import { PerformanceTimer } from '../core/utils'
 import { NUM_MEL_BINS, NUM_SEQUENCE_FRAMES } from './AudioProcessor'
@@ -62,6 +63,8 @@ export interface StreamingCallbacks {
  * 支持将长音频分块并行处理，实时回调chunk结果，最终合并输出全部特征。
  */
 export class StreamingFeatureExtractorService {
+  private queue = new AsyncQueue()
+
   /** 回调函数集合 */
   private callbacks: StreamingCallbacks = {}
   /** 性能计时器 */
@@ -128,6 +131,8 @@ export class StreamingFeatureExtractorService {
     audioBuffer: AudioBuffer,
     callbacks: StreamingCallbacks,
   ): Promise<void> {
+    await this.queue.wait()
+
     if (this.isRunning) {
       throw new Error('另一个音频正在处理中，请稍候。')
     }
@@ -142,12 +147,6 @@ export class StreamingFeatureExtractorService {
 
     const durationSeconds = audioBuffer.duration
     this.totalChunks = Math.ceil(durationSeconds / CHUNK_DURATION_SECONDS)
-
-    console.log(
-      `开始流式处理音频: ${durationSeconds.toFixed(2)}s, 分为 ${
-        this.totalChunks
-      } 个chunks`,
-    )
 
     try {
       this.timer.start('totalProcessing')
@@ -167,7 +166,6 @@ export class StreamingFeatureExtractorService {
       }
 
       this.timer.end('totalProcessing')
-      console.log('流式处理性能统计:', this.timer.getTimings())
     }
     catch (error) {
       // 处理异常，通知上层
@@ -176,6 +174,7 @@ export class StreamingFeatureExtractorService {
       this.callbacks.onError?.(errorMessage)
     }
     finally {
+      await this.queue.shift() // 确保总是释放队列
       // 清理资源
       this.cleanup()
     }

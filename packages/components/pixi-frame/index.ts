@@ -1,5 +1,6 @@
 import type { App } from 'vue'
 import VkPixiFrameApng from './src/apng.vue'
+import VkPixiFrameBitmap from './src/bitmap.vue'
 import VkPixiFrameCore from './src/core.vue'
 import VkPixiFrame from './src/index.vue'
 import VkPixiFrameProvider from './src/provider.vue'
@@ -15,6 +16,7 @@ VkPixiFrame.install = (app: App): void => {
 export {
   VkPixiFrame,
   VkPixiFrameApng,
+  VkPixiFrameBitmap,
   VkPixiFrameCore,
   VkPixiFrameProvider,
   VkPixiFrameVideo,
