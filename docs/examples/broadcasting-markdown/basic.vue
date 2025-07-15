@@ -1,14 +1,7 @@
 <script lang="ts" setup>
-import type {
-  __VkBroadcastingMarkdown,
-} from '@vunk-plus/components/broadcasting-markdown'
-import { authentication, textToSpeech } from '#/api/application'
 import {
   VkBroadcastingMarkdown,
 } from '@vunk-plus/components/broadcasting-markdown'
-import { blobToDataURL } from '@vunk/shared/data'
-import { TickerStatus } from '@vunk/shared/enum'
-import { ref } from 'vue'
 
 const text = `
 
@@ -21,28 +14,11 @@ const text = `
 没有翅膀的飞翔更接近天堂，有些美丽是不需要书写的。
 
 `
-const authenticationPromise = authentication({
-  access_token: '5a8e7afe04be860d',
-}).then((res) => {
-  sessionStorage.setItem('accessToken', res)
-})
-
-const textToSpeechFn: __VkBroadcastingMarkdown.TextToSpeech = async (text) => {
-  await authenticationPromise
-  return textToSpeech({
-    application_id: 'ea2c3e52-fa3f-11ef-b7ff-10ffe00db574',
-    text,
-  }).then((res) => {
-    // blob 转 data url
-    return blobToDataURL(res)
-  })
-}
 </script>
 
 <template>
   <VkBroadcastingMarkdown
     :source="text"
-    :text-to-speech="textToSpeechFn"
   >
   </VkBroadcastingMarkdown>
 </template>

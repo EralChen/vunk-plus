@@ -16,7 +16,7 @@ export async function genTypes (opts = {} as {
 
   await genDtsFiles({
     root: workRoot,
-
+    
     compilerOptions: {
       outDir,
       paths: {

@@ -3,6 +3,8 @@ import type { Paragraph } from './types'
 import { VkTypingMarkdown } from '@vunk-plus/components/typing-markdown'
 import { setData } from '@vunk/core'
 import { useDataComputed } from '@vunk/core/composables'
+import { blobToDataURL } from '@vunk/shared/data/blob'
+import { TickerStatus } from '@vunk/shared/enum'
 import { computed, defineComponent, ref, watch, watchEffect } from 'vue'
 import { Broadcast, ParagraphStatus } from './const'
 import { emits, props } from './ctx'
@@ -18,7 +20,7 @@ export default defineComponent({
   },
   props,
   emits,
-  setup (props, { emit, expose }) {
+  setup (props, { emit, expose, slots }) {
     // 经过的段落
     const [theData, handleSetData] = useDataComputed({
       default: [] as Paragraph[],
@@ -43,8 +45,14 @@ export default defineComponent({
         return
       }
       return props.textToSpeech(`${value}`)
-        .then((url) => {
-          paragraph.url = url
+        .then(async (res) => {
+          if (res instanceof Blob) {
+            paragraph.blob = res
+            paragraph.url = await blobToDataURL(res)
+          }
+          if (typeof res === 'string') {
+            paragraph.url = res
+          }
         })
         .then(async () => {
           await props.processing?.(paragraph)
@@ -137,7 +145,7 @@ export default defineComponent({
               // 上一段落已经在处理中, 无需合并 separator
             }
           }
-          else {
+          else if (value.length > props.paragraphMinlength) {
             const paragraph = {
               start,
               separator,
@@ -209,6 +217,50 @@ export default defineComponent({
     /* 打断当前播报 END */
 
     /* 收集段落状态 */
+    const currentParagraph = computed(() => {
+      return theData.value.find(
+        item => item.status === ParagraphStatus.pending,
+      )
+    })
+
+    watchEffect(() => {
+      if (!currentParagraph.value) {
+        return
+      }
+
+      if (currentParagraph.value.broadcast === props.status) {
+        return
+      }
+      props.status === TickerStatus.play && (currentParagraph.value.broadcast = TickerStatus.play)
+      props.status === TickerStatus.pause && (currentParagraph.value.broadcast = TickerStatus.pause)
+      props.status === TickerStatus.stop && (currentParagraph.value.broadcast = TickerStatus.stop)
+    })
+
+    // Auto-advance to next paragraph when current one completes
+    watchEffect(() => {
+      if (isInterrupted.value) {
+        return
+      }
+
+      // Check if we have any completed paragraphs (fulfilled status)
+      const fulfilledCount = theData.value.filter(item => item.status === ParagraphStatus.fulfilled).length
+
+      // Find the next paragraph that should play (pending status with pending broadcast)
+      const nextParagraph = theData.value.find(
+        item => item.status === ParagraphStatus.pending && item.broadcast === Broadcast.pending,
+      )
+
+      // If we have fulfilled paragraphs and a next paragraph waiting, start it
+      if (fulfilledCount > 0 && nextParagraph) {
+        // Check if no paragraph is currently playing
+        const currentlyPlaying = theData.value.find(
+          item => item.broadcast === Broadcast.playing || item.broadcast === Broadcast.play,
+        )
+        if (!currentlyPlaying) {
+          nextParagraph.broadcast = Broadcast.play
+        }
+      }
+    })
 
     const isPaused = computed(() => {
       return theData.value.some(
@@ -216,23 +268,30 @@ export default defineComponent({
           && item.broadcast === Broadcast.paused,
       )
     })
+    watchEffect(() => {
+      isPaused.value && emit('update:status', TickerStatus.paused)
+    })
+
     const isBroadcasting = computed(() => {
       return theData.value.some(
         item => item.broadcast === Broadcast.playing,
       )
     })
     watchEffect(() => {
-      emit('update:broadcasting', isBroadcasting.value)
+      isBroadcasting.value && emit('update:broadcasting', isBroadcasting.value)
+      emit('update:status', TickerStatus.playing)
     })
 
+    const isTypingFinished = ref(!!slots.paragraphs)
     const isCompleted = computed(() => {
-      return props.keepRead === false && theData.value.every(
+      return isTypingFinished.value && props.keepRead === false && theData.value.every(
         item => item.status === ParagraphStatus.fulfilled,
       )
     })
 
     watchEffect(() => {
       emit('update:completed', isCompleted.value)
+      isCompleted.value && emit('update:status', TickerStatus.stopped)
     })
 
     const isError = computed(() => {
@@ -273,6 +332,8 @@ export default defineComponent({
       setData,
       Broadcast,
       isPaused,
+      isTypingFinished,
+      currentParagraph,
     }
   },
 })
@@ -281,6 +342,7 @@ export default defineComponent({
 <template>
   <slot :paragraphs="theData">
     <VkTypingMarkdown
+      v-model:finished="isTypingFinished"
       :source="fulfilledTextValue"
       :delay="120"
       :pause="isInterrupted || isPaused"

@@ -1,53 +1,53 @@
 <script lang="ts" setup>
 import type { Texture } from 'pixi.js'
+import type { PropType } from 'vue'
+import type { Datum, LoadEvent } from './types'
+import { useModelComputed } from '@vunk/core/composables'
 import { TickerStatus } from '@vunk/shared/enum'
 import { sleep } from '@vunk/shared/promise'
-
-import { Assets, Sprite } from 'pixi.js'
-import { onBeforeUnmount, ref, useId, watchEffect } from 'vue'
+import { Assets } from 'pixi.js'
+import { computed, onBeforeUnmount, ref, useId, watch, watchEffect } from 'vue'
 import { props as dProps, emits } from './ctx'
-import { usePixiApp } from './use'
+import { useSprite } from './useSprite'
 
-const props = defineProps(dProps)
-const emit = defineEmits(emits)
-const { application: app, context } = usePixiApp()
+const props = defineProps({
+  ...dProps,
+  data: {
+    type: undefined as unknown as PropType<Datum[] | string[]>,
+    required: true,
+  },
+  frameIndex: {
+    type: Number,
+  },
+})
+const emit = defineEmits({
+  ...emits,
+  'load': (e: LoadEvent) => e,
+  'update:frameIndex': null,
+  'notFound': (_index: number) => true,
+})
 const compId = useId()
 const getAlias = (key: string | number) => `${compId}-${key}`
 // 创建精灵并将其添加到舞台
-const sprite = new Sprite()
-app.stage.addChild(sprite)
-
-context.when().then((app) => {
-  if (sprite.texture) {
-    resizeSprite()
-    app.renderer.on(
-      'resize',
-      () => {
-        resizeSprite()
-      },
-    )
-  }
-})
-
-function resizeSprite () {
-  if (!app.renderer?.screen)
-    return
-  // === 设置 sprite 尺寸自适应 ===
-  const scaleX = app.screen.width / sprite.texture.width
-  const scaleY = app.screen.height / sprite.texture.height
-  const scale = Math.min(scaleX, scaleY) // 保持比例
-  sprite.scale.set(scale)
-  // 居中显示
-  sprite.x = (app.screen.width - sprite.width) / 2
-  sprite.y = (app.screen.height - sprite.height) / 2
-}
+const { sprite, resizeSprite, application } = useSprite(props)
 
 const textureMap = new Map<string, Texture>()
+const completedIndex = ref(0)
+const enabledData = computed(() => {
+  return props.data.slice(completedIndex.value)
+})
 
 watchEffect(() => {
-  for (const key in props.data) {
-    const alias = `${compId}-${key}`
-    const url = props.data[key]
+  for (const key in enabledData.value) {
+    const theKey = +key + completedIndex.value
+    const alias = `${compId}-${theKey}`
+    const src = typeof enabledData.value[key] === 'string'
+      ? enabledData.value[key]
+      : (enabledData.value[key] as Datum)?.src
+
+    if (!src) {
+      continue
+    }
 
     if (textureMap.has(alias)) {
       continue
@@ -55,13 +55,14 @@ watchEffect(() => {
 
     Assets.add({
       alias,
-      src: url,
+      src,
     })
     textureMap.set(alias, undefined as never)
 
     Assets.load(alias).then((res) => {
+      res._meta = enabledData.value[key]
       textureMap.set(alias, res)
-      if (key === '0') {
+      if (props.prerender && theKey === 0) {
         sprite.texture = res
         resizeSprite()
       }
@@ -69,15 +70,47 @@ watchEffect(() => {
   }
 })
 
-const index = ref(0)
+emit('load', {
+  application,
+  sprite,
+})
 
-let timer: number | null = null
+const index = useModelComputed({
+  default: 0,
+  key: 'frameIndex',
+}, props, emit)
+
+let animationId: number | null = null
+let lastFrameTime = 0
 
 function startFrameLoop () {
-  if (timer !== null)
+  if (animationId !== null)
     return // 防止重复启动
 
-  timer = window.setInterval(() => {
+  lastFrameTime = performance.now()
+
+  function renderFrame () {
+    const now = performance.now()
+    const frameDuration = 1000 / props.frameRate
+    const delta = now - lastFrameTime
+
+    if (delta >= frameDuration) {
+      lastFrameTime = now - (delta % frameDuration) // 修正误差抖动
+
+      // 执行绘制逻辑
+      drawFrame()
+    }
+
+    // 只有在播放状态下才继续请求下一帧
+    if (props.status === TickerStatus.playing) {
+      animationId = requestAnimationFrame(renderFrame)
+    }
+    else {
+      animationId = null
+    }
+  }
+
+  function drawFrame () {
     if (
       props.data.length === 0
       || props.status !== TickerStatus.playing
@@ -88,6 +121,7 @@ function startFrameLoop () {
     const currentTexture = textureMap.get(
       getAlias(index.value),
     )
+
     if (currentTexture) {
       /* 清理上一帧 */
       const originTexture = sprite.texture
@@ -110,11 +144,17 @@ function startFrameLoop () {
               k: originIndex,
               v: '',
             })
+            completedIndex.value = originIndex
           })
       }
       /* 清理上一帧 END */
 
       sprite.texture = currentTexture
+
+      console.log(
+        `Rendering frame ${index.value} with texture:`,
+        currentTexture,
+      )
 
       resizeSprite()
 
@@ -123,11 +163,26 @@ function startFrameLoop () {
         : index.value + 1 // 非循环播放
     }
     else {
+      console.warn(
+        `Texture for index ${index.value} not found. Ensure the texture is loaded.`,
+      )
+      emit('notFound', index.value)
       if (!props.loop)
         emit('update:status', TickerStatus.paused)
     }
-  }, 1000 / props.frameRate) // 每 40ms 一帧
+  }
+
+  // 启动动画循环
+  animationId = requestAnimationFrame(renderFrame)
 }
+
+onBeforeUnmount(stop)
+
+watch(() => props.status, (newStatus) => {
+  newStatus === TickerStatus.play && play()
+  newStatus === TickerStatus.pause && pause()
+  newStatus === TickerStatus.stop && stop()
+}, { immediate: true })
 
 // 开始播放动画
 function play () {
@@ -146,31 +201,14 @@ function pause () {
 
 function stop () {
   emit('update:status', TickerStatus.stopped)
-  if (timer !== null) {
-    clearInterval(timer)
-    timer = null
+  if (animationId !== null) {
+    cancelAnimationFrame(animationId)
+    animationId = null
   }
   emit('update:data', [])
   textureMap.clear()
   index.value = 0
 }
-
-onBeforeUnmount(() => {
-  stop()
-  app.stage.removeChild(sprite)
-})
-
-watchEffect(() => {
-  if (props.status === TickerStatus.play) {
-    play()
-  }
-  else if (props.status === TickerStatus.pause) {
-    pause()
-  }
-  else if (props.status === TickerStatus.stop) {
-    stop()
-  }
-})
 </script>
 
 <template>

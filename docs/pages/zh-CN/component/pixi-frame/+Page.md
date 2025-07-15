@@ -5,13 +5,29 @@ lang: zh-CN
 
 # PixiFrame
 
-PixiFrame 是一个基于 PixiJS 的帧动画播放组件，支持图片序列的加载和播放。
+PixiFrame 是一个基于 PixiJS 的多媒体播放组件，支持图片序列帧动画和视频播放。
 
-## Basic
+<!-- ## Basic
 
 :::demo
 pixi-frame/basic
+::: -->
+
+## APNG
+
+支持 APNG (Animated PNG) 格式的动画图片播放，直接使用 PIXI.js 原生的 Assets 系统加载和渲染，避免内存溢出问题。
+
+:::demo
+pixi-frame/apng
 :::
+
+<!-- ## Video
+
+支持视频文件的播放，使用 PIXI.js 的视频纹理功能实现硬件加速渲染。
+
+:::demo
+pixi-frame/video
+::: -->
 
 ## PixiFrame Props
 

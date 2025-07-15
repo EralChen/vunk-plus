@@ -16,12 +16,15 @@ export interface Paragraph {
    * @description 语音合成的 url
    */
   url?: string
+
+  blob?: Blob
+
 }
 
 /**
  * @returns Audio URL
  */
-export type TextToSpeech = (text: string) => Promise<string>
+export type TextToSpeech = (text: string) => Promise<string | Blob>
 
 export interface ParagraphLoadEvent {
   data: Paragraph

@@ -2,6 +2,7 @@ import type { SetDataEvent } from '@vunk/core'
 import type { Deferred } from '@vunk/shared/promise'
 import type { PropType } from 'vue'
 import type { Paragraph, ParagraphLoadEvent, TextToSpeech } from './types'
+import { TickerStatus } from '@vunk/shared/enum'
 import { noop } from '@vunk/shared/function'
 import { defaultRender } from './const'
 
@@ -72,6 +73,16 @@ export const props = {
     default: noop,
   },
 
+  status: {
+    type: String as PropType<TickerStatus>,
+    default: TickerStatus.pending,
+  },
+
+  paragraphMinlength: {
+    type: Number,
+    default: 20,
+  },
+
 }
 
 export const emits = {
@@ -80,6 +91,7 @@ export const emits = {
   'update:broadcasting': (_: boolean) => true,
   'update:completed': (_: boolean) => true,
   'update:error': (_: boolean) => true,
+  'update:status': (_: TickerStatus) => true,
   'paragraphLoad': (_: ParagraphLoadEvent) => true,
 }
 

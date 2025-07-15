@@ -21,6 +21,10 @@
       {
         "link": "/avatar",
         "text": "Avatar"
+      },
+      {
+        "link": "/text",
+        "text": "Text"
       }
     ]
   },
@@ -64,7 +68,7 @@
       }
     ]
   },
-  "antx": {
+  "x": {
     "text": "X",
     "children": [
       {
@@ -90,6 +94,10 @@
       {
         "link": "/chat-independent",
         "text": "ChatIndependent"
+      },
+      {
+        "link": "/metahuman-broadcasting",
+        "text": "MetahumanBroadcasting"
       }
     ]
   },

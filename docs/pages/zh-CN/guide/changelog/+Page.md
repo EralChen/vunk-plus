@@ -1,5 +1,9 @@
 # Changelog 更新日志
 
+## 1.5.1
+
++ [Text] 新增 component [Text](../../component/text/+Page.md): 文本组件, 支持文本截断、Tooltip 提示
+
 ## 1.4.3
 
 + [TablesV1] 添加 prop `duplexFull`: 若为 false, 表格根据其内容高度自适应; 依赖 "@vunk/core": ">=1.4.6"

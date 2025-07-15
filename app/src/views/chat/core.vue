@@ -5,7 +5,7 @@ import type { __VkChatIndependent } from '@vunk-plus/components/chat-independent
 import { speechToText, textToSpeech } from '@/api/application'
 import { VkAgentChatProvider } from '@vunk-plus/components/agent-chat-provider'
 import { VkChatIndependent } from '@vunk-plus/components/chat-independent'
-import { VkPixiFrameProvider } from '@vunk-plus/components/pixi-frame'
+import { TickerStatus, VkPixiFrameProvider, VkPixiFrameVideo } from '@vunk-plus/components/pixi-frame'
 import { setData } from '@vunk/core'
 import { useDeferred } from '@vunk/core/composables'
 import { blobToDataURL } from '@vunk/shared/data'
@@ -16,6 +16,9 @@ import { computed, ref } from 'vue'
 import { parser } from './parser'
 import { useRequest } from './useRequest'
 
+const base = import.meta.env.BASE_URL || '/'
+const videoUrl = ref(`${base}metahuman/01.mp4`)
+const videoStatus = ref(TickerStatus.play)
 const {
   stt_model_enable,
   id: applicationId,
@@ -116,6 +119,15 @@ const speechToTextFn: __VkChatIndependent.SpeechToText = (blob) => {
             />
           </template>
           <template #background>
+            <!-- 设置静默的背景 -->
+            <VkPixiFrameVideo
+              v-model:status="videoStatus"
+              :loop="true"
+              :url="videoUrl"
+              label="MetahumanVideo"
+            >
+            </VkPixiFrameVideo>
+
             <MetahumanBackground
               :status="currentMetahumanStatus"
             ></MetahumanBackground>
