@@ -1,6 +1,17 @@
 <script lang="ts" setup>
-import { VkMetahumanBroadcasting } from '@vunk-plus/components/metahuman-broadcasting'
-import { VkPixiFrameProvider } from '@vunk-plus/components/pixi-frame'
+import { VkMetahumanBroadcasting, workerConfig } from '@vunk-plus/components/metahuman-broadcasting'
+import { VkPixiFrameProvider, VkPixiFrameView } from '@vunk-plus/components/pixi-frame'
+import { TickerStatus } from '@vunk/shared/enum'
+import { ref } from 'vue'
+import { textToSpeech } from './api'
+
+workerConfig.path = `${import.meta.env.BASE_URL}sophontalk`
+
+const modelUrl = `${import.meta.env.BASE_URL}sophontalk/model.onnx`
+const sourceUrl = `${import.meta.env.BASE_URL}sophontalk/processed_images.zip`
+const datasetUrl = `${import.meta.env.BASE_URL}sophontalk/complete_dataset.json`
+
+const frameStatus = ref(TickerStatus.paused)
 
 const text = `大自然里，草长莺飞，莺歌燕舞，她生活在一个美好的世界里。
 
@@ -10,11 +21,26 @@ const text = `大自然里，草长莺飞，莺歌燕舞，她生活在一个美
 </script>
 
 <template>
+  <p>当前状态: {{ frameStatus }}</p>
   <!-- 提供播放器 -->
   <VkPixiFrameProvider>
     <!-- 传入文本 -->
     <VkMetahumanBroadcasting
+      v-model:status="frameStatus"
+      :model-url="modelUrl"
+      :source-url="sourceUrl"
+      :dataset-url="datasetUrl"
       :source="text"
+      :text-to-speech="textToSpeech"
     ></VkMetahumanBroadcasting>
+
+    <!-- 显示视频帧 -->
+    <div h-450px>
+      <VkPixiFrameView
+        :default-options="{
+          background: '#FFF',
+        }"
+      ></VkPixiFrameView>
+    </div>
   </VkPixiFrameProvider>
 </template>

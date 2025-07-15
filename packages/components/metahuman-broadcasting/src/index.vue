@@ -1,6 +1,8 @@
 <script lang="ts" setup>
 import type { __VkBroadcastingMarkdown } from '@vunk-plus/components/broadcasting-markdown'
 import type { Ref } from 'vue'
+import { VkBroadcastingMarkdown } from '@vunk-plus/components/broadcasting-markdown'
+import { VkPixiFrameBitmap } from '@vunk-plus/components/pixi-frame'
 import { blobToAudioBuffer, getStremingStartData, processStreaming, StreamingInferenceService } from '@vunk-plus/shared/audioToFrames'
 import { useModelComputed } from '@vunk/core/composables'
 import { setData } from '@vunk/core/shared'
@@ -10,6 +12,7 @@ import { props as dProps, emits } from './ctx'
 
 defineOptions({
   name: 'VkMetahumanBroadcasting',
+  inheritAttrs: false,
 })
 
 const props = defineProps(dProps)
@@ -88,7 +91,8 @@ async function processingParagraph (
 
 <template>
   <VkBroadcastingMarkdown
-    :status="status"
+    v-bind="$attrs"
+    :status="frameStatus"
     :data="paragraphData"
     :text-to-speech="textToSpeech"
     :source="source"
@@ -96,4 +100,9 @@ async function processingParagraph (
     @set-data="setData(paragraphData, $event)"
   >
   </VkBroadcastingMarkdown>
+
+  <VkPixiFrameBitmap
+    v-model:status="frameStatus"
+    :data="frameUrls"
+  ></VkPixiFrameBitmap>
 </template>
