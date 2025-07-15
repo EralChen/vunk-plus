@@ -15,15 +15,15 @@ import type { StreamingChunkData } from '../StreamingInferenceService'
 import JSZip from 'jszip'
 import { env, InferenceSession, Tensor } from 'onnxruntime-web'
 import { getAudioWindow } from '../../audio/AudioProcessor'
+import { BATCH_SIZE } from '../../core/constants'
 import {
   calculatePingPongState,
   convertTensorToImageData,
   loadTensorFromZip,
 } from '../../media/ImageProcessor'
-import { BATCH_SIZE } from '../../core/constants'
 
 // [TODO] 配置wasm路径（相对于public目录）
-env.wasm.wasmPaths = '/vunk-plus/'
+env.wasm.wasmPaths = './'
 
 // WebGPU 类型声明（用于类型推断，实际未用到WebGPU推理）
 declare interface GPUAdapter {}
@@ -161,7 +161,7 @@ export type MainThreadMessage =
 /**
  * 扩展Navigator接口以支持WebGPU检测
  */
-interface NavigatorWithGPU extends Navigator {
+type NavigatorWithGPU = Navigator & {
   gpu?: {
     requestAdapter: () => Promise<GPUAdapter | null>
   }
@@ -175,49 +175,6 @@ interface WasmSessionOptions {
     numThreads?: number
   }
 }
-
-/**
- * 检测最佳推理后端（WebGPU优先，实际目前强制使用wasm以保证稳定性）
- * @returns 推理后端及session选项
- */
-async function detectBestExecutionProvider (): Promise<{
-  providers: string[]
-  sessionOptions: WasmSessionOptions
-}> {
-  if (typeof navigator !== 'undefined' && 'gpu' in navigator) {
-    try {
-      const adapter = await (
-        navigator as NavigatorWithGPU
-      ).gpu?.requestAdapter()
-      if (adapter) {
-        console.log('WebGPU is available, using \'webgpu\' execution provider.')
-        return {
-          providers: ['webgpu'],
-          sessionOptions: {
-            wasm: {
-              numThreads: navigator.hardwareConcurrency || 4,
-            },
-          },
-        }
-      }
-    }
-    catch (e) {
-      console.log('WebGPU detection failed, falling back to WASM.', e)
-    }
-  }
-
-  console.log('Using \'wasm\' execution provider.')
-  return {
-    providers: ['wasm'],
-    sessionOptions: {
-      wasm: {
-        numThreads: navigator.hardwareConcurrency || 4,
-      },
-    },
-  }
-}
-
-// #endregion
 
 // #region --- ONNX Runner ---
 
@@ -237,19 +194,12 @@ class StreamingONNXRunner {
     const modelBuffer = await response.arrayBuffer()
 
     const { providers, sessionOptions } = await detectBestExecutionProvider()
-    console.log(
-      `Initializing streaming ONNX session with providers: ${providers.join(
-        ', ',
-      )}`,
-    )
 
     this.session = await InferenceSession.create(new Uint8Array(modelBuffer), {
       executionProviders: providers,
       graphOptimizationLevel: 'all',
       ...sessionOptions,
     } as InferenceSession.SessionOptions)
-
-    console.log('Streaming ONNX session created successfully')
   }
 
   /**
@@ -271,6 +221,84 @@ class StreamingONNXRunner {
     }
     const results = await this.session.run(feeds)
     return results[this.session.outputNames[0]]
+  }
+}
+
+// #endregion
+
+// #endregion
+
+// #region --- Worker State ---
+
+/**
+ * Worker全局状态
+ */
+const onnxRunner = new StreamingONNXRunner() // ONNX推理器
+let sharedDataset: ImageDataResponse | null = null // 当前数据集
+let sharedZip: JSZip | null = null // 图片Zip实例
+let sharedBlendingMask: ImageBitmap | null = null // 融合掩码
+let totalExpectedFrames = 0 // 期望总帧数
+let processedFrames = 0 // 已处理帧数
+let imageIndex = 0 // 当前图片帧索引
+let imageStep = 1 // 图片帧步进方向
+
+// --- 新增：可复用的 OffscreenCanvas 实例 ---
+let predCanvas: OffscreenCanvas | null = null
+let predCtx: OffscreenCanvasRenderingContext2D | null = null
+let pastedPredCanvas: OffscreenCanvas | null = null
+let pastedPredCtx: OffscreenCanvasRenderingContext2D | null = null
+let blendedFaceCanvas: OffscreenCanvas | null = null
+let blendedFaceCtx: OffscreenCanvasRenderingContext2D | null = null
+let finalCanvas: OffscreenCanvas | null = null
+let finalCtx: OffscreenCanvasRenderingContext2D | null = null
+
+// --- 流水线控制状态 ---
+const chunkQueue = new Map<number, StreamingChunkData>() // chunk队列，按chunkIndex索引
+let isProcessingQueue = false // 是否正在处理队列
+let nextChunkToProcess = 0 // 下一个待处理chunk的索引
+
+// --- 性能统计 ---
+let fpsStartTime = 0 // FPS统计开始时间
+let fpsFrameCount = 0 // FPS统计帧数
+
+// #endregion
+
+/**
+ * 检测最佳推理后端（WebGPU优先，实际目前强制使用wasm以保证稳定性）
+ * @returns 推理后端及session选项
+ */
+async function detectBestExecutionProvider (): Promise<{
+  providers: string[]
+  sessionOptions: WasmSessionOptions
+}> {
+  if (typeof navigator !== 'undefined' && 'gpu' in navigator) {
+    try {
+      const adapter = await (
+        navigator as NavigatorWithGPU
+      ).gpu?.requestAdapter()
+      if (adapter) {
+        return {
+          providers: ['webgpu'],
+          sessionOptions: {
+            wasm: {
+              numThreads: navigator.hardwareConcurrency || 4,
+            },
+          },
+        }
+      }
+    }
+    catch (e) {
+      console.error('WebGPU detection failed, falling back to WASM.', e)
+    }
+  }
+
+  return {
+    providers: ['wasm'],
+    sessionOptions: {
+      wasm: {
+        numThreads: navigator.hardwareConcurrency || 4,
+      },
+    },
   }
 }
 
@@ -337,17 +365,20 @@ async function compositeFrame (
   }
 
   const cropSize = datasetInfo.config.crop_size
-  
+
   // 使用与后端一致的border计算逻辑
-  let border: number;
+  let border: number
   if (cropSize === 252) {
-    border = 6;
-  } else if (cropSize === 192) {
-    border = 6;
-  } else if (cropSize === 128) {
-    border = 4;
-  } else { // cropSize === 96 (nano/tiny)
-    border = 3;
+    border = 6
+  }
+  else if (cropSize === 192) {
+    border = 6
+  }
+  else if (cropSize === 128) {
+    border = 4
+  }
+  else { // cropSize === 96 (nano/tiny)
+    border = 3
   }
 
   // 2. 生成推理结果画布（使用可复用实例）
@@ -402,43 +433,6 @@ async function compositeFrame (
   return [finalBitmap, t]
 }
 
-// #endregion
-
-// #region --- Worker State ---
-
-/**
- * Worker全局状态
- */
-const onnxRunner = new StreamingONNXRunner() // ONNX推理器
-let sharedDataset: ImageDataResponse | null = null // 当前数据集
-let sharedZip: JSZip | null = null // 图片Zip实例
-let sharedBlendingMask: ImageBitmap | null = null // 融合掩码
-let totalExpectedFrames = 0 // 期望总帧数
-let processedFrames = 0 // 已处理帧数
-let imageIndex = 0 // 当前图片帧索引
-let imageStep = 1 // 图片帧步进方向
-
-// --- 新增：可复用的 OffscreenCanvas 实例 ---
-let predCanvas: OffscreenCanvas | null = null
-let predCtx: OffscreenCanvasRenderingContext2D | null = null
-let pastedPredCanvas: OffscreenCanvas | null = null
-let pastedPredCtx: OffscreenCanvasRenderingContext2D | null = null
-let blendedFaceCanvas: OffscreenCanvas | null = null
-let blendedFaceCtx: OffscreenCanvasRenderingContext2D | null = null
-let finalCanvas: OffscreenCanvas | null = null
-let finalCtx: OffscreenCanvasRenderingContext2D | null = null
-
-// --- 流水线控制状态 ---
-const chunkQueue = new Map<number, StreamingChunkData>() // chunk队列，按chunkIndex索引
-let isProcessingQueue = false // 是否正在处理队列
-let nextChunkToProcess = 0 // 下一个待处理chunk的索引
-
-// --- 性能统计 ---
-let fpsStartTime = 0 // FPS统计开始时间
-let fpsFrameCount = 0 // FPS统计帧数
-
-// #endregion
-
 // #region --- Canvas and Cache Management ---
 
 /**
@@ -470,10 +464,6 @@ function initializeReusableCanvases (
   // 最终画布
   finalCanvas = new OffscreenCanvas(fullImageWidth, fullImageHeight)
   finalCtx = finalCanvas.getContext('2d')!
-
-  console.log(
-    `初始化可复用Canvas实例，裁剪尺寸: ${cropSize}, 推理尺寸: ${predSize}, 全图尺寸: ${fullImageWidth}x${fullImageHeight}`,
-  )
 }
 
 /**
@@ -522,10 +512,8 @@ async function processChunk (chunkData: StreamingChunkData): Promise<void> {
     throw new Error('共享数据尚未初始化，无法处理chunk')
   }
 
-  const { chunkIndex, audioFeatures, audioDimensions, startFrame, endFrame }
+  const { chunkIndex, audioFeatures, audioDimensions, startFrame }
     = chunkData
-
-  console.log(`开始处理chunk ${chunkIndex}，帧范围: ${startFrame}-${endFrame}，批处理大小: ${BATCH_SIZE}`)
 
   // 记录各阶段耗时
   const timings = {
@@ -605,19 +593,15 @@ async function processChunk (chunkData: StreamingChunkData): Promise<void> {
 
     // 2. 构造批处理张量
     t0 = performance.now()
-    const batchImageTensor = batchSize === 1 
+    const batchImageTensor = batchSize === 1
       ? batchImageTensors[0]
-      : new Tensor('float32', 
-          new Float32Array(batchImageTensors.flatMap(t => Array.from(t.data as Float32Array))),
-          [batchSize, ...batchImageTensors[0].dims.slice(1)]
-        )
-    
+      : new Tensor('float32', new Float32Array(batchImageTensors.flatMap(t => Array.from(t.data as Float32Array))), [batchSize, ...batchImageTensors[0].dims.slice(1)],
+      )
+
     const batchAudioTensor = batchSize === 1
       ? batchAudioTensors[0]
-      : new Tensor('float32',
-          new Float32Array(batchAudioTensors.flatMap(t => Array.from(t.data as Float32Array))),
-          [batchSize, audioWindowSize, chunk_size, mel_bins]
-        )
+      : new Tensor('float32', new Float32Array(batchAudioTensors.flatMap(t => Array.from(t.data as Float32Array))), [batchSize, audioWindowSize, chunk_size, mel_bins],
+      )
     timings.getAudio += performance.now() - t0
 
     // 3. 批处理ONNX推理
@@ -634,7 +618,6 @@ async function processChunk (chunkData: StreamingChunkData): Promise<void> {
     const singleOutputSize = outputData.length / batchSize
 
     for (let j = 0; j < batchSize; j++) {
-      const frameIndex = i + j
       const globalFrameIndex = batchGlobalFrameIndices[j]
       const imageFrameMeta = batchFrameMetas[j]
 
@@ -696,13 +679,14 @@ async function processChunk (chunkData: StreamingChunkData): Promise<void> {
           fpsFrameCount = 0
         }
         fpsFrameCount++
-        
+
         const currentTime = performance.now()
         const elapsedTime = (currentTime - fpsStartTime) / 1000 // 转换为秒
-        
+
         if (elapsedTime >= 1.0) { // 每秒输出一次FPS
           const fps = fpsFrameCount / elapsedTime
-          console.log(`推理FPS: ${fps.toFixed(2)} 帧/秒 (批处理大小: ${BATCH_SIZE})`)
+          // eslint-disable-next-line no-console
+          console.debug(`推理FPS: ${fps.toFixed(2)} 帧/秒 (批处理大小: ${BATCH_SIZE})`)
           fpsStartTime = currentTime
           fpsFrameCount = 0
         }
@@ -732,13 +716,11 @@ async function processChunk (chunkData: StreamingChunkData): Promise<void> {
       batchAudioTensor.dispose()
     }
     batchOutputTensor.dispose()
-    
+
     // 释放单帧张量资源
     batchImageTensors.forEach(tensor => tensor.dispose())
     batchAudioTensors.forEach(tensor => tensor.dispose())
   }
-
-  console.log(`Chunk ${chunkIndex} 处理完成`)
 
   // 通知chunk完成
   self.postMessage({
@@ -761,8 +743,6 @@ async function processQueue () {
 
     const chunkToProcess = chunkQueue.get(nextChunkToProcess)!
     chunkQueue.delete(nextChunkToProcess)
-
-    console.log(`从队列取出并处理 chunk ${chunkToProcess.chunkIndex}`)
 
     try {
       await processChunk(chunkToProcess)
@@ -812,19 +792,22 @@ self.onmessage = async (event: MessageEvent<StreamingWorkerMessage>) => {
       // 初始化可复用的Canvas实例
       const datasetInfo = sharedDataset.dataset_info
       const cropSize = datasetInfo.config.crop_size
-      
+
       // 使用与后端一致的border计算逻辑
-      let border: number;
+      let border: number
       if (cropSize === 252) {
-        border = 6;
-      } else if (cropSize === 192) {
-        border = 6;
-      } else if (cropSize === 128) {
-        border = 4;
-      } else { // cropSize === 96 (nano/tiny)
-        border = 3;
+        border = 6
       }
-      
+      else if (cropSize === 192) {
+        border = 6
+      }
+      else if (cropSize === 128) {
+        border = 4
+      }
+      else { // cropSize === 96 (nano/tiny)
+        border = 3
+      }
+
       const sourceDims = datasetInfo.source_image_dimensions
 
       if (!sourceDims) {
@@ -873,28 +856,23 @@ self.onmessage = async (event: MessageEvent<StreamingWorkerMessage>) => {
       chunkQueue.clear()
       isProcessingQueue = false
       nextChunkToProcess = 0
-      
+
       // 重置FPS统计
       fpsStartTime = 0
       fpsFrameCount = 0
-      
-      console.log('流式推理初始化完成，队列已重置，Canvas实例已初始化')
     }
     else if (type === 'streaming_run') {
       // 收到新chunk，加入队列并尝试处理
       const chunkData = event.data.chunkData
-      console.log(`收到并排队 chunk ${chunkData.chunkIndex}`)
       chunkQueue.set(chunkData.chunkIndex, chunkData)
       processQueue() // 尝试处理队列
     }
     else if (type === 'finish_chunks') {
       // 所有chunk已发送完毕，记录总帧数
       totalExpectedFrames = event.data.totalFrames
-      console.log(`所有chunks添加完成，总计 ${totalExpectedFrames} 帧`)
     }
     else if (type === 'stop') {
       // 停止推理，清理所有资源和状态
-      console.log('停止流式推理')
       sharedDataset = null
       sharedZip = null
       if (sharedBlendingMask) {

@@ -3,12 +3,16 @@
   "private": true,
   "module": "index.ts",
   "scripts": {
-    "build": "vite build"
+    "build": "vite build && npm run copy && npm run dts && npm run clear",
+    "copy": "tsx ./script.copy.ts",
+    "dts": "tsx ./script.dts.ts",
+    "clear": "rm -rf ./dist"
   },
   "dependencies": {
     "qs": "^6.11.0"
   },
   "devDependencies": {
-    "@types/qs": "^6.9.7"
+    "@types/qs": "^6.9.7",
+    "vite-plugin-dts": "4.5.4"
   }
 }

@@ -7,6 +7,7 @@ export default defineConfig({
     lib: {
       entry: {
         'shared/audioToFrames/index': resolve(__dirname, './audioToFrames/index.ts'),
+        'shared/types/index': resolve(__dirname, './types/index.ts'),
       },
       name: 'index',
     },
