@@ -13,11 +13,11 @@ BroadcastingMarkdown
 broadcasting-markdown/basic
 ::: -->
 
-## Metahuman
+<!-- ## Metahuman
 
 :::demo
 broadcasting-markdown/metahuman-broadcasting
-:::
+::: -->
 
 ## BroadcastingMarkdown Props
 

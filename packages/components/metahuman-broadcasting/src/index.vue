@@ -87,6 +87,13 @@ async function processingParagraph (
     console.error('Error processing paragraph:', error)
   }
 }
+
+function allParagraphCompleted (v: boolean) {
+  if (v && paragraphData.value.length) {
+    frameStatus.value = TickerStatus.stop
+    frameUrls.value.length = 0
+  }
+}
 </script>
 
 <template>
@@ -98,6 +105,7 @@ async function processingParagraph (
     :source="source"
     :processing="processingParagraph"
     @set-data="setData(paragraphData, $event)"
+    @update:completed="allParagraphCompleted"
   >
   </VkBroadcastingMarkdown>
 

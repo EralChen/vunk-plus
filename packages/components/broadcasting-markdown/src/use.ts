@@ -64,13 +64,12 @@ export function useHowlerParagraph (
         })
       },
       onend: () => {
-        console.debug('Audio ended for paragraph:', props.data.value.substring(0, 30) + '...')
         // theData.value.broadcast = Broadcast.ended
         emit('setData', {
           k: 'broadcast',
           v: Broadcast.stopped,
         })
-        console.debug('Set paragraph broadcast to stopped after audio end')
+
         // 销毁实例
         setTimeout(() => {
           if (sound.value) {
@@ -79,7 +78,6 @@ export function useHowlerParagraph (
           }
         }, 400)
         props.deferred.resolve(true)
-        console.debug('Deferred resolved for paragraph')
       },
       onstop: () => {
         emit('setData', {
@@ -125,63 +123,21 @@ export function useHowlerParagraph (
   })
 
   watchEffect(() => {
-    const paragraphPreview = props.data.value.substring(0, 30) + '...'
-    console.debug(`Audio broadcast state changed to: ${broadcast.value} for paragraph: "${paragraphPreview}"`)
-    console.debug('Sound instance exists:', !!sound.value, 'URL exists:', !!url.value)
-    
     if (broadcast.value === Broadcast.play) {
-      console.debug('Playing audio for paragraph:', paragraphPreview)
       if (sound.value) {
         sound.value.play()
-        console.debug('Called sound.play()')
-      } else {
-        console.debug('ERROR: No sound instance available for play')
+      }
+      else {
+        console.warn('warn: No sound instance available for play')
       }
     }
     else if (broadcast.value === Broadcast.pause) {
-      console.debug('Pausing audio for paragraph:', paragraphPreview)
       sound.value?.pause()
     }
     else if (broadcast.value === Broadcast.stop) {
-      console.debug('Stopping audio for paragraph:', paragraphPreview)
       sound.value?.stop()
     }
   })
-
-  // 使用 Page Visibility API 检测页面可见性
-  // const handleVisibilityChange = () => {
-  //   if (document.hidden) {
-  //     // 页面不可见（锁屏或切换到其他标签页）
-  //     if (broadcast.value === Broadcast.playing) {
-  //       emit('setData', {
-  //         k: 'broadcast',
-  //         v: Broadcast.pause,
-  //       })
-  //     }
-  //   }
-  //   else {
-  //     // 页面可见
-  //     setTimeout(() => {
-  //       if (
-  //         broadcast.value === Broadcast.paused
-  //       ) {
-  //         emit('setData', {
-  //           k: 'broadcast',
-  //           v: Broadcast.play,
-  //         })
-  //       }
-  //     }, 400)
-  //   }
-  // }
-
-  // onMounted(() => {
-  //   // 添加事件监听器
-  //   document.addEventListener('visibilitychange', handleVisibilityChange)
-  // })
-  // onBeforeUnmount(() => {
-  //   // 移除事件监听器
-  //   document.removeEventListener('visibilitychange', handleVisibilityChange)
-  // })
 
   return {
     url,

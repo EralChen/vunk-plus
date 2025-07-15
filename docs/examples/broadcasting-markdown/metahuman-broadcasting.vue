@@ -75,14 +75,11 @@ async function requestProcessStreaming (
   await streamingInferenceService.when()
 
   try {
-    console.debug('开始处理音频流，时长:', buffer.duration.toFixed(2), 's')
     await processStreaming(buffer, {
       onChunkComplete (result) {
-        console.debug('Chunk complete, adding to inference service. Chunk:', result.chunkIndex, 'Frame range:', result.startTimeSeconds.toFixed(2), '-', result.endTimeSeconds.toFixed(2))
         streamingInferenceService.addChunk(result)
       },
     })
-    console.debug('音频流处理完成')
   }
   catch (error) {
     console.error('音频处理错误:', error)
@@ -98,13 +95,10 @@ async function processingParagraph (
 
   // 发送音频文件
   consola.info('Processing Paragraph', item.blob)
-  console.debug('开始处理段落，索引:', item.start, '状态:', item.status)
 
   try {
     const audioBuffer = await blobToAudioBuffer(item.blob)
-    console.debug('音频转换完成，开始请求流处理')
     await requestProcessStreaming(audioBuffer)
-    console.debug('段落处理完成')
   }
   catch (error) {
     consola.error('Error processing paragraph:', error)

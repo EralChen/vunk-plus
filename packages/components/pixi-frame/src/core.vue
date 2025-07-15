@@ -95,10 +95,6 @@ function startFrameLoop () {
     const delta = now - lastFrameTime
 
     if (delta >= frameDuration) {
-      console.debug(
-        `Current frame index: ${index.value}, Time since last frame: ${delta.toFixed(2)}ms`,
-      )
-
       lastFrameTime = now - (delta % frameDuration) // 修正误差抖动
 
       // 执行绘制逻辑
