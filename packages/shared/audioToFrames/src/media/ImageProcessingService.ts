@@ -8,6 +8,7 @@
  */
 
 import type { ImageProcessingResult, ImageProcessingTask } from './workers/image-processing.worker'
+import { workerConfig } from '../config'
 
 export class ImageProcessingService {
   private worker: Worker | null = null
@@ -24,10 +25,12 @@ export class ImageProcessingService {
 
   private initializeWorker (): void {
     try {
-      this.worker = new Worker(
-        new URL('./workers/image-processing.worker.ts', import.meta.url),
-        { type: 'module' },
-      )
+      this.worker = workerConfig.path
+        ? new Worker(`${workerConfig.path}/image-processing.worker.js`, { type: 'module' })
+        : new Worker(
+          new URL('./workers/image-processing.worker.ts', import.meta.url),
+          { type: 'module' },
+        )
 
       this.worker.onmessage = (event: MessageEvent<ImageProcessingResult>) => {
         const result = event.data

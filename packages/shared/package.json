@@ -4,6 +4,7 @@
   "module": "index.ts",
   "scripts": {
     "build": "vite build && npm run copy && npm run dts && npm run clear",
+    "dist": "vite build",
     "copy": "tsx ./script.copy.ts",
     "dts": "tsx ./script.dts.ts",
     "clear": "rm -rf ./dist"

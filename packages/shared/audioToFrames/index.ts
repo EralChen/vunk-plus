@@ -2,11 +2,13 @@ import type { ChunkFeatureResult } from './src/audio'
 import { AsyncQueue } from '@sapphire/async-queue'
 import maskUrl from './src/assets/mask'
 import { createAudioContext, StreamingFeatureExtractorService } from './src/audio'
+import { workerConfig } from './src/config'
 import { StreamingInferenceService } from './src/inference'
 import { loadImageData } from './src/media'
 
 export {
   StreamingInferenceService,
+  workerConfig,
 }
 
 // Create a singleton queue instance for audio processing
@@ -26,7 +28,7 @@ export async function processStreaming (
 ) {
   // Wait for the queue to ensure serialized processing
   await audioProcessingQueue.wait()
-  
+
   try {
     return await new Promise<number[]>((resolve, reject) => {
       const service = new StreamingFeatureExtractorService()
@@ -41,7 +43,8 @@ export async function processStreaming (
         },
       })
     })
-  } finally {
+  }
+  finally {
     // Always shift the queue, whether success or error
     audioProcessingQueue.shift()
   }

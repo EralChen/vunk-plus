@@ -14,8 +14,9 @@ import type {
   MainThreadMessage,
   StreamingWorkerInitMessage as WorkerInitMessage,
 } from './workers/streaming.inference.worker'
-import { BATCH_SIZE } from '../core/constants'
 import { Deferred } from '@vunk/shared/promise'
+import { workerConfig } from '../config'
+import { BATCH_SIZE } from '../core/constants'
 
 /**
  * 单个流式推理chunk的数据结构。
@@ -117,13 +118,14 @@ export class StreamingInferenceService {
    * @param onReady Worker初始化完成回调
    */
   constructor (modelPath: string, onReady?: () => void) {
-    console.log(`StreamingInferenceService 初始化，批处理大小: ${BATCH_SIZE}`)
-    this.worker = new Worker(
-      new URL('./workers/streaming.inference.worker.ts', import.meta.url),
-      {
-        type: 'module',
-      },
-    )
+    this.worker = workerConfig.path
+      ? new Worker(`${workerConfig.path}/streaming.inference.worker.js`, { type: 'module' })
+      : new Worker(
+        new URL('./workers/streaming.inference.worker.ts', import.meta.url),
+        {
+          type: 'module',
+        },
+      )
 
     this.worker.onmessage = (event: MessageEvent<MainThreadMessage>) => {
       const { type } = event.data
@@ -139,7 +141,7 @@ export class StreamingInferenceService {
             event.data.payload.total,
           )
           break
-        case 'frame':
+        case 'frame': {
           // 解析帧数据并回调
           const frameData = event.data.payload as {
             frame: ImageBitmap
@@ -147,7 +149,8 @@ export class StreamingInferenceService {
           }
           this.callbacks.onFrame?.(frameData.frame, frameData.frameIndex)
           break
-        case 'chunk_complete':
+        }
+        case 'chunk_complete': {
           // 记录已完成的chunk并回调
           const chunkData = event.data.payload as {
             chunkIndex: number
@@ -166,6 +169,7 @@ export class StreamingInferenceService {
             this.lightCleanup()
           }
           break
+        }
         case 'error':
           // 推理错误回调
           this.callbacks.onError?.(event.data.payload)
@@ -264,10 +268,6 @@ export class StreamingInferenceService {
     }
 
     this.pendingChunks.set(uniqueChunkIndex, chunkData)
-
-    console.log(
-      `添加chunk ${uniqueChunkIndex} (原始:${chunkResult.chunkIndex}) 进行推理，帧范围: ${startFrame}-${endFrame}`,
-    )
 
     // 立即发送该chunk进行推理
     const message: StreamingWorkerRunMessage = {
