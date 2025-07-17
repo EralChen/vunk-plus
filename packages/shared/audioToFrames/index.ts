@@ -6,6 +6,8 @@ import { workerConfig } from './src/config'
 import { StreamingInferenceService } from './src/inference'
 import { loadImageData, PredictiveFrameLoader } from './src/media'
 
+export type { ImageDataResponse } from './src/media'
+
 export {
   PredictiveFrameLoader,
   StreamingInferenceService,

@@ -8,12 +8,17 @@ export function useSprite (props: {
   autoResize?: boolean
   label?: string
   resize?: Resize
+  visible?: boolean
 }) {
   const autoResize = props.autoResize ?? true
   const resize = props.resize ?? defaultResize
   const { application: app, context } = usePixiApp()
   const sprite = new Sprite()
   app.stage.addChild(sprite)
+
+  watchEffect(() => {
+    sprite.visible = props.visible ?? true
+  })
 
   watchEffect(() => {
     props.label && (sprite.label = props.label)

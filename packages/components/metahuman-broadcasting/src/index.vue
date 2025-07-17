@@ -1,5 +1,7 @@
 <script lang="ts" setup>
 import type { __VkBroadcastingMarkdown } from '@vunk-plus/components/broadcasting-markdown'
+import type { ImageDataResponse } from '@vunk-plus/shared/audioToFrames'
+import type JSZip from 'jszip'
 import type { Ref } from 'vue'
 import { VkBroadcastingMarkdown } from '@vunk-plus/components/broadcasting-markdown'
 import { VkPixiFrameBitmap } from '@vunk-plus/components/pixi-frame'
@@ -22,23 +24,23 @@ const paragraphData = ref([]) as Ref<__VkBroadcastingMarkdown.Paragraph[]>
 const streamingInferenceService = new StreamingInferenceService(props.modelUrl)
 
 const frameUrls = ref<ImageBitmap[]>([])
-// const predictiveFrameUrls = ref<ImageBitmap[]>([])
+const silentFrameUrls = ref<ImageBitmap[]>([])
 
 const frameStatus = useModelComputed({
   default: TickerStatus.pending,
   key: 'status',
 }, props, emit)
 
+const slientFrameStatus = ref(TickerStatus.pending)
+
 onMounted(async () => {
   await streamingInferenceService.when()
-  const { blendingMaskBitmap, dataset, zipBlob } = await getStremingStartData({
+  const { blendingMaskBitmap, dataset, zipBlob, zip } = await getStremingStartData({
     datasetUrl: props.datasetUrl,
     sourceUrl: props.sourceUrl,
   })
 
-  // const predictiveFrame = new PredictiveFrameLoader(dataset, zip)
-  // predictiveFrame.warmup(0)
-  // predictiveFrame.getFrame(1, 1, dataset.images.length)
+  loadAllSilentFrames(dataset, zip)
 
   await streamingInferenceService.startStreaming({
     blendingMaskBitmap,
@@ -94,6 +96,25 @@ function allParagraphCompleted (v: boolean) {
     frameUrls.value.length = 0
   }
 }
+
+async function loadAllSilentFrames (
+  dataset: ImageDataResponse,
+  zip: JSZip,
+) {
+  // 加载所有图片作为静默帧（默认不说话状态）
+  for (const image of dataset.images) {
+    const imageFile = zip.file(image.full_image)
+    if (imageFile) {
+      const blob = await imageFile.async('blob')
+      const imageBitmap = await createImageBitmap(blob)
+      silentFrameUrls.value.push(imageBitmap)
+    }
+
+    if (slientFrameStatus.value === TickerStatus.pending) {
+      slientFrameStatus.value = TickerStatus.play
+    }
+  }
+}
 </script>
 
 <template>
@@ -112,5 +133,13 @@ function allParagraphCompleted (v: boolean) {
   <VkPixiFrameBitmap
     v-model:status="frameStatus"
     :data="frameUrls"
+  ></VkPixiFrameBitmap>
+
+  <VkPixiFrameBitmap
+    v-model:status="slientFrameStatus"
+    :data="silentFrameUrls"
+    :loop="true"
+    :prerender="true"
+    :visible="frameStatus !== TickerStatus.playing"
   ></VkPixiFrameBitmap>
 </template>
