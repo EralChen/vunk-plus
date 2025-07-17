@@ -56,6 +56,7 @@ watchEffect(() => {
     Assets.add({
       alias,
       src,
+      loadParser: 'loadTextures',
     })
     textureMap.set(alias, undefined as never)
 

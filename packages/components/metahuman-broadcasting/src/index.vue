@@ -4,12 +4,12 @@ import type { ImageDataResponse } from '@vunk-plus/shared/audioToFrames'
 import type JSZip from 'jszip'
 import type { Ref } from 'vue'
 import { VkBroadcastingMarkdown } from '@vunk-plus/components/broadcasting-markdown'
-import { VkPixiFrameBitmap } from '@vunk-plus/components/pixi-frame'
+import { VkPixiFrameBitmap, VkPixiFrameCore } from '@vunk-plus/components/pixi-frame'
 import { blobToAudioBuffer, getStremingStartData, processStreaming, StreamingInferenceService } from '@vunk-plus/shared/audioToFrames'
 import { useModelComputed } from '@vunk/core/composables'
 import { setData } from '@vunk/core/shared'
 import { TickerStatus } from '@vunk/shared/enum'
-import { onMounted, ref } from 'vue'
+import { onMounted, reactive, ref, shallowReactive } from 'vue'
 import { props as dProps, emits } from './ctx'
 
 defineOptions({
@@ -24,7 +24,8 @@ const paragraphData = ref([]) as Ref<__VkBroadcastingMarkdown.Paragraph[]>
 const streamingInferenceService = new StreamingInferenceService(props.modelUrl)
 
 const frameUrls = ref<ImageBitmap[]>([])
-const silentFrameUrls = ref<ImageBitmap[]>([])
+const silentFrameUrls = shallowReactive<string[]>([]) // 预加载的静默帧
+//
 
 const frameStatus = useModelComputed({
   default: TickerStatus.pending,
@@ -97,6 +98,8 @@ function allParagraphCompleted (v: boolean) {
   }
 }
 
+const ready = ref(false)
+
 async function loadAllSilentFrames (
   dataset: ImageDataResponse,
   zip: JSZip,
@@ -106,14 +109,16 @@ async function loadAllSilentFrames (
     const imageFile = zip.file(image.full_image)
     if (imageFile) {
       const blob = await imageFile.async('blob')
-      const imageBitmap = await createImageBitmap(blob)
-      silentFrameUrls.value.push(imageBitmap)
+      const url = URL.createObjectURL(blob)
+
+      silentFrameUrls.push(url)
     }
 
     if (slientFrameStatus.value === TickerStatus.pending) {
       slientFrameStatus.value = TickerStatus.play
     }
   }
+  ready.value = true
 }
 </script>
 
@@ -135,11 +140,12 @@ async function loadAllSilentFrames (
     :data="frameUrls"
   ></VkPixiFrameBitmap>
 
-  <VkPixiFrameBitmap
+  <VkPixiFrameCore
+    v-if="ready"
     v-model:status="slientFrameStatus"
     :data="silentFrameUrls"
     :loop="true"
     :prerender="true"
     :visible="frameStatus !== TickerStatus.playing"
-  ></VkPixiFrameBitmap>
+  ></VkPixiFrameCore>
 </template>

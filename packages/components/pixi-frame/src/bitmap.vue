@@ -3,15 +3,18 @@ import type { PropType } from 'vue'
 import type { LoadEvent } from './types'
 import { useModelComputed } from '@vunk/core/composables'
 import { TickerStatus } from '@vunk/shared/enum'
+import { pickObject } from '@vunk/shared/object'
 import { sleep } from '@vunk/shared/promise'
-import { ImageSource, Texture } from 'pixi.js'
 
+import { Assets, ImageSource, Texture } from 'pixi.js'
 import { computed, nextTick, onBeforeUnmount, ref, useId, watch, watchEffect } from 'vue'
 import { props as dProps, emits } from './ctx'
 import { useSprite } from './useSprite'
 
 const props = defineProps({
-  ...dProps,
+  ...pickObject(dProps, {
+    excludes: ['loop'],
+  }),
   data: {
     type: undefined as unknown as PropType<ImageBitmap[]>,
     required: true,
@@ -100,7 +103,6 @@ function drawFrame () {
     const originIndex = index.value - 1
     if (
       originTexture && originIndex >= 0
-      && !props.loop
     ) {
       Promise
         .resolve(sleep(500))
@@ -123,17 +125,13 @@ function drawFrame () {
 
     resizeSprite()
 
-    index.value = props.loop
-      ? (index.value + 1) % props.data.length // 循环播放
-      : index.value + 1 // 非循环播放
+    index.value = index.value + 1 // 非循环播放
   }
   else {
     console.warn(
       `Texture for index ${index.value} not found. Ensure the texture is loaded.`,
     )
     emit('notFound', index.value)
-    if (!props.loop)
-      emit('update:status', TickerStatus.paused)
   }
 }
 
