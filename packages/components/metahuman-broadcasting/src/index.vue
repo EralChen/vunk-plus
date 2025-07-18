@@ -138,6 +138,7 @@ async function loadAllSilentFrames (
   <VkPixiFrameBitmap
     v-model:status="frameStatus"
     :data="frameUrls"
+    @set-data="setData(frameUrls, $event)"
   ></VkPixiFrameBitmap>
 
   <VkPixiFrameCore

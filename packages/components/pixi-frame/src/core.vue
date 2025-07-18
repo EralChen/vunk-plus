@@ -152,11 +152,6 @@ function startFrameLoop () {
 
       sprite.texture = currentTexture
 
-      console.log(
-        `Rendering frame ${index.value} with texture:`,
-        currentTexture,
-      )
-
       resizeSprite()
 
       index.value = props.loop
