@@ -9,7 +9,7 @@ import { blobToAudioBuffer, getStremingStartData, processStreaming, StreamingInf
 import { useModelComputed } from '@vunk/core/composables'
 import { setData } from '@vunk/core/shared'
 import { TickerStatus } from '@vunk/shared/enum'
-import { onMounted, reactive, ref, shallowReactive } from 'vue'
+import { onMounted, ref, shallowReactive } from 'vue'
 import { props as dProps, emits } from './ctx'
 
 defineOptions({
