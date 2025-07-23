@@ -172,8 +172,6 @@ function startFrameLoop () {
   animationId = requestAnimationFrame(renderFrame)
 }
 
-onBeforeUnmount(stop)
-
 watch(() => props.status, (newStatus) => {
   newStatus === TickerStatus.play && play()
   newStatus === TickerStatus.pause && pause()
@@ -205,6 +203,15 @@ function stop () {
   textureMap.clear()
   index.value = 0
 }
+
+onBeforeUnmount(() => {
+  textureMap.entries().forEach(([alias, texture]) => {
+    if (texture) {
+      Assets.unload(alias)
+    }
+  })
+  stop()
+})
 </script>
 
 <template>
