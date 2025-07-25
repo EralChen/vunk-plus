@@ -5,8 +5,7 @@ import { useModelComputed } from '@vunk/core/composables'
 import { TickerStatus } from '@vunk/shared/enum'
 import { pickObject } from '@vunk/shared/object'
 import { sleep } from '@vunk/shared/promise'
-
-import { Assets, ImageSource, Texture } from 'pixi.js'
+import { ImageSource, Texture } from 'pixi.js'
 import { computed, nextTick, onBeforeUnmount, ref, useId, watch, watchEffect } from 'vue'
 import { props as dProps, emits } from './ctx'
 import { useSprite } from './useSprite'
@@ -135,8 +134,6 @@ function drawFrame () {
   }
 }
 
-onBeforeUnmount(stop)
-
 watch(() => props.status, (newStatus) => {
   newStatus === TickerStatus.play && play()
   newStatus === TickerStatus.pause && pause()
@@ -168,6 +165,16 @@ function stop () {
   textureMap.clear()
   index.value = 0
 }
+
+onBeforeUnmount(() => {
+  const entries = Array.from(textureMap.entries())
+  entries.forEach(([_, texture]) => {
+    if (texture) {
+      texture.destroy(true)
+    }
+  })
+  stop()
+})
 </script>
 
 <template>

@@ -205,7 +205,8 @@ function stop () {
 }
 
 onBeforeUnmount(() => {
-  textureMap.entries().forEach(([alias, texture]) => {
+  const entries = Array.from(textureMap.entries())
+  entries.forEach(([alias, texture]) => {
     if (texture) {
       Assets.unload(alias)
     }
