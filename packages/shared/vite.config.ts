@@ -13,7 +13,11 @@ export default defineConfig({
     },
     assetsDir: '',
     rollupOptions: {
-      external: ['vue'],
+      external: [
+        'vue',
+        'onnxruntime-web',
+        /^@vunk\/shared/,
+      ],
     },
   },
   worker: {
