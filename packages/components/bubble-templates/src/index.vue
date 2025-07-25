@@ -26,6 +26,9 @@ function setRef (
   props: __VkBubbleList.Item,
   el: any,
 ) {
+  if (!el) {
+    return
+  }
   emitSetData?.({
     k: [props.key, 'elRef'],
     v: markRaw(el),
