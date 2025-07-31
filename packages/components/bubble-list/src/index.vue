@@ -35,6 +35,9 @@ function getContentWraper (e: VNode) {
           :ref="elRef"
           :btn-icon-size="18"
           :max-height="`${height}px`"
+          :style="{
+            '--el-bubble-list-max-height': `${height}px`,
+          }"
           :list="items"
           v-bind="$attrs"
         >

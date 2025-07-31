@@ -30,8 +30,6 @@
     "@vunk/form": "2.9.1",
     "@vunk/plus": "workspace:*",
     "@vunk/shared": "0.8.7",
-    "ant-design-vue": "^4.2.6",
-    "ant-design-x-vue": "1.1.0",
     "apng-js": "^1.1.5",
     "element-plus": "npm:element-plus@latest",
     "fft.js": "^4.0.4",
