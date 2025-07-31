@@ -1,11 +1,20 @@
 import type { __VkBubbleTemplates } from '@vunk-plus/components/bubble-templates'
 import type { Media, NormalObject } from '@vunk/shared'
-import type { RequestFn } from 'ant-design-x-vue'
+import type { RequestFn, useXChat, XAgent } from 'ant-design-x-vue'
 import type { MaybeArray } from 'naive-ui/es/_utils'
+import type { ComputedRef } from 'vue'
 import type { BubbleListItemProps } from 'vue-element-plus-x/types/components/BubbleList/types'
-import type { initAgentChat } from './use'
 
-export type AgentChatContext = ReturnType<typeof initAgentChat>
+export interface AgentChatContext {
+  agent: ComputedRef<XAgent<AgentMessage>>
+
+  chat: ReturnType<typeof useXChat<AgentMessage, BubbleMessage>>
+
+  simplicity: {
+    onRequest: (message: string) => void
+    items: ComputedRef<BubbleItem[]>
+  }
+}
 
 export type Request = RequestFn<AgentMessage>
 

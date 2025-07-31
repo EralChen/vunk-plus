@@ -1,7 +1,7 @@
 <script lang="ts">
 import type { AnyFunc, NormalObject } from '@vunk/shared'
 import type { PropType } from 'vue'
-import type { AgentChatContext, AgentMessage, Parser, Request } from './types'
+import type { AgentMessage, Parser, Request } from './types'
 import { defineComponent } from 'vue'
 import { agentRequest } from './api'
 import { Role } from './const-roles'
@@ -18,7 +18,7 @@ export default defineComponent({
     },
   },
   emits: {
-    load: (e: AgentChatContext) => e,
+    load: null,
   },
   setup (props, { slots, emit }) {
     const request: Request = (info, event) => {

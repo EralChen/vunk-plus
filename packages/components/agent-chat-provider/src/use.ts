@@ -1,6 +1,5 @@
 import type { RequestFn } from 'ant-design-x-vue'
-
-import type { AgentMessage, BubbleItem, BubbleMessage, Parser } from './types'
+import type { AgentChatContext, AgentMessage, BubbleItem, BubbleMessage, Parser } from './types'
 import { useXAgent, useXChat } from 'ant-design-x-vue'
 import { computed, inject, provide } from 'vue'
 
@@ -16,7 +15,7 @@ export function useAgent (request: RequestFn<AgentMessage>) {
 export function initAgentChat (
   request: RequestFn<AgentMessage>,
   parser: Parser,
-) {
+): AgentChatContext {
   const [agent] = useAgent(request)
   const chat = useXChat<AgentMessage, BubbleMessage>({
     agent: agent.value,
@@ -48,7 +47,7 @@ export function initAgentChat (
     agent,
     chat,
     simplicity,
-  }
+  } as unknown as AgentChatContext
   provide(ChatAgentInjectKey, ctx)
   return ctx
 }
@@ -58,5 +57,5 @@ export function useAgentChat () {
   if (!ctx) {
     throw new Error('useAgentChat must be used within a provider')
   }
-  return ctx as ReturnType<typeof initAgentChat>
+  return ctx as AgentChatContext
 }
