@@ -17,13 +17,13 @@ export default defineComponent({
   },
   props,
   emits,
-  setup (props, { emit }) {
+  setup (props, { emit, expose }) {
     const paginationBindProps = createPaginationBindProps(props, ['layout', 'currentPage'])
     const paginationOnEmits = createPaginationOnEmits(emit, [
       'update:current-page',
     ])
     const columnsProps = _VkTableColumnsElCtx.createTableColumnBindProps(props)
-    const tableProps = createTableBindProps(props)
+    const tableProps = createTableBindProps(props, [])
     const tableOnEmits = createElTableOnEmits(emit)
     const { isMobile } = useElBreakpoints()
     const hasPagination = computed(() => props.modules.includes('pagination'))
@@ -66,6 +66,8 @@ export default defineComponent({
     })
     /* layout end */
 
+    expose({})
+
     return {
       paginationBindProps,
       paginationOnEmits,
@@ -86,12 +88,18 @@ export default defineComponent({
     class="vk-tables-v1"
     with-resize="one"
     gap="var(--vk-tables-v1-gap, 14px)"
+    :full="duplexFull"
   >
-    <template #one>
+    <template #one="{ resizeElementClientMaxHeight }">
       <ElTable
         v-bind="tableProps"
         :ref="elRef"
         :style="tableStyle"
+        :max-height="
+          duplexFull
+            ? tableProps.maxHeight
+            : resizeElementClientMaxHeight
+        "
         :class-name="`vk-tables-v1-table ${tableClass}`"
         v-on="tableOnEmits"
       >

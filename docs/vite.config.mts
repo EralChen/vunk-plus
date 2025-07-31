@@ -49,13 +49,21 @@ export default defineConfig(async ({ mode }) => {
 
     server: {
       port: 9995,
+
+      proxy: {
+        '/api': {
+          // target: 'http://192.168.111.245:9091',
+          target: 'https://llm.geosophon.com',
+          changeOrigin: true,
+          rewrite: path => path.replace(env.VITE_BASE_PATH, '/'),
+        },
+      },
     },
     ssr: {
       noExternal: [
         '@vuesri-core/**',
         '@arcgis/core/**',
         '@vunk/skzz/**',
-        '@skzz/platform/**',
         'esri/**',
         '@vunk/gsap/**',
       ],
@@ -68,9 +76,7 @@ export default defineConfig(async ({ mode }) => {
     plugins: [
       vueDevTools(),
 
-      vike({
-        prerender: true,
-      }),
+      vike(),
 
       vue({
         include: [/\.vue$/, /\.md$/],
@@ -100,6 +106,7 @@ export default defineConfig(async ({ mode }) => {
       }),
 
       Icons(),
+      
     ],
     // We manually add a list of dependencies to be pre-bundled, in order to avoid a page reload at dev start which breaks vike's CI
     optimizeDeps: {

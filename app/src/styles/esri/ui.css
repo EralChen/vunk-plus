@@ -1,0 +1,3 @@
+.esri-ui-inner-container{
+  inset: var(--gap-page)!important;
+}

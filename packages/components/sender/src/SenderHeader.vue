@@ -1,41 +1,34 @@
-<script lang="tsx">
+<script lang="tsx" setup>
 import type { AnyFunc } from '@vunk/shared'
 import type { PropType } from 'vue'
 import { CloseOutlined } from '@ant-design/icons-vue'
 import { noop } from '@vunk/shared/function'
 import { Button as AntButton } from 'ant-design-vue'
 import { ElCollapseTransition } from 'element-plus'
-import { defineComponent } from 'vue'
 
-export default defineComponent({
+defineOptions({
   name: 'AXSenderHeader',
-  components: {
-    ElCollapseTransition,
-    AntButton,
-    CloseOutlined,
-  },
   inheritAttrs: false,
-  props: {
-    modelValue: {
-      type: Boolean,
-      default: false,
-    },
-    title: {
-      type: String,
-      default: 'Sender',
-    },
-    contentRef: {
-      type: Function as PropType<AnyFunc>,
-      default: noop,
-    },
+})
+
+defineProps({
+
+  modelValue: {
+    type: Boolean,
+    default: false,
   },
-  emits: {
-    'update:modelValue': null,
+  title: {
+    type: String,
+    default: 'Sender',
   },
-  setup () {
-    return {
-    }
+  contentRef: {
+    type: Function as PropType<AnyFunc>,
+    default: noop,
   },
+
+})
+defineEmits({
+  'update:modelValue': null,
 })
 </script>
 

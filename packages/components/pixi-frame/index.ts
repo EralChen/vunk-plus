@@ -1,0 +1,25 @@
+import type { App } from 'vue'
+import VkPixiFrameApng from './src/apng.vue'
+import VkPixiFrameBitmap from './src/bitmap.vue'
+import VkPixiFrameCore from './src/core.vue'
+import VkPixiFrame from './src/index.vue'
+import VkPixiFrameProvider from './src/provider.vue'
+import VkPixiFrameVideo from './src/video.vue'
+import VkPixiFrameView from './src/view.vue'
+
+export * as __VkPixiFrame from './src/types'
+export { TickerStatus } from '@vunk/shared/enum'
+
+VkPixiFrame.install = (app: App): void => {
+  app.component(VkPixiFrame.name || 'VkPixiFrame', VkPixiFrame)
+}
+export {
+  VkPixiFrame,
+  VkPixiFrameApng,
+  VkPixiFrameBitmap,
+  VkPixiFrameCore,
+  VkPixiFrameProvider,
+  VkPixiFrameVideo,
+  VkPixiFrameView,
+}
+export default VkPixiFrame

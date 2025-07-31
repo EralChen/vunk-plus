@@ -9,7 +9,9 @@ export default eslint({
     'vue/html-self-closing': 'off',
     'array-callback-return': 'off',
     '@stylistic/indent': ['error', 2],
+    'no-restricted-globals': 'off',
     '@stylistic/space-before-function-paren': ['error', 'always'],
+
   },
   ignores: [
     'node_modules',

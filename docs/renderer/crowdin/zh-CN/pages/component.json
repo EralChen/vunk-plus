@@ -21,6 +21,10 @@
       {
         "link": "/avatar",
         "text": "Avatar"
+      },
+      {
+        "link": "/text",
+        "text": "Text"
       }
     ]
   },
@@ -30,6 +34,10 @@
       {
         "link": "/typing-markdown",
         "text": "TypingMarkdown"
+      },
+      {
+        "link": "/broadcasting-markdown",
+        "text": "BroadcastingMarkdown"
       }
     ]
   },
@@ -60,8 +68,8 @@
       }
     ]
   },
-  "antx": {
-    "text": "Antx",
+  "x": {
+    "text": "X",
     "children": [
       {
         "link": "/sender",
@@ -70,15 +78,35 @@
       {
         "link": "/speech-button",
         "text": "SpeechButton"
-      }
-    ]
-  },
-  "recorder": {
-    "text": "Recorder",
-    "children": [
+      },
       {
         "link": "/recorder-button",
         "text": "RecorderButton"
+      },
+      {
+        "link": "/bubble-list",
+        "text": "BubbleList"
+      },
+      {
+        "link": "/agent-chat-provider",
+        "text": "AgentChatProvider"
+      },
+      {
+        "link": "/chat-independent",
+        "text": "ChatIndependent"
+      },
+      {
+        "link": "/metahuman-broadcasting",
+        "text": "MetahumanBroadcasting"
+      }
+    ]
+  },
+  "pixi": {
+    "text": "Pixi",
+    "children": [
+      {
+        "link": "/pixi-frame",
+        "text": "PixiFrame"
       }
     ]
   }

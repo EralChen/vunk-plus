@@ -1,5 +1,6 @@
 import type { UploadFile } from 'ant-design-vue'
 import type { PropType } from 'vue'
+import type { Module } from './types'
 
 export const props = {
 
@@ -33,6 +34,20 @@ export const props = {
     type: Boolean,
     default: undefined,
   },
+
+  /**
+   * @description 可选模块, 包含: Attachments 文件上传;
+   */
+  modules: {
+    type: Array<Module>,
+    default: () => [],
+  },
+
+  sendDisabled: {
+    type: Boolean,
+    default: false,
+  },
+
 }
 
 export const emits = {

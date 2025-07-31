@@ -1,5 +1,27 @@
 # Changelog 更新日志
 
+## 1.5.1
+
++ [Text] 新增 component [Text](../../component/text/+Page.md): 文本组件, 支持文本截断、Tooltip 提示
+
+## 1.4.3
+
++ [TablesV1] 添加 prop `duplexFull`: 若为 false, 表格根据其内容高度自适应; 依赖 "@vunk/core": ">=1.4.6"
+
+## 1.4.2
+
++ [PixiFrame] 新增 component [PixiFrame](../../component/pixi-frame/+Page.md): 帧动画播放组件
+
+## 1.3.14
+
++ [BroadcastingMarkdown] 新增 component [BroadcastingMarkdown](../../component/broadcasting-markdown/+Page.md): 随播报展示的 TypingMarkdown 组件
++ [Sender] 新增 component [Sender](../../component/sender/+Page.md): 发送器组件
++ [SpeechButton] 新增 component [SpeechButton](../../component/speech-button/+Page.md): 语音按钮组件
++ [RecorderButton] 新增 component [RecorderButton](../../component/recorder-button/+Page.md): 按住说话按钮组件
++ [BubbleList] 新增 component [BubbleList](../../component/bubble-list/+Page.md): 气泡列表组件
++ [AgentChatProvider] 新增 component [AgentChatProvider](../../component/agent-chat-provider/+Page.md): 聊天提供者组件
++ [ChatIndependent] 新增 component [ChatIndependent](../../component/chat-independent/+Page.md): 独立聊天APP组件
+
 ## 1.2.0
 
 + [Avatar] 新增 component [Avatar](../../component/avatar/+Page.md): 一个更适合放 Icon 的 Avatar 组件。
