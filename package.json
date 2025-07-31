@@ -29,7 +29,7 @@
     "@vunk/core": "1.6.5",
     "@vunk/form": "2.9.1",
     "@vunk/plus": "workspace:*",
-    "@vunk/shared": "0.8.7",
+    "@vunk/shared": "0.8.17",
     "apng-js": "^1.1.5",
     "element-plus": "npm:element-plus@latest",
     "fft.js": "^4.0.4",
