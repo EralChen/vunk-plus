@@ -22,7 +22,11 @@ export class FeatureExtractorService {
   constructor () {
     // 直接创建Worker，与StreamingInferenceService保持一致
     this.worker = workerConfig.path
-      ? new Worker(`${workerConfig.path}/feature.worker.js`, { type: 'module' })
+      ? new Worker(
+        /* @vite-ignore */
+        `${workerConfig.path}/feature.worker.js`,
+        { type: 'module' },
+      )
       : new Worker(
         new URL('../inference/workers/feature.worker.ts', import.meta.url),
         { type: 'module' },

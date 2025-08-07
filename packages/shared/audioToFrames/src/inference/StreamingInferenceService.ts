@@ -119,7 +119,11 @@ export class StreamingInferenceService {
    */
   constructor (modelPath: string, onReady?: () => void) {
     this.worker = workerConfig.path
-      ? new Worker(`${workerConfig.path}/streaming.inference.worker.js`, { type: 'module' })
+      ? new Worker(
+        /* @vite-ignore */
+        `${workerConfig.path}/streaming.inference.worker.js`,
+        { type: 'module' },
+      )
       : new Worker(
         new URL('./workers/streaming.inference.worker.ts', import.meta.url),
         {

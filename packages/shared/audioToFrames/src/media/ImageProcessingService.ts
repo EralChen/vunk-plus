@@ -26,7 +26,11 @@ export class ImageProcessingService {
   private initializeWorker (): void {
     try {
       this.worker = workerConfig.path
-        ? new Worker(`${workerConfig.path}/image-processing.worker.js`, { type: 'module' })
+        ? new Worker(
+          /* @vite-ignore */
+          `${workerConfig.path}/image-processing.worker.js`,
+          { type: 'module' },
+        )
         : new Worker(
           new URL('./workers/image-processing.worker.ts', import.meta.url),
           { type: 'module' },
