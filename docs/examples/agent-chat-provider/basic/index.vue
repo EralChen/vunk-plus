@@ -2,6 +2,8 @@
 import type { __VkAgentChatProvider } from '@vunk-plus/components/agent-chat-provider'
 import type { NormalObject } from '@vunk/shared'
 import { MessageViewManager, VkAgentChatProvider } from '@vunk-plus/components/agent-chat-provider'
+import { treeToTokens, VkRendererTemplate, VkRendererTemplates, VkTemplatesDefault } from '@vunk/markdown'
+import { Thinking } from 'vue-element-plus-x'
 import { agentRequest } from './api'
 import View from './view.vue'
 
@@ -112,7 +114,13 @@ const parser: __VkAgentChatProvider.Parser = (message) => {
   if (views) {
     content = views.reduce((acc, view) => {
       if (view.type === 'thinking') {
-        acc += `\n:::thinking\n${view.content}\n:::`
+        acc += [
+          `:::thinking ${view.updating ? 'thinking' : 'end'}`,
+          '```md',
+          view.content,
+          '```',
+          ':::',
+        ].join('\n')
       }
       else {
         acc += `\n${view.content}`
@@ -134,6 +142,19 @@ const parser: __VkAgentChatProvider.Parser = (message) => {
     :request="request"
     :parser="parser"
   >
-    <View></View>
+    <VkRendererTemplates>
+      <VkTemplatesDefault></VkTemplatesDefault>
+      <VkRendererTemplate type="container:thinking">
+        <template #default="{ raw }">
+          <Thinking
+            :content="raw.children[0].content"
+            :status="raw.open.info.split(' ')[1] || 'thinking'"
+          >
+          </Thinking>
+        </template>
+      </VkRendererTemplate>
+
+      <View></View>
+    </VkRendererTemplates>
   </VkAgentChatProvider>
 </template>
