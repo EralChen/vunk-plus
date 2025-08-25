@@ -96,6 +96,8 @@ export default defineComponent({
       const list = [
         {
           ...message,
+          role: message.role ?? Role.User,
+          content: message.content ?? '',
           loading: message.seviceLoading,
         },
       ]

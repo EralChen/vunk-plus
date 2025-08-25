@@ -8,13 +8,21 @@ const bubbleItems: __VkBubbleList.Item[] = [
     content: '123',
     key: 'msg_0',
     placement: 'end',
-    templateType: 'Typewriter',
+    templateType: 'VkMarkdown',
+    avatar: 'https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png',
+    avatarSize: '32px',
   },
   {
     role: Role.Assistant,
-    content: '123',
+    content: [
+      ':::tip',
+      '这是一个提示',
+      ':::',
+    ].join('\n'),
     key: 'msg_1',
-    templateType: 'Typewriter',
+    templateType: 'VkMarkdown',
+    avatar: 'https://avatars.githubusercontent.com/u/76239030?v=4',
+    avatarSize: '32px',
   },
 ]
 </script>

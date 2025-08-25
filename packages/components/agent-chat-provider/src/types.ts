@@ -3,6 +3,7 @@ import type { MaybeArray, Media, NormalObject } from '@vunk/shared'
 import type { RequestFn, SSEOutput, useXChat, XAgent, XRequestParams } from 'ant-design-x-vue'
 import type { ComputedRef } from 'vue'
 import type { BubbleListItemProps } from 'vue-element-plus-x/types/components/BubbleList/types'
+import type { MessageView } from './MessageView'
 
 export type RequestParams<Message> = Omit<XRequestParams, 'message'> & {
   message: Message
@@ -26,16 +27,17 @@ export type Request = RequestFn<
   RequestOutput
 >
 
-export type Parser = (message: AgentMessage) => MaybeArray<BubbleMessage>
+export type Parser = (message: Partial<AgentMessage>) => MaybeArray<BubbleMessage>
 
 export type RequestOutput = AgentMessage & SSEOutput
 
 /**
  * @description   useXAgent request onSuccess 发送的数据
  */
-export type AgentMessage = BubbleMessage & {
+export type AgentMessage = Partial<BubbleMessage> & {
   seviceLoading?: boolean
   seviceEnd?: boolean
+  views?: MessageView[]
 }
 
 /**

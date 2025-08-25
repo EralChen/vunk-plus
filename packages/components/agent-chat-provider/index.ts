@@ -3,7 +3,9 @@ import VkAgentChatProvider from './src/index.vue'
 
 export * from './src/const'
 export * from './src/const-roles'
+export { type MessageView, MessageViewManager } from './src/MessageView'
 export * as __VkAgentChatProvider from './src/types'
+
 export { useAgentChat } from './src/use'
 
 VkAgentChatProvider.install = (app: App): void => {
