@@ -6,6 +6,19 @@ import { computed, ref } from 'vue'
 const { chat, simplicity } = useAgentChat()
 const bubbleList = computed(() => simplicity.items.value)
 
+chat.setMessages([
+  {
+    id: 'msg_0',
+    message: {
+      role: 'assistant',
+      content: '你好，我是一个AI助手，请问有什么可以帮助你？',
+      seviceLoading: false,
+      seviceEnd: true,
+    },
+    status: 'success',
+  },
+])
+
 function handleClick () {
   chat.onRequest({
     message: {

@@ -123,7 +123,7 @@ const parser: __VkAgentChatProvider.Parser = (message) => {
 
   return {
     role: message.role ?? 'assistant',
-    loading: message.seviceLoading !== false,
+    loading: message.seviceLoading === true,
     content,
   }
 }

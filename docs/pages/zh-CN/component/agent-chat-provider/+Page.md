@@ -12,4 +12,8 @@
 
 :::demo
 agent-chat-provider/basic/index
+
+>>>subs
+[agent-chat-provider/basic/api, agent-chat-provider/basic/view]
+>>>
 :::
