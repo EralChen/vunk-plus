@@ -1,19 +1,23 @@
-import type { RequestFn } from 'ant-design-x-vue'
-import type { AgentChatContext, AgentMessage, BubbleItem, BubbleMessage, Parser } from './types'
+import type { SSEOutput } from 'ant-design-x-vue'
+import type { AgentChatContext, AgentMessage, BubbleItem, BubbleMessage, Parser, Request, RequestParams } from './types'
 import { useXAgent, useXChat } from 'ant-design-x-vue'
 import { computed, inject, provide } from 'vue'
 
 import { ChatAgentInjectKey } from './const'
 import { Role, roleMap } from './const-roles'
 
-export function useAgent (request: RequestFn<AgentMessage>) {
+export function useAgent (request: Request): ReturnType<typeof useXAgent<
+  AgentMessage,
+  RequestParams<AgentMessage>,
+  AgentMessage & SSEOutput
+>> {
   return useXAgent<AgentMessage>({
     request,
   })
 }
 
 export function initAgentChat (
-  request: RequestFn<AgentMessage>,
+  request: Request,
   parser: Parser,
 ): AgentChatContext {
   const [agent] = useAgent(request)
@@ -21,6 +25,7 @@ export function initAgentChat (
     agent: agent.value,
     // Convert AgentMessage to BubbleMessage
     parser,
+
   })
 
   const onRequest = (message: string) => {

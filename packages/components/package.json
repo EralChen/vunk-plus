@@ -9,7 +9,7 @@
   },
   "dependencies": {
     "ant-design-vue": "^4.2.6",
-    "ant-design-x-vue": "1.2.9",
+    "ant-design-x-vue": "1.3.2",
     "howler": "^2.2.4",
     "markdown-it-async": "^2.2.0",
     "vue-element-plus-x": "^1.3.1"

@@ -1,9 +1,13 @@
 import type { __VkBubbleTemplates } from '@vunk-plus/components/bubble-templates'
-import type { Media, NormalObject } from '@vunk/shared'
-import type { RequestFn, useXChat, XAgent } from 'ant-design-x-vue'
-import type { MaybeArray } from 'naive-ui/es/_utils'
+import type { MaybeArray, Media, NormalObject } from '@vunk/shared'
+import type { RequestFn, SSEOutput, useXChat, XAgent, XRequestParams } from 'ant-design-x-vue'
 import type { ComputedRef } from 'vue'
 import type { BubbleListItemProps } from 'vue-element-plus-x/types/components/BubbleList/types'
+
+export type RequestParams<Message> = Omit<XRequestParams, 'message'> & {
+  message: Message
+  messages?: Message[]
+} & NormalObject
 
 export interface AgentChatContext {
   agent: ComputedRef<XAgent<AgentMessage>>
@@ -16,9 +20,15 @@ export interface AgentChatContext {
   }
 }
 
-export type Request = RequestFn<AgentMessage>
+export type Request = RequestFn<
+  AgentMessage,
+  RequestParams<AgentMessage>,
+  RequestOutput
+>
 
 export type Parser = (message: AgentMessage) => MaybeArray<BubbleMessage>
+
+export type RequestOutput = AgentMessage & SSEOutput
 
 /**
  * @description   useXAgent request onSuccess 发送的数据

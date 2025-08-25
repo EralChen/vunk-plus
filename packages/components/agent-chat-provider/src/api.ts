@@ -7,11 +7,11 @@ export async function agentRequest (
   data: NormalObject,
 ) {
   return restFetch.reader({
-    url: '/application/chat_message/231593fc-1b84-11f0-9ed6-10ffe00db574',
+    url: '/application/chat_message/69e23792-8162-11f0-8a7b-dee062287042',
     onmessage,
   }, {
     headers: {
-      authorization: 'application-18a5cf747c3dfc2689cb4b5880c2db02',
+      authorization: 'application-8259214f7c6f2777658809d71bdfada3',
     },
     data,
   })

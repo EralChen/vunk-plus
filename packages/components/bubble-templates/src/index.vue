@@ -59,6 +59,7 @@ function initRenderData (
         :status="props.thinkingStatus"
       >
       </Thinking>
+
       <Typewriter
         :ref="(el) => setRef(emitSetData, props, el)"
         :content="props.content"
@@ -82,6 +83,7 @@ function initRenderData (
         :status="props.thinkingStatus"
       >
       </Thinking>
+
       <VkBroadcastingMarkdown
         :ref="(el) => setRef(emitSetData, props, el)"
         :source="props.content"
