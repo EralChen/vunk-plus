@@ -51,8 +51,8 @@ importers:
         specifier: ^1.1.5
         version: 1.1.5
       element-plus:
-        specifier: npm:element-plus@latest
-        version: 2.7.6(vue@3.5.13(typescript@5.8.2))
+        specifier: ^2.11.1
+        version: 2.11.1(vue@3.5.13(typescript@5.8.2))
       fft.js:
         specifier: ^4.0.4
         version: 4.0.4
@@ -3743,6 +3743,9 @@ packages:
   dayjs@1.11.11:
     resolution: {integrity: sha512-okzr3f11N6WuqYtZSvm+F776mB41wRZMhKP+hc34YdW+KmtYYK9iqvHSwo2k9FEH3fhGXvOPV6yz2IcSrfRUDg==}
 
+  dayjs@1.11.13:
+    resolution: {integrity: sha512-oaMBel6gjolK862uaPQOVTA7q3TZhuSvuMQAAglQDOWYO9A91IrAOUJEyKVlqJlHE0vq5p5UXxzdPfMH/x6xNg==}
+
   de-indent@1.0.2:
     resolution: {integrity: sha1-sgOOhG3DO6pXlhKNCAS0VbjB4h0=}
 
@@ -3954,8 +3957,8 @@ packages:
   electron-to-chromium@1.5.72:
     resolution: {integrity: sha512-ZpSAUOZ2Izby7qnZluSrAlGgGQzucmFbN0n64dYzocYxnxV5ufurpj3VgEe4cUp7ir9LmeLxNYo8bVnlM8bQHw==}
 
-  element-plus@2.7.6:
-    resolution: {integrity: sha512-36sw1K23hYjgeooR10U6CiCaCp2wvOqwoFurADZVlekeQ9v5U1FhJCFGEXO6i/kZBBMwsE1c9fxjLs9LENw2Rg==}
+  element-plus@2.11.1:
+    resolution: {integrity: sha512-weYFIniyNXTAe9vJZnmZpYzurh4TDbdKhBsJwhbzuo0SDZ8PLwHVll0qycJUxc6SLtH+7A9F7dvdDh5CnqeIVA==}
     peerDependencies:
       vue: ^3.2.0
 
@@ -4062,7 +4065,7 @@ packages:
     engines: {node: '>=6'}
 
   escape-html@1.0.3:
-    resolution: {integrity: sha1-Aljq5NPQwJdN4cFpGI7wBR0dGYg=}
+    resolution: {integrity: sha512-NiSupZ4OeuGwr68lGIeym/ksIZMJodUGOSCZ/FSnTxcrekbvqrgdUxlJOMpijaKZVjAJrWrGs/6Jy8OMuyj9ow==}
 
   escape-string-regexp@1.0.5:
     resolution: {integrity: sha512-vbRorB5FUQWvla16U8R/qgaFIya2qGzwDrNmCZuYKrbdSUMG6I1ZCGQRefkRVhuOkIGVne7BQ35DSfo1qvJqFg==}
@@ -11704,6 +11707,8 @@ snapshots:
 
   dayjs@1.11.11: {}
 
+  dayjs@1.11.13: {}
+
   de-indent@1.0.2: {}
 
   debug@2.6.9:
@@ -11885,7 +11890,7 @@ snapshots:
 
   electron-to-chromium@1.5.72: {}
 
-  element-plus@2.7.6(vue@3.5.13(typescript@5.8.2)):
+  element-plus@2.11.1(vue@3.5.13(typescript@5.8.2)):
     dependencies:
       '@ctrl/tinycolor': 3.6.1
       '@element-plus/icons-vue': 2.3.1(vue@3.5.13(typescript@5.8.2))
@@ -11895,7 +11900,7 @@ snapshots:
       '@types/lodash-es': 4.17.12
       '@vueuse/core': 9.13.0(vue@3.5.13(typescript@5.8.2))
       async-validator: 4.2.5
-      dayjs: 1.11.11
+      dayjs: 1.11.13
       escape-html: 1.0.3
       lodash: 4.17.21
       lodash-es: 4.17.21
