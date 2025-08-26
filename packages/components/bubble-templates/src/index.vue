@@ -1,11 +1,22 @@
 <script lang="ts" setup>
 import type { __VkAgentChatProvider } from '@vunk-plus/components/agent-chat-provider'
 import type { __VkBubbleList } from '@vunk-plus/components/bubble-list'
+import type { PropType } from 'vue'
+import type { MarkdownProps } from './types'
 import { VkMarkdown } from '@vunk/markdown'
 import { VkBubbleRenderTemplate } from './core'
 
 defineOptions({
   name: 'VkBubbleTemplates',
+})
+
+defineProps({
+  markdownProps: {
+    type: Object as PropType<Partial<MarkdownProps>>,
+    default: () => ({
+      containers: ['thinking'],
+    }),
+  },
 })
 </script>
 
@@ -14,7 +25,7 @@ defineOptions({
     <template #default="{ props }">
       <VkMarkdown
         :source="props.content"
-        :containers="['thinking']"
+        v-bind="markdownProps"
       ></VkMarkdown>
     </template>
   </VkBubbleRenderTemplate>

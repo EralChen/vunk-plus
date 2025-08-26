@@ -1,4 +1,15 @@
 import type { __VkRenderer } from '@vunk/core/components/renderer'
+import type { AnyFunc } from '@vunk/shared'
+import type MarkdownIt from 'markdown-it'
+
+export interface MarkdownProps {
+  containers: string[]
+  fences: string[]
+  tags: string[]
+  markdownItOptions: MarkdownIt.Options
+  markdownItSetup: AnyFunc
+  dev: boolean
+}
 
 export interface TypewriterSource extends __VkRenderer.SourceItem {
   templateType: 'VkMarkdown'
