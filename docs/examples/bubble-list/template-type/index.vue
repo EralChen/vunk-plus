@@ -18,7 +18,8 @@ const bubbleItems: Item[] = [
     role: Role.Assistant,
     content: '123',
     key: 'msg_1',
-    templateType: 'Typewriter',
+    templateType: 'VkMarkdown',
+
   },
 ]
 </script>

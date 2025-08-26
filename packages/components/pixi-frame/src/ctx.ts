@@ -53,6 +53,11 @@ export const props = {
     default: false,
   },
 
+  visible: {
+    type: Boolean,
+    default: true,
+  },
+
 }
 
 export const emits = {

@@ -2,7 +2,7 @@
 <script lang="ts" setup>
 import type { __VkBubbleList } from '@vunk-plus/components/bubble-list'
 import type { SetDataEvent } from '@vunk/core'
-import { VkRendererTemplate } from '@vunk/core/components/renderer-template'
+import { VkBubbleRenderTemplate } from '@vunk-plus/components/bubble-templates'
 import { markRaw } from 'vue'
 import MyCustomTemplate from './MyCustomTemplate.vue'
 
@@ -36,7 +36,7 @@ function initRenderData (
 
 <template>
   <!-- 注册自定义模板类型 -->
-  <VkRendererTemplate type="MyCustomTemplate">
+  <VkBubbleRenderTemplate type="MyCustomTemplate">
     <template #default="{ props, emitSetData }">
       <MyCustomTemplate
         :ref="(el) => setRef(emitSetData, props, el)"
@@ -44,5 +44,5 @@ function initRenderData (
         @vue:mounted="initRenderData(emitSetData, props)"
       ></MyCustomTemplate>
     </template>
-  </VkRendererTemplate>
+  </VkBubbleRenderTemplate>
 </template>

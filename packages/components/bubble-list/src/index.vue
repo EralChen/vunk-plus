@@ -1,13 +1,10 @@
 <script lang="ts" setup>
 import type { VNode } from 'vue'
-import { VkBubbleTemplates } from '@vunk-plus/components/bubble-templates'
-import { VkRenderer } from '@vunk/core/components/renderer'
-import { VkRendererTemplateInstancesProvider } from '@vunk/core/components/renderer-template-instances-provider'
+import { VkBubbleRenderer, VkBubbleRenderTemplates, VkBubbleTemplates } from '@vunk-plus/components/bubble-templates'
 import { VkSpreadTo } from '@vunk/core/components/spread-to'
 import { ElAutoResizer } from 'element-plus'
 import { BubbleList } from 'vue-element-plus-x'
 import {
-  // emits as dEmits,
   props as dProps,
 } from './ctx'
 
@@ -22,10 +19,8 @@ function getContentWraper (e: VNode) {
 </script>
 
 <template>
-  <VkRendererTemplateInstancesProvider>
-    <VkBubbleTemplates
-      :text-to-speech="textToSpeech"
-    ></VkBubbleTemplates>
+  <VkBubbleRenderTemplates>
+    <VkBubbleTemplates></VkBubbleTemplates>
 
     <slot name="renderer"></slot>
 
@@ -35,6 +30,9 @@ function getContentWraper (e: VNode) {
           :ref="elRef"
           :btn-icon-size="18"
           :max-height="`${height}px`"
+          :style="{
+            '--el-bubble-list-max-height': `${height}px`,
+          }"
           :list="items"
           v-bind="$attrs"
         >
@@ -52,7 +50,7 @@ function getContentWraper (e: VNode) {
           </template>
 
           <template #content="{ item }">
-            <VkRenderer :source="[item]"></VkRenderer>
+            <VkBubbleRenderer :source="[item]"></VkBubbleRenderer>
             <VkSpreadTo
               :target="getContentWraper"
               type="class"
@@ -64,5 +62,5 @@ function getContentWraper (e: VNode) {
         </BubbleList>
       </template>
     </ElAutoResizer>
-  </VkRendererTemplateInstancesProvider>
+  </VkBubbleRenderTemplates>
 </template>

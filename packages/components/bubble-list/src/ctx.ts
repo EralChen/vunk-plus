@@ -12,10 +12,6 @@ export const props = {
     type: Function as PropType<AnyFunc>,
     default: noop,
   },
-
-  textToSpeech: {
-    type: Function as PropType<__VkBroadcastingMarkdown.TextToSpeech>,
-  },
 }
 
 export const emits = {

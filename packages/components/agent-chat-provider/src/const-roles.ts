@@ -12,7 +12,7 @@ export const roleOptions: RoleMedia[] = [
     value: Role.User,
     isMarkdown: false,
     placement: 'end',
-    templateType: 'Typewriter',
+    templateType: 'VkMarkdown',
   },
   {
     label: 'AI 助手',
@@ -20,14 +20,7 @@ export const roleOptions: RoleMedia[] = [
     isMarkdown: true,
     placement: 'start',
     typing: true,
-    templateType: 'Typewriter',
-  },
-
-  {
-    label: '播报',
-    value: Role.Broadcasting,
-    placement: 'start',
-    templateType: 'VkBroadcastingMarkdown',
+    templateType: 'VkMarkdown',
   },
 
 ]

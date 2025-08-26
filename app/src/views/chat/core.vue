@@ -93,10 +93,22 @@ const speechToTextFn: __VkChatIndependent.SpeechToText = (blob) => {
   }).then(res => res.data)
 }
 /* 语音输入输出 END */
+
+function reset () {
+  agentChatContext.value.chat.setMessages([])
+}
 </script>
 
 <template>
   <div h-full w-full pos-relative>
+    <div pos-fixed top-2 left-2 z-1000>
+      <ElButton
+        @click="reset"
+      >
+        test
+      </ElButton>
+    </div>
+
     <VkAgentChatProvider
       v-if="ready"
       :request="request"

@@ -5,7 +5,7 @@
 
 export * from './DataLoaderService'
 export * from './ImageBitmapPool'
-export * from './ImageProcessingService'
+// export * from './ImageProcessingService'
 export * from './ImageProcessor'
 export * from './PlaybackService'
 export * from './PredictiveFrameLoader'

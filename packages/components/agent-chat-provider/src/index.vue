@@ -1,7 +1,7 @@
 <script lang="ts">
 import type { AnyFunc, NormalObject } from '@vunk/shared'
 import type { PropType } from 'vue'
-import type { AgentChatContext, AgentMessage, Parser, Request } from './types'
+import type { AgentMessage, Parser, Request, RequestOutput } from './types'
 import { defineComponent } from 'vue'
 import { agentRequest } from './api'
 import { Role } from './const-roles'
@@ -18,40 +18,38 @@ export default defineComponent({
     },
   },
   emits: {
-    load: (e: AgentChatContext) => e,
+    load: null,
   },
   setup (props, { slots, emit }) {
     const request: Request = (info, event) => {
       const { message } = info
       const { onSuccess, onUpdate } = event
+      const chunks: RequestOutput[] = []
 
       if (!message?.content) {
         return
       }
 
       let content = ''
-      const role = Role.Broadcasting
+      const role = Role.Assistant
       let thinkingContent = ''
       let thinkingStatus: AgentMessage['thinkingStatus'] = 'start'
       let seviceLoading = true
+      let seviceEnd = false
       const update = () => {
-        onUpdate({
+        const data = {
           role,
           content,
           thinkingContent,
           thinkingStatus,
           seviceLoading,
-        })
+          seviceEnd,
+        }
+        onUpdate(data)
+        chunks.push(data)
       }
       const success = () => {
-        onSuccess({
-          role,
-          content,
-          thinkingContent,
-          thinkingStatus,
-          seviceLoading,
-          seviceEnd: true,
-        })
+        onSuccess(chunks)
       }
 
       update()
@@ -61,12 +59,9 @@ export default defineComponent({
           content: '',
           reasoning_content: '',
         }
+
         if (typeof e.data === 'string') {
           json = JSON.parse(e.data)
-        }
-        if (json.is_end) {
-          success()
-          return
         }
 
         if (json.reasoning_content) {
@@ -81,11 +76,18 @@ export default defineComponent({
           seviceLoading = false
           update()
         }
+
         if (
           thinkingContent && json.content
         ) { // 思考完成
           thinkingStatus = 'end'
           update()
+        }
+
+        if (json.is_end) {
+          seviceEnd = true
+          update()
+          success()
         }
       }, { message: message?.content })
     }
@@ -94,27 +96,19 @@ export default defineComponent({
       const list = [
         {
           ...message,
+          role: message.role ?? Role.User,
+          content: message.content ?? '',
           loading: message.seviceLoading,
         },
       ]
-      if (message.thinkingContent) {
-        list.unshift({
-          role: Role.Broadcasting,
-          content: '您好，请让我先思考一下这个问题，再给您回答',
-          seviceLoading: false,
-          seviceEnd: true,
-          loading: false,
-          meta: {
-            metahumanStatus: 2,
-          },
-        })
-      }
       return list
     }
+
     const agentChat = initAgentChat(
       props.request ?? request,
       props.parser ?? parser,
     )
+
     emit('load', agentChat)
     return slots.default
   },

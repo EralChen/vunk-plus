@@ -56,6 +56,7 @@ watchEffect(() => {
     Assets.add({
       alias,
       src,
+      loadParser: 'loadTextures',
     })
     textureMap.set(alias, undefined as never)
 
@@ -151,11 +152,6 @@ function startFrameLoop () {
 
       sprite.texture = currentTexture
 
-      console.log(
-        `Rendering frame ${index.value} with texture:`,
-        currentTexture,
-      )
-
       resizeSprite()
 
       index.value = props.loop
@@ -175,8 +171,6 @@ function startFrameLoop () {
   // 启动动画循环
   animationId = requestAnimationFrame(renderFrame)
 }
-
-onBeforeUnmount(stop)
 
 watch(() => props.status, (newStatus) => {
   newStatus === TickerStatus.play && play()
@@ -209,6 +203,16 @@ function stop () {
   textureMap.clear()
   index.value = 0
 }
+
+onBeforeUnmount(() => {
+  const entries = Array.from(textureMap.entries())
+  entries.forEach(([alias, texture]) => {
+    if (texture) {
+      Assets.unload(alias)
+    }
+  })
+  stop()
+})
 </script>
 
 <template>

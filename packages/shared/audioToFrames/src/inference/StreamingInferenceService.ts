@@ -13,10 +13,9 @@ import type { ImageDataResponse } from '../media/DataLoaderService'
 import type {
   MainThreadMessage,
   StreamingWorkerInitMessage as WorkerInitMessage,
-} from './workers/streaming.inference.worker'
+} from './types'
 import { Deferred } from '@vunk/shared/promise'
 import { workerConfig } from '../config'
-import { BATCH_SIZE } from '../core/constants'
 
 /**
  * 单个流式推理chunk的数据结构。
@@ -118,14 +117,11 @@ export class StreamingInferenceService {
    * @param onReady Worker初始化完成回调
    */
   constructor (modelPath: string, onReady?: () => void) {
-    this.worker = workerConfig.path
-      ? new Worker(`${workerConfig.path}/streaming.inference.worker.js`, { type: 'module' })
-      : new Worker(
-        new URL('./workers/streaming.inference.worker.ts', import.meta.url),
-        {
-          type: 'module',
-        },
-      )
+    this.worker = new Worker(
+      /* @vite-ignore */
+      `${workerConfig.path}/streaming.inference.worker.js`,
+      { type: 'module' },
+    )
 
     this.worker.onmessage = (event: MessageEvent<MainThreadMessage>) => {
       const { type } = event.data

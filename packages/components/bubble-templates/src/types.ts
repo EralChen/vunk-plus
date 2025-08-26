@@ -1,18 +1,22 @@
-import type { VkBroadcastingMarkdown } from '@vunk-plus/components/broadcasting-markdown'
 import type { __VkRenderer } from '@vunk/core/components/renderer'
+import type { AnyFunc } from '@vunk/shared'
+import type MarkdownIt from 'markdown-it'
 
-import type { VueComponentPropsType } from '@vunk/shared'
-import type { TypewriterProps } from 'vue-element-plus-x/types/components/Typewriter/types'
-
-export interface TypewriterSource extends __VkRenderer.SourceItem, TypewriterProps {
-  templateType: 'Typewriter'
+export interface MarkdownProps {
+  containers: string[]
+  fences: string[]
+  tags: string[]
+  markdownItOptions: MarkdownIt.Options
+  markdownItSetup: AnyFunc
+  dev: boolean
 }
 
-export interface BroadcastingMarkdownSource extends __VkRenderer.SourceItem, VueComponentPropsType<typeof VkBroadcastingMarkdown> {
-  templateType: 'VkBroadcastingMarkdown'
+export interface TypewriterSource extends __VkRenderer.SourceItem {
+  templateType: 'VkMarkdown'
+  content?: string
 }
 
-export type RenderItem = TypewriterSource | BroadcastingMarkdownSource
+export type RenderItem = TypewriterSource
 
 export type RenderData = Record<string, RenderDataRecord>
 

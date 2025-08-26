@@ -1,22 +1,43 @@
 import type { __VkBubbleTemplates } from '@vunk-plus/components/bubble-templates'
-import type { Media, NormalObject } from '@vunk/shared'
-import type { RequestFn } from 'ant-design-x-vue'
-import type { MaybeArray } from 'naive-ui/es/_utils'
+import type { MaybeArray, Media, NormalObject } from '@vunk/shared'
+import type { RequestFn, SSEOutput, useXChat, XAgent, XRequestParams } from 'ant-design-x-vue'
+import type { ComputedRef } from 'vue'
 import type { BubbleListItemProps } from 'vue-element-plus-x/types/components/BubbleList/types'
-import type { initAgentChat } from './use'
+import type { MessageView } from './MessageView'
 
-export type AgentChatContext = ReturnType<typeof initAgentChat>
+export type RequestParams<Message> = Omit<XRequestParams, 'message'> & {
+  message: Message
+  messages?: Message[]
+} & NormalObject
 
-export type Request = RequestFn<AgentMessage>
+export interface AgentChatContext {
+  agent: ComputedRef<XAgent<AgentMessage>>
 
-export type Parser = (message: AgentMessage) => MaybeArray<BubbleMessage>
+  chat: ReturnType<typeof useXChat<AgentMessage, BubbleMessage>>
+
+  simplicity: {
+    onRequest: (message: string) => void
+    items: ComputedRef<BubbleItem[]>
+  }
+}
+
+export type Request = RequestFn<
+  AgentMessage,
+  RequestParams<AgentMessage>,
+  RequestOutput
+>
+
+export type Parser = (message: Partial<AgentMessage>) => MaybeArray<BubbleMessage>
+
+export type RequestOutput = AgentMessage & SSEOutput
 
 /**
  * @description   useXAgent request onSuccess 发送的数据
  */
-export type AgentMessage = BubbleMessage & {
+export type AgentMessage = Partial<BubbleMessage> & {
   seviceLoading?: boolean
   seviceEnd?: boolean
+  views?: MessageView[]
 }
 
 /**
