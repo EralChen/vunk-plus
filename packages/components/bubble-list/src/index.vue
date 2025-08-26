@@ -20,7 +20,9 @@ function getContentWraper (e: VNode) {
 
 <template>
   <VkBubbleRenderTemplates>
-    <VkBubbleTemplates></VkBubbleTemplates>
+    <template #placeholder>
+      <VkBubbleTemplates></VkBubbleTemplates>
+    </template>
 
     <slot name="renderer"></slot>
 
