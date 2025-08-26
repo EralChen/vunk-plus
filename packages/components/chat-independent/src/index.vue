@@ -3,11 +3,12 @@ import type { __VkBubbleList } from '@vunk-plus/components/bubble-list'
 import type { __VkBubbleTemplates } from '@vunk-plus/components/bubble-templates'
 import { useAgentChat } from '@vunk-plus/components/agent-chat-provider'
 import { VkBubbleList } from '@vunk-plus/components/bubble-list'
+// import { VkRendererTemplate } from '@vunk/core/components/renderer-template'
+import { VkBubbleData } from '@vunk-plus/components/bubble-templates'
 import { VkSender } from '@vunk-plus/components/sender'
 import { VkKeyboardAvatar } from '@vunk-plus/icons/keyboard'
 import { VkVoiceAvatar } from '@vunk-plus/icons/voice'
 import { VkDuplex } from '@vunk/core'
-import { VkRendererData } from '@vunk/core/components/renderer-data'
 import { useDataComputed, useDeferred } from '@vunk/core/composables'
 import { isEmptyObject, isNotEmptyObject } from '@vunk/shared/object'
 import { waiting } from '@vunk/shared/promise'
@@ -113,7 +114,7 @@ function getBubbleDataAt (index: number) {
         class="vk-chat-independent-main__duplex"
       >
         <template #one>
-          <VkRendererData
+          <VkBubbleData
             :data="bubbleData"
             @set-data="setBubbleData"
           >
@@ -131,7 +132,7 @@ function getBubbleDataAt (index: number) {
                 </template>
               </VkBubbleList>
             </div>
-          </VkRendererData>
+          </VkBubbleData>
         </template>
 
         <template #two>

@@ -23,6 +23,20 @@ bubble-list/template-type/index
 >>>
 :::
 
+:::details 旧版 Typewriter 模板
+
+TIP 你可以自行添加 `Typewriter` 模板来兼容旧版
+
+`import { VkBubbleRenderTemplate, VkBubbleData } from '@vunk/plus/components/bubble-templates'`
+
+`VkBubbleRenderTemplate` 替换 `VkRendererTemplate` 用于定义模板
+
+`VkBubbleData` 替换 `VkRendererData` 用于收集客户端组件数据
+
+:::source
+components\bubble-templates\src\legacy
+:::
+
 ## Role 的用途
 
 Role 用于定义消息气泡的发送者角色，可关联气泡的样式、位置和行为。
