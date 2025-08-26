@@ -1,6 +1,7 @@
-import { PropType } from 'vue'
+import type { PropType } from 'vue'
+import type { Source } from './types'
 import { tableColumnProps } from './el-ctx'
-import { Source } from './types'
+
 export const props = {
   ...tableColumnProps,
   source: {
@@ -8,4 +9,3 @@ export const props = {
     default: () => ([]),
   },
 }
-

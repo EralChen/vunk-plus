@@ -1,8 +1,7 @@
 import type { TableColumnCtx } from 'element-plus/es/components/table/src/table-column/defaults'
 import type { DefaultRow } from 'element-plus/es/components/table/src/table/defaults'
-import { PropType } from 'vue'
+import type { PropType } from 'vue'
 import { bindPropsFactory } from '@vunk/core/shared/utils-vue'
-
 
 export const tableColumnProps = {
   type: {
@@ -62,8 +61,8 @@ export const tableColumnProps = {
     default: () => {
       return ['ascending', 'descending', null]
     },
-    validator: (val: TableColumnCtx<unknown>['sortOrders']) => {
-      return val.every((order: string|null) =>
+    validator: (val: TableColumnCtx<any>['sortOrders']) => {
+      return val.every((order: string | null) =>
         ['ascending', 'descending', null].includes(order),
       )
     },
