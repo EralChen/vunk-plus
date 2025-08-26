@@ -1,5 +1,14 @@
 # Changelog 更新日志
 
+## 1.7.0
++ [dependencies] `ant-design-x-vue` 依赖 1.3.2+
+
++ [BubbleList] 默认支持 templateType 改为 `VkMarkdown`
+
++ [BubbleList] 模板定义组件 `import { VkBubbleRenderTemplate } from '@vunk/plus/components/bubble-templates'`
+
++ [AgentChatProvider] 添加 [Basic](../../component/agent-chat-provider/+Page.md#basic) 用例
+
 ## 1.5.1
 
 + [Text] 新增 component [Text](../../component/text/+Page.md): 文本组件, 支持文本截断、Tooltip 提示
