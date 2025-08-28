@@ -10,12 +10,67 @@
 
 import type { ChunkFeatureResult } from '../audio/StreamingFeatureExtractorService'
 import type { ImageDataResponse } from '../media/DataLoaderService'
-import type {
-  MainThreadMessage,
-  StreamingWorkerInitMessage as WorkerInitMessage,
-} from './types'
 import { Deferred } from '@vunk/shared/promise'
 import { workerConfig } from '../config'
+
+/**
+ * Worker initialization message
+ */
+export interface StreamingWorkerInitMessage {
+  type: 'init'
+  modelPath: string
+}
+
+/**
+ * Main thread message types for worker communication
+ */
+export interface MainThreadFrameMessage {
+  type: 'frame'
+  payload: {
+    frame: ImageBitmap
+    frameIndex: number
+  }
+}
+
+export interface MainThreadChunkCompleteMessage {
+  type: 'chunk_complete'
+  payload: {
+    chunkIndex: number
+    timings: Record<string, number>
+  }
+}
+
+export interface MainThreadProgressMessage {
+  type: 'progress'
+  payload: {
+    processed: number
+    total: number
+  }
+}
+
+export interface MainThreadAllCompleteMessage {
+  type: 'all_complete'
+  payload: Record<string, number>
+}
+
+export interface MainThreadErrorMessage {
+  type: 'error'
+  payload: string
+}
+
+export interface MainThreadReadyMessage {
+  type: 'ready'
+}
+
+export type MainThreadMessage =
+  | MainThreadFrameMessage
+  | MainThreadChunkCompleteMessage
+  | MainThreadProgressMessage
+  | MainThreadAllCompleteMessage
+  | MainThreadErrorMessage
+  | MainThreadReadyMessage
+
+type WorkerInitMessage = StreamingWorkerInitMessage
 
 /**
  * 单个流式推理chunk的数据结构。
