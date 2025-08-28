@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import type { NormalObject } from '@vunk/shared'
 import type { Ref } from 'vue'
-import { _VkTableColumnsElCtx } from '@vunk-plus/components/table-columns'
+import { _VkTableColumnsElCtx, VkTableColumns } from '@vunk-plus/components/table-columns'
 import { useElBreakpoints } from '@vunk-plus/composables/el-breakpoints'
 import { VkDuplexCalc } from '@vunk/core'
 import { ElTable as _ElTable, ElPagination } from 'element-plus'
