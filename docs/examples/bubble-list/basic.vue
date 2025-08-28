@@ -1,6 +1,10 @@
 <script lang="ts" setup>
 import type { __VkBubbleList } from '@vunk-plus/components/bubble-list'
 import { Role, VkBubbleList } from '@vunk-plus/components/bubble-list'
+import { VkRendererTemplates } from '@vunk/markdown/components/strategy-renderer'
+import { VkTemplateEcharts } from '@vunk/markdown/components/template-echarts'
+import { VkTemplatesDefault } from '@vunk/markdown/components/templates-default'
+import demotxt from './demo.txt?raw'
 
 const bubbleItems: __VkBubbleList.Item[] = [
   {
@@ -15,8 +19,11 @@ const bubbleItems: __VkBubbleList.Item[] = [
   {
     role: Role.Assistant,
     content: [
-      ':::tip',
-      '这是一个提示',
+      '=================================================',
+      ':::echarts',
+      '```json',
+      demotxt,
+      '```',
       ':::',
     ].join('\n'),
     key: 'msg_1',
@@ -29,12 +36,17 @@ const bubbleItems: __VkBubbleList.Item[] = [
 
 <template>
   <div class="h-500px">
-    <VkBubbleList
-      :items="bubbleItems"
-    >
-      <template #footer="{ item }">
-        {{ item }}
-      </template>
-    </VkBubbleList>
+    <VkRendererTemplates>
+      <VkTemplatesDefault />
+      <VkTemplateEcharts />
+
+      <VkBubbleList
+        :items="bubbleItems"
+      >
+        <template #footer="{ item }">
+          {{ item }}
+        </template>
+      </VkBubbleList>
+    </VkRendererTemplates>
   </div>
 </template>
