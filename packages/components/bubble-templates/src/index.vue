@@ -14,7 +14,7 @@ defineProps({
   markdownProps: {
     type: Object as PropType<Partial<MarkdownProps>>,
     default: () => ({
-      containers: ['thinking'],
+      containers: ['thinking', 'echarts'],
     }),
   },
 })
@@ -30,3 +30,10 @@ defineProps({
     </template>
   </VkBubbleRenderTemplate>
 </template>
+
+<style>
+.vk-echart-x {
+  height: 500px;
+  width: 100%;
+}
+</style>
