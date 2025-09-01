@@ -15,7 +15,7 @@ export interface Paragraph {
   /**
    * @description 语音合成的 url
    */
-  url?: string
+  url: string
 
   blob?: Blob
 

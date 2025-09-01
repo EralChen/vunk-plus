@@ -2,6 +2,9 @@
 import {
   VkBroadcastingMarkdown,
 } from '@vunk-plus/components/broadcasting-markdown'
+import { TickerStatus } from '@vunk/shared/enum'
+import { ref } from 'vue'
+import { textToSpeech } from './api'
 
 const text = `
 
@@ -14,11 +17,30 @@ const text = `
 没有翅膀的飞翔更接近天堂，有些美丽是不需要书写的。
 
 `
+
+const status = ref(TickerStatus.play)
 </script>
 
 <template>
+  {{ status }}
+  <ElButton @click="status = TickerStatus.stop">
+    停止
+  </ElButton>
+
+  <!-- 暂停 -->
+  <ElButton @click="status = TickerStatus.pause">
+    暂停
+  </ElButton>
+
+  <!-- 播放 -->
+  <ElButton @click="status = TickerStatus.play">
+    播放
+  </ElButton>
+
   <VkBroadcastingMarkdown
+    v-model:status="status"
     :source="text"
+    :text-to-speech="textToSpeech"
   >
   </VkBroadcastingMarkdown>
 </template>

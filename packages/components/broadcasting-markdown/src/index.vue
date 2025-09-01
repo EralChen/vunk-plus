@@ -5,7 +5,7 @@ import { setData } from '@vunk/core'
 import { useDataComputed } from '@vunk/core/composables'
 import { blobToDataURL } from '@vunk/shared/data/blob'
 import { TickerStatus } from '@vunk/shared/enum'
-import { computed, defineComponent, ref, watch, watchEffect } from 'vue'
+import { computed, defineComponent, ref, watch } from 'vue'
 import { Broadcast, ParagraphStatus } from './const'
 import { emits, props } from './ctx'
 import HowlerSpeechView from './howler-speech.vue'
@@ -20,7 +20,7 @@ export default defineComponent({
   },
   props,
   emits,
-  setup (props, { emit, expose, slots }) {
+  setup (props, { emit }) {
     // 经过的段落
     const [theData, handleSetData] = useDataComputed({
       default: [] as Paragraph[],
@@ -28,22 +28,28 @@ export default defineComponent({
 
     const addParagraph = (paragraph: Paragraph) => {
       const k = theData.value.length
+      if (k === 0) {
+        paragraph.broadcast = props.status
+      }
       handleSetData({
         k,
         v: paragraph,
       })
     }
 
-    const processingParagraph = (
-      paragraph: Paragraph,
-    ) => {
+    const processingParagraph = (paragraph: Paragraph) => {
       if (!props.textToSpeech) {
         return
       }
+      if (props.separators.includes(paragraph.value)) {
+        return
+      }
+
       const value = props.render(paragraph.value)
       if (!value) {
         return
       }
+
       return props.textToSpeech(`${value}`)
         .then(async (res) => {
           if (res instanceof Blob) {
@@ -65,27 +71,10 @@ export default defineComponent({
     const isFinished = computed(() => {
       return currentIndex.value >= props.source.length
     })
-
     const currentText = computed(() => {
       return props.source.substring(0, currentIndex.value)
     })
-
     const fulfilledTextValue = computed(() => {
-      if (theData.value.length === 0) {
-        return '......'
-      }
-
-      if (theData.value[0].broadcast === Broadcast.failed) {
-        return ''
-      }
-
-      // 首句未开始直接为空
-      if (
-        theData.value[0].broadcast === Broadcast.pending
-      ) {
-        return '......'
-      }
-
       return theData.value
         .filter(
           item => item.status === ParagraphStatus.fulfilled
@@ -94,8 +83,6 @@ export default defineComponent({
         .map(item => item.value)
         .join('')
     })
-
-    // props.separators 按长度升序排列
     const sortedSeparators = computed(() => {
       return [...props.separators].sort((a, b) => {
         return a.length - b.length
@@ -152,9 +139,9 @@ export default defineComponent({
               end,
               status: ParagraphStatus.initial,
               value,
-              broadcast: Broadcast.pending,
+              broadcast: Broadcast.play,
             }
-            addParagraph(paragraph)
+            addParagraph(paragraph as Paragraph)
           }
         }
       }
@@ -198,142 +185,62 @@ export default defineComponent({
             end,
             status: ParagraphStatus.initial,
             value,
-            broadcast: Broadcast.pending,
+            broadcast: Broadcast.play,
           }
-          addParagraph(paragraph)
+          addParagraph(paragraph as Paragraph)
         }
       }
     }
-
-    /* 打断当前播报 */
-    const isInterrupted = ref(false)
-    function interrupt () {
-      isInterrupted.value = true
-      theData.value.forEach((item) => {
-        item.broadcast = Broadcast.stop
-      })
-      emit('interrupt')
-    }
-    /* 打断当前播报 END */
-
-    /* 收集段落状态 */
-    const currentParagraph = computed(() => {
-      return theData.value.find(
-        item => item.status === ParagraphStatus.pending,
-      )
-    })
-
-    watchEffect(() => {
-      if (!currentParagraph.value) {
-        return
-      }
-
-      if (currentParagraph.value.broadcast === props.status) {
-        return
-      }
-      props.status === TickerStatus.play && (currentParagraph.value.broadcast = TickerStatus.play)
-      props.status === TickerStatus.pause && (currentParagraph.value.broadcast = TickerStatus.pause)
-      props.status === TickerStatus.stop && (currentParagraph.value.broadcast = TickerStatus.stop)
-    })
-
-    // Auto-advance to next paragraph when current one completes
-    watchEffect(() => {
-      if (isInterrupted.value) {
-        return
-      }
-
-      // Check if we have any completed paragraphs (fulfilled status)
-      const fulfilledCount = theData.value.filter(item => item.status === ParagraphStatus.fulfilled).length
-
-      // Find the next paragraph that should play (pending status with pending broadcast)
-      const nextParagraph = theData.value.find(
-        item => item.status === ParagraphStatus.pending && item.broadcast === Broadcast.pending,
-      )
-
-      // If we have fulfilled paragraphs and a next paragraph waiting, start it
-      if (fulfilledCount > 0 && nextParagraph) {
-        // Check if no paragraph is currently playing
-        const currentlyPlaying = theData.value.find(
-          item => item.broadcast === Broadcast.playing || item.broadcast === Broadcast.play,
-        )
-        if (!currentlyPlaying) {
-          nextParagraph.broadcast = Broadcast.play
-        }
-      }
-    })
-
-    const isPaused = computed(() => {
-      return theData.value.some(
-        item => item.status === ParagraphStatus.pending
-          && item.broadcast === Broadcast.paused,
-      )
-    })
-    watchEffect(() => {
-      isPaused.value && emit('update:status', TickerStatus.paused)
-    })
-
-    const isBroadcasting = computed(() => {
-      return theData.value.some(
-        item => item.broadcast === Broadcast.playing,
-      )
-    })
-    watchEffect(() => {
-      isBroadcasting.value && emit('update:broadcasting', isBroadcasting.value)
-      emit('update:status', TickerStatus.playing)
-    })
-
-    const isTypingFinished = ref(!!slots.paragraphs)
-    const isCompleted = computed(() => {
-      return isTypingFinished.value && props.keepRead === false && theData.value.every(
-        item => item.status === ParagraphStatus.fulfilled,
-      )
-    })
-
-    watchEffect(() => {
-      emit('update:completed', isCompleted.value)
-      isCompleted.value && emit('update:status', TickerStatus.stopped)
-    })
-
-    const isError = computed(() => {
-      return theData.value.some(
-        item => item.status === ParagraphStatus.rejected,
-      )
-    })
-    watchEffect(() => {
-      emit('update:error', isError.value)
-    })
 
     function isPrevParagraphFulfilled (currentIndex: number) {
-      return theData.value[currentIndex - 1]
-        ? [
-          ParagraphStatus.fulfilled,
-        ].includes(theData.value[currentIndex - 1].status)
+      const last = theData.value[currentIndex - 1]
+      return last
+        ? last.status === ParagraphStatus.fulfilled
         : true
     }
     function isParagraphEnabled (currentIndex: number) {
-      // 上一段完成
       const isPrevFulfilled = isPrevParagraphFulfilled(currentIndex)
       return isPrevFulfilled
     }
-    /* 收集段落状态 END */
 
-    expose({
-      interrupt,
+    const currentPragraph = computed(() => {
+      return theData.value.find(item => item.status === ParagraphStatus.pending)
     })
+
+    watch(() => props.status, () => {
+      if (!currentPragraph.value) {
+        return
+      }
+      if (currentPragraph.value.broadcast !== props.status) {
+        currentPragraph.value.broadcast = props.status
+      }
+      if (props.status === TickerStatus.stop) {
+        theData.value.forEach((item) => {
+          item.broadcast = Broadcast.stop
+        })
+      }
+    }, { immediate: true })
+
+    // (e) => e === TickerStatus.stopped && deferred.resolve(true)
+    function handleParagraphStatus (
+      para: Paragraph,
+      v: TickerStatus,
+    ) {
+      if (para.status === ParagraphStatus.pending) {
+        emit('update:status', v)
+      }
+    }
 
     return {
       theData,
       ParagraphStatus,
       fulfilledTextValue,
-      isPrevParagraphFulfilled,
-      isParagraphEnabled,
       processingParagraph,
-      isInterrupted,
       setData,
       Broadcast,
-      isPaused,
-      isTypingFinished,
-      currentParagraph,
+      isParagraphEnabled,
+      TickerStatus,
+      handleParagraphStatus,
     }
   },
 })
@@ -342,10 +249,8 @@ export default defineComponent({
 <template>
   <slot :paragraphs="theData">
     <VkTypingMarkdown
-      v-model:finished="isTypingFinished"
       :source="fulfilledTextValue"
-      :delay="120"
-      :pause="isInterrupted || isPaused"
+      :pause="status === TickerStatus.stopped"
     ></VkTypingMarkdown>
   </slot>
 
@@ -363,11 +268,18 @@ export default defineComponent({
         :deferred="deferred"
       >
         <HowlerSpeechView
-          :render="render"
-          :deferred="deferred"
-          :data="item"
-          @set-data="setData(item, $event)"
-          @load="$emit('paragraphLoad', $event)"
+          v-model:status="item.broadcast"
+          :source="item.url"
+          @update:status="(e) => {
+            handleParagraphStatus(item, e);
+            e === TickerStatus.stopped && deferred.resolve(true);
+          }"
+
+          @error="deferred.reject($event)"
+          @load="$emit('paragraphLoad', {
+            data: item,
+            deferred,
+          })"
         >
         </HowlerSpeechView>
       </slot>
