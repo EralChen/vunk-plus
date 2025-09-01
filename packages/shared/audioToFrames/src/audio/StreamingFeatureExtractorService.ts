@@ -10,8 +10,8 @@
  */
 
 import { AsyncQueue } from '@sapphire/async-queue'
-import { CHUNK_DURATION_SECONDS, NUM_MEL_BINS, NUM_SEQUENCE_FRAMES } from '../core/constants'
 import { workerConfig } from '../config'
+import { CHUNK_DURATION_SECONDS, NUM_MEL_BINS, NUM_SEQUENCE_FRAMES } from '../core/constants'
 
 /**
  * 创建AudioContext的兼容函数，处理Safari的限制。
@@ -159,11 +159,6 @@ export class StreamingFeatureExtractorService {
     }
 
     return new Promise((resolve, reject) => {
-      const cleanup = () => {
-        this.worker!.removeEventListener('message', handleMessage)
-        this.worker!.removeEventListener('error', handleError)
-      }
-
       const handleMessage = (event: MessageEvent) => {
         cleanup()
         if (event.data.status === 'success') {
@@ -177,6 +172,13 @@ export class StreamingFeatureExtractorService {
       const handleError = (error: ErrorEvent) => {
         cleanup()
         reject(error)
+      }
+
+      function cleanup () {
+        if (this.worker) {
+          this.worker.removeEventListener('message', handleMessage)
+          this.worker.removeEventListener('error', handleError)
+        }
       }
 
       this.worker!.addEventListener('message', handleMessage)
@@ -221,7 +223,7 @@ export class StreamingFeatureExtractorService {
     this.chunkResults = []
     this.completedChunks = 0
     this.totalFramesProcessed = 0
-    
+
     // 创建 Worker 实例
     if (!this.worker) {
       this.worker = new Worker(
@@ -303,37 +305,31 @@ export class StreamingFeatureExtractorService {
     }
 
     // 5. 使用Worker直接处理该chunk
-    try {
-      const result = await this.processWithWorker(chunkBuffer)
-      const chunkResult: ChunkFeatureResult = {
-        chunkIndex,
-        features: result.features,
-        dimensions: result.dimensions,
-        startTimeSeconds,
-        endTimeSeconds,
-      }
 
-      // 累加已处理的总帧数
-      this.totalFramesProcessed += chunkResult.dimensions[0]
-
-      this.chunkResults[chunkIndex] = chunkResult
-      this.completedChunks++
-
-      // Chunk ${chunkIndex} completed with dimensions: [${result.dimensions.join(', ')}]
-
-      // 7. 回调通知上层（立即传输数据）
-      this.callbacks.onChunkComplete?.(chunkResult)
-      this.callbacks.onProgress?.(this.completedChunks, this.totalChunks)
-
-      // 优化：立即释放对该chunk结果的引用，因为它已被传递
-      // 并且其ArrayBuffer很快会被转移，从而减少内存占用。
-      this.chunkResults[chunkIndex] = null as any
+    const result = await this.processWithWorker(chunkBuffer)
+    const chunkResult: ChunkFeatureResult = {
+      chunkIndex,
+      features: result.features,
+      dimensions: result.dimensions,
+      startTimeSeconds,
+      endTimeSeconds,
     }
-    catch (error) {
-      // 捕获错误并向上抛出，由 processStreaming 统一处理
-      // Error processing chunk ${chunkIndex}
-      throw error
-    }
+
+    // 累加已处理的总帧数
+    this.totalFramesProcessed += chunkResult.dimensions[0]
+
+    this.chunkResults[chunkIndex] = chunkResult
+    this.completedChunks++
+
+    // Chunk ${chunkIndex} completed with dimensions: [${result.dimensions.join(', ')}]
+
+    // 7. 回调通知上层（立即传输数据）
+    this.callbacks.onChunkComplete?.(chunkResult)
+    this.callbacks.onProgress?.(this.completedChunks, this.totalChunks)
+
+    // 优化：立即释放对该chunk结果的引用，因为它已被传递
+    // 并且其ArrayBuffer很快会被转移，从而减少内存占用。
+    this.chunkResults[chunkIndex] = null as any
   }
 
   /**
