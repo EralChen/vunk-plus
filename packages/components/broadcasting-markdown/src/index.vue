@@ -272,7 +272,9 @@ export default defineComponent({
           :source="item.url"
           @update:status="(e) => {
             handleParagraphStatus(item, e);
+
             e === TickerStatus.stopped && deferred.resolve(true);
+            index === theData.length - 1 && e === TickerStatus.stopped && $emit('complete')
           }"
 
           @error="deferred.reject($event)"

@@ -285,7 +285,10 @@ export class StreamingInferenceService {
       startImageIndex,
     }
 
-    this.worker.postMessage(message, [sharedData.blendingMaskBitmap, zipBuffer])
+    this.worker.postMessage(message, [
+      sharedData.blendingMaskBitmap,
+      zipBuffer,
+    ])
   }
 
   /**

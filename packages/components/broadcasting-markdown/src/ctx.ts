@@ -89,6 +89,7 @@ export const emits = {
   'setData': (e: SetDataEvent) => e,
   'update:status': (_: TickerStatus) => true,
   'paragraphLoad': (_: ParagraphLoadEvent) => true,
+  'complete': () => true,
 }
 
 export const paragraphProps = {

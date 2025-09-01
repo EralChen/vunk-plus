@@ -159,7 +159,14 @@ export class StreamingFeatureExtractorService {
     }
 
     return new Promise((resolve, reject) => {
-      const handleMessage = (event: MessageEvent) => {
+      const cleanup = () => {
+        if (this.worker) {
+          this.worker.removeEventListener('message', handleMessage)
+          this.worker.removeEventListener('error', handleError)
+        }
+      }
+
+      function handleMessage (event: MessageEvent) {
         cleanup()
         if (event.data.status === 'success') {
           resolve(event.data.payload)
@@ -168,17 +175,9 @@ export class StreamingFeatureExtractorService {
           reject(new Error(event.data.error || 'Unknown worker error'))
         }
       }
-
-      const handleError = (error: ErrorEvent) => {
+      function handleError (error: ErrorEvent) {
         cleanup()
         reject(error)
-      }
-
-      function cleanup () {
-        if (this.worker) {
-          this.worker.removeEventListener('message', handleMessage)
-          this.worker.removeEventListener('error', handleError)
-        }
       }
 
       this.worker!.addEventListener('message', handleMessage)
