@@ -1,7 +1,5 @@
-import type { NormalObject, SetDataEvent } from '@vunk/core'
-import type { } from '@vunk/shared/enum'
-import type { Deferred } from '@vunk/shared/promise'
-import type { Paragraph } from './types'
+import type { NormalObject } from '@vunk/core'
+import { TickerStatus } from '@vunk/shared/enum'
 import { Howl } from 'howler'
 import { computed, onBeforeUnmount, onMounted, shallowRef, watch, watchEffect } from 'vue'
 import { Broadcast } from './const'
@@ -25,13 +23,20 @@ Howl.prototype.play = function (this: Howl, soundId?: number) {
  */
 export function useHowlerParagraph (
   props: {
-    data: Paragraph
-    deferred: Deferred<any>
+    source: string
+    status: TickerStatus
   },
-  emit: (e: 'setData', data: SetDataEvent<keyof Paragraph>) => void,
+  emit: ((e: 'update:status', status: TickerStatus) => void)
+    & ((e: 'error', ev: any) => void),
 ) {
   // 使用ref保存Howl实例
   const sound = shallowRef<Howl | null>(null)
+  const broadcast = computed({
+    get: () => props.status,
+    set: (val) => {
+      emit('update:status', val)
+    },
+  })
 
   // 创建Howl实例的函数
   const createSound = (url: string) => {
@@ -50,26 +55,14 @@ export function useHowlerParagraph (
 
       // 事件处理
       onplay: () => {
-        // theData.value.broadcast = Broadcast.playing
-        emit('setData', {
-          k: 'broadcast',
-          v: Broadcast.playing,
-        })
+        broadcast.value = TickerStatus.playing
       },
       onpause: () => {
-        // theData.value.broadcast = Broadcast.paused
-        emit('setData', {
-          k: 'broadcast',
-          v: Broadcast.paused,
-        })
+        broadcast.value = TickerStatus.paused
       },
       onend: () => {
         // theData.value.broadcast = Broadcast.ended
-        emit('setData', {
-          k: 'broadcast',
-          v: Broadcast.stopped,
-        })
-
+        broadcast.value = TickerStatus.stopped
         // 销毁实例
         setTimeout(() => {
           if (sound.value) {
@@ -77,35 +70,22 @@ export function useHowlerParagraph (
             sound.value = null
           }
         }, 400)
-        props.deferred.resolve(true)
       },
       onstop: () => {
-        emit('setData', {
-          k: 'broadcast',
-          v: Broadcast.stopped,
-        })
+        broadcast.value = TickerStatus.stopped
       },
       onloaderror: (_, error) => {
-        // theData.value.broadcast = Broadcast.failed
-        emit('setData', {
-          k: 'broadcast',
-          v: Broadcast.failed,
-        })
-        props.deferred.reject(error)
+        broadcast.value = TickerStatus.failed
+        emit('error', error)
       },
       onplayerror: (_, error) => {
-        // theData.value.broadcast = Broadcast.failed
-        emit('setData', {
-          k: 'broadcast',
-          v: Broadcast.failed,
-        })
-        props.deferred.reject(error)
+        broadcast.value = TickerStatus.failed
+        emit('error', error)
       },
     })
   }
 
-  const url = computed(() => props.data.url)
-  const broadcast = computed(() => props.data.broadcast)
+  const url = computed(() => props.source)
 
   // URL变化时重新创建Howl实例
   watch(() => url.value, (newUrl) => {

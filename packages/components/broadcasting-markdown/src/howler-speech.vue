@@ -1,53 +1,41 @@
-<script lang="tsx">
-import { computed, defineComponent, onMounted } from 'vue'
-import { Broadcast, ParagraphStatus } from './const'
-import { paragraphEmits, paragraphProps } from './ctx'
-import SpeechError from './speech-error.vue'
+<script lang="ts" setup>
+import type { PropType } from 'vue'
+import { TickerStatus } from '@vunk/shared/enum'
+import { onMounted } from 'vue'
 import { useHowlerParagraph } from './use'
 
-export default defineComponent({
-  components: {
-    SpeechError,
+const props = defineProps({
+  /**
+   * 语音资源
+   */
+  source: {
+    type: String,
+    default: '',
   },
-  props: paragraphProps,
-  emits: paragraphEmits,
-  setup (props, { emit }) {
-    const value = props.render(props.data.value)
-    const theData = computed(() => props.data)
-    // 如果文本为空，则直接结束
-    if (!value.trim()) {
-      props.deferred.resolve(true)
-      emit('setData', {
-        k: 'broadcast',
-        v: Broadcast.stopped,
-      })
-      return () => null
-    }
-
-    useHowlerParagraph(props, emit)
-
-    onMounted(() => {
-      // if (theData.value.broadcast !== Broadcast.playing) {
-      //   emit('setData', {
-      //     k: 'broadcast',
-      //     v: Broadcast.play,
-      //   })
-      // }
-
-      emit('load', {
-        data: props.data,
-        deferred: props.deferred,
-      })
-    })
-
-    return () => (
-      <>
-        {
-          theData.value.status === ParagraphStatus.rejected
-          && <SpeechError></SpeechError>
-        }
-      </>
-    )
+  status: {
+    type: String as PropType<TickerStatus>,
+    default: TickerStatus.pending,
   },
 })
+
+const emit = defineEmits({
+  'update:status': null,
+  'load': null,
+  'error': null,
+})
+
+if (!props.source) {
+  emit('update:status', TickerStatus.stopped)
+}
+else {
+  useHowlerParagraph(props, emit)
+}
+
+onMounted(() => {
+  emit('load')
+})
 </script>
+
+<template>
+  <slot :status="status"></slot>
+</template>

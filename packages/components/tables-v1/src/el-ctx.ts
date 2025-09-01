@@ -189,7 +189,7 @@ export const tableProps = {
    * @description configuration for rendering nested data
    */
   treeProps: {
-    type: Object as PropType<TableProps<DefaultRow>['treeProps']>,
+    type: Object as PropType<any>,
     default: () => {
       return {
         hasChildren: 'hasChildren',

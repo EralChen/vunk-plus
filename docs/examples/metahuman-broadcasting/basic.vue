@@ -11,7 +11,7 @@ const modelUrl = `${import.meta.env.BASE_URL}sophontalk/model.onnx`
 const sourceUrl = `${import.meta.env.BASE_URL}sophontalk/processed_images.zip`
 const datasetUrl = `${import.meta.env.BASE_URL}sophontalk/complete_dataset.json`
 
-const frameStatus = ref(TickerStatus.paused)
+const frameStatus = ref(TickerStatus.pending)
 
 const text = `大自然里，草长莺飞，莺歌燕舞，她生活在一个美好的世界里。
 

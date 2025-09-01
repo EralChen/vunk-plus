@@ -87,12 +87,9 @@ export const props = {
 
 export const emits = {
   'setData': (e: SetDataEvent) => e,
-  'interrupt': null,
-  'update:broadcasting': (_: boolean) => true,
-  'update:completed': (_: boolean) => true,
-  'update:error': (_: boolean) => true,
   'update:status': (_: TickerStatus) => true,
   'paragraphLoad': (_: ParagraphLoadEvent) => true,
+  'complete': () => true,
 }
 
 export const paragraphProps = {

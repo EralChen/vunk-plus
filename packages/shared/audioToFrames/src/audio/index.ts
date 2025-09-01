@@ -3,6 +3,4 @@
  * @author Zhonghan Li
  */
 
-export * from './AudioProcessor'
-export * from './FeatureExtractorService'
 export * from './StreamingFeatureExtractorService'

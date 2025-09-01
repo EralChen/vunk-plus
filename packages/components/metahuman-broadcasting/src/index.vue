@@ -6,7 +6,7 @@ import type { Ref } from 'vue'
 import { VkBroadcastingMarkdown } from '@vunk-plus/components/broadcasting-markdown'
 import { VkPixiFrameBitmap, VkPixiFrameCore } from '@vunk-plus/components/pixi-frame'
 import { blobToAudioBuffer, getStremingStartData, processStreaming, StreamingInferenceService } from '@vunk-plus/shared/audioToFrames'
-import { useModelComputed } from '@vunk/core/composables'
+import { useDeferred, useModelComputed } from '@vunk/core/composables'
 import { setData } from '@vunk/core/shared'
 import { TickerStatus } from '@vunk/shared/enum'
 import { onMounted, ref, shallowReactive } from 'vue'
@@ -25,7 +25,8 @@ const streamingInferenceService = new StreamingInferenceService(props.modelUrl)
 
 const frameUrls = ref<ImageBitmap[]>([])
 const silentFrameUrls = shallowReactive<string[]>([]) // 预加载的静默帧
-//
+
+const startedDef = useDeferred()
 
 const frameStatus = useModelComputed({
   default: TickerStatus.pending,
@@ -57,12 +58,15 @@ onMounted(async () => {
       }
     },
   })
+
+  startedDef.resolve()
 })
 
 async function requestProcessStreaming (
   buffer: AudioBuffer,
 ) {
   await streamingInferenceService.when()
+  await startedDef.promise
 
   try {
     await processStreaming(buffer, {
@@ -91,8 +95,8 @@ async function processingParagraph (
   }
 }
 
-function allParagraphCompleted (v: boolean) {
-  if (v && paragraphData.value.length) {
+function allParagraphCompleted () {
+  if (paragraphData.value.length) {
     frameStatus.value = TickerStatus.stop
     frameUrls.value.length = 0
   }
@@ -131,7 +135,7 @@ async function loadAllSilentFrames (
     :source="source"
     :processing="processingParagraph"
     @set-data="setData(paragraphData, $event)"
-    @update:completed="allParagraphCompleted"
+    @complete="allParagraphCompleted"
   >
   </VkBroadcastingMarkdown>
 

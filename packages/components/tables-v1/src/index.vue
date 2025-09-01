@@ -1,86 +1,69 @@
-<script lang="ts">
+<script lang="ts" setup>
+import type { NormalObject } from '@vunk/shared'
+import type { Ref } from 'vue'
 import { _VkTableColumnsElCtx, VkTableColumns } from '@vunk-plus/components/table-columns'
 import { useElBreakpoints } from '@vunk-plus/composables/el-breakpoints'
 import { VkDuplexCalc } from '@vunk/core'
-import { ElPagination, ElTable } from 'element-plus'
-import { computed, defineComponent } from 'vue'
-import { createPaginationBindProps, createPaginationOnEmits, createTableBindProps, emits, props } from './ctx'
+import { ElTable as _ElTable, ElPagination } from 'element-plus'
+import { computed } from 'vue'
+import { createPaginationBindProps, createPaginationOnEmits, createTableBindProps, props as dProps, emits } from './ctx'
 import { createElTableOnEmits } from './el-ctx'
 
-export default defineComponent({
+defineOptions({
   name: 'VkTablesV1',
-  components: {
-    VkTableColumns,
-    VkDuplexCalc,
-    ElPagination,
-    ElTable,
+})
+const props = defineProps(dProps)
+const emit = defineEmits(emits)
+
+const ElTable = _ElTable as never
+
+const paginationBindProps: Ref<NormalObject> = createPaginationBindProps(props, ['layout', 'currentPage'])
+const paginationOnEmits = createPaginationOnEmits(emit, [
+  'update:current-page',
+])
+const columnsProps = _VkTableColumnsElCtx.createTableColumnBindProps(props)
+const tableProps: Ref<NormalObject> = createTableBindProps(props)
+const tableOnEmits = createElTableOnEmits(emit)
+const { isMobile } = useElBreakpoints()
+const hasPagination = computed(() => props.modules.includes('pagination'))
+
+/* currentPage => start */
+const theCurrentPage = computed({
+  get: () => {
+    if (props.start !== undefined) {
+      return Math.floor(props.start / props.pageSize) + 1
+    }
+    return props.currentPage
   },
-  props,
-  emits,
-  setup (props, { emit, expose }) {
-    const paginationBindProps = createPaginationBindProps(props, ['layout', 'currentPage'])
-    const paginationOnEmits = createPaginationOnEmits(emit, [
-      'update:current-page',
-    ])
-    const columnsProps = _VkTableColumnsElCtx.createTableColumnBindProps(props)
-    const tableProps = createTableBindProps(props, [])
-    const tableOnEmits = createElTableOnEmits(emit)
-    const { isMobile } = useElBreakpoints()
-    const hasPagination = computed(() => props.modules.includes('pagination'))
-
-    /* currentPage => start */
-    const theCurrentPage = computed({
-      get: () => {
-        if (props.start !== undefined) {
-          return Math.floor(props.start / props.pageSize) + 1
-        }
-        return props.currentPage
-      },
-      set: (val: number) => {
-        emit('update:current-page', val)
-        updateStart({ currentPage: val })
-      },
-    })
-
-    function updateStart (e: {
-      currentPage?: number
-      pageSize?: number
-    }) {
-      const currentPage = e.currentPage ?? theCurrentPage.value
-      const pageSize = e.pageSize ?? props.pageSize
-      emit('update:start', (currentPage - 1) * pageSize)
-    }
-    /* currentPage => start end */
-
-    /* layout */
-    const layout = computed(() => {
-      if (props.layout) {
-        return props.layout
-      }
-      if (isMobile.value) {
-        // mobile default: 'total, prev, pager, next'
-        return 'total, prev, pager, next'
-      }
-      // pc default: 'total, sizes, prev, pager, next, jumper'
-      return 'total, sizes, prev, pager, next, jumper'
-    })
-    /* layout end */
-
-    expose({})
-
-    return {
-      paginationBindProps,
-      paginationOnEmits,
-      theCurrentPage,
-      updateStart,
-      columnsProps,
-      tableProps,
-      tableOnEmits,
-      layout,
-      hasPagination,
-    }
+  set: (val: number) => {
+    emit('update:current-page', val)
+    updateStart({ currentPage: val })
   },
 })
+
+function updateStart (e: {
+  currentPage?: number
+  pageSize?: number
+}) {
+  const currentPage = e.currentPage ?? theCurrentPage.value
+  const pageSize = e.pageSize ?? props.pageSize
+  emit('update:start', (currentPage - 1) * pageSize)
+}
+/* currentPage => start end */
+
+/* layout */
+const layout = computed(() => {
+  if (props.layout) {
+    return props.layout
+  }
+  if (isMobile.value) {
+    // mobile default: 'total, prev, pager, next'
+    return 'total, prev, pager, next'
+  }
+  // pc default: 'total, sizes, prev, pager, next, jumper'
+  return 'total, sizes, prev, pager, next, jumper'
+})
+/* layout end */
 </script>
 
 <template>

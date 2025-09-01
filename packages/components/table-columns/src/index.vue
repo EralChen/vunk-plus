@@ -1,15 +1,17 @@
 <script lang="ts">
-import { props } from './ctx'
-import { defineComponent, h, unref, VNode } from 'vue'
+import type { NormalObject } from '@vunk/shared'
+import type { VNode } from 'vue'
+import type { Source } from './types'
+import { isPlainObject, pickObject } from '@vunk/shared/object'
 import { ElTableColumn } from 'element-plus'
+import { defineComponent, h, unref } from 'vue'
+import { props } from './ctx'
 import { createTableColumnBindProps } from './el-ctx'
-import { pickObject, isPlainObject } from '@vunk/shared/object'
-import { NormalObject } from '@vunk/shared'
-import { Source } from './types'
+
 export default defineComponent({
   name: 'VkTableColumns',
   components: {
-    ElTableColumn,
+    ElTableColumn: ElTableColumn as never,
   },
   props,
   setup (props) {
@@ -21,7 +23,7 @@ export default defineComponent({
           if (hidden) {
             return a
           }
-          let slots:NormalObject = {}
+          let slots: NormalObject = {}
           if (isPlainObject(item.slots)) {
             slots = item.slots as NormalObject
           }
@@ -42,26 +44,21 @@ export default defineComponent({
 
           // 删除 attr 中的 falsy 值
           Object.keys(attr).forEach((key) => {
-
             if (
-              attr[key] === undefined ||
-              attr[key] === null ||
-              attr[key] === '' 
+              attr[key] === undefined
+              || attr[key] === null
+              || attr[key] === ''
             ) {
               Reflect.deleteProperty(attr, key)
             }
-   
           })
-      
-
 
           a.push(h(ElTableColumn, attr, slots))
           return a
-        }, [] as VNode[]) 
+        }, [] as VNode[])
       }
       return createCols(props.source)
     }
   },
 })
 </script>
-

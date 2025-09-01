@@ -1,5 +1,9 @@
 # Changelog 更新日志
 
+## 1.7.4
++ [MetahumanBroadcasting] fix: 修复 addChunk 时机导致的播放问题
++ [BroadcastingMarkdown] fix: 修复播报状态
+
 ## 1.7.0
 + [dependencies] `ant-design-x-vue` 依赖 1.3.2+
 

@@ -47,63 +47,63 @@ class h {
         default:
           throw new Error(`Unknown task type: ${a.type}`);
       }
-      const r = performance.now() - e;
+      const i = performance.now() - e;
       return {
         id: a.id,
         success: !0,
         data: t,
-        processingTime: r
+        processingTime: i
       };
     } catch (t) {
-      const r = performance.now() - e;
+      const i = performance.now() - e;
       return {
         id: a.id,
         success: !1,
         error: t instanceof Error ? t.message : "Unknown error",
-        processingTime: r
+        processingTime: i
       };
     }
   }
   async processBatch(a, e) {
     const t = [];
-    for (const r of a) {
-      const s = await this.processSingle(r, e);
+    for (const i of a) {
+      const s = await this.processSingle(i, e);
       t.push(s);
     }
     return t;
   }
   async processSingle(a, e) {
     const t = new Blob([a]);
-    let r = await createImageBitmap(t);
-    return (e != null && e.width || e != null && e.height) && (r = await this.resizeImageBitmap(
-      r,
-      e.width || r.width,
-      e.height || r.height
-    )), r;
+    let i = await createImageBitmap(t);
+    return (e != null && e.width || e != null && e.height) && (i = await this.resizeImageBitmap(
+      i,
+      e.width || i.width,
+      e.height || i.height
+    )), i;
   }
   async resizeImage(a, e) {
-    const t = new Blob([a]), r = await createImageBitmap(t), s = (e == null ? void 0 : e.width) || r.width, i = (e == null ? void 0 : e.height) || r.height, n = await this.resizeImageBitmap(
-      r,
+    const t = new Blob([a]), i = await createImageBitmap(t), s = (e == null ? void 0 : e.width) || i.width, r = (e == null ? void 0 : e.height) || i.height, n = await this.resizeImageBitmap(
+      i,
       s,
-      i
+      r
     );
-    return r.close(), n;
+    return i.close(), n;
   }
   async resizeImageBitmap(a, e, t) {
-    return this.canvas.width = e, this.canvas.height = t, this.ctx.clearRect(0, 0, e, t), this.ctx.drawImage(a, 0, 0, e, t), await createImageBitmap(this.canvas);
+    return this.canvas.width = e, this.canvas.height = t, this.ctx.clearRect(0, 0, e, t), this.ctx.imageSmoothingEnabled = !1, this.ctx.imageSmoothingQuality = "low", this.ctx.drawImage(a, 0, 0, e, t), await createImageBitmap(this.canvas);
   }
   async blendImages(a, e) {
     if (a.length < 2)
       throw new Error("Blend operation requires at least 2 images");
     const t = await Promise.all(
-      a.map((i) => createImageBitmap(new Blob([i])))
-    ), r = t[0];
-    this.canvas.width = r.width, this.canvas.height = r.height, this.ctx.clearRect(0, 0, r.width, r.height), this.ctx.drawImage(r, 0, 0);
+      a.map((r) => createImageBitmap(new Blob([r])))
+    ), i = t[0];
+    this.canvas.width = i.width, this.canvas.height = i.height, this.ctx.clearRect(0, 0, i.width, i.height), this.ctx.drawImage(i, 0, 0);
     const s = (e == null ? void 0 : e.blendMode) || "source-over";
     this.ctx.globalCompositeOperation = s, (e == null ? void 0 : e.opacity) !== void 0 && (this.ctx.globalAlpha = e.opacity);
-    for (let i = 1; i < t.length; i++)
-      this.ctx.drawImage(t[i], 0, 0);
-    return this.ctx.globalCompositeOperation = "source-over", this.ctx.globalAlpha = 1, t.forEach((i) => i.close()), await createImageBitmap(this.canvas);
+    for (let r = 1; r < t.length; r++)
+      this.ctx.drawImage(t[r], 0, 0);
+    return this.ctx.globalCompositeOperation = "source-over", this.ctx.globalAlpha = 1, t.forEach((r) => r.close()), await createImageBitmap(this.canvas);
   }
 }
 const l = new h();

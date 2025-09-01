@@ -10,10 +10,38 @@
  */
 
 import { AsyncQueue } from '@sapphire/async-queue'
-import { CHUNK_DURATION_SECONDS } from '../core/constants'
-import { PerformanceTimer } from '../core/utils'
-import { NUM_MEL_BINS, NUM_SEQUENCE_FRAMES } from './AudioProcessor'
-import { FeatureExtractorService } from './FeatureExtractorService'
+import { workerConfig } from '../config'
+import { CHUNK_DURATION_SECONDS, NUM_MEL_BINS, NUM_SEQUENCE_FRAMES } from '../core/constants'
+
+/**
+ * 创建AudioContext的兼容函数，处理Safari的限制。
+ * 在Safari中，AudioContext需要在用户交互后才能创建。
+ */
+export async function createAudioContext (): Promise<AudioContext> {
+  // 使用兼容的AudioContext构造函数
+  const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext
+
+  if (!AudioContextClass) {
+    throw new Error('您的浏览器不支持Web Audio API')
+  }
+
+  const audioContext = new AudioContextClass()
+
+  // 在Safari中，AudioContext可能处于suspended状态，需要用户交互后恢复
+  if (audioContext.state === 'suspended') {
+    await audioContext.resume()
+  }
+
+  return audioContext
+}
+
+/**
+ * 特征提取结果接口
+ */
+export interface FeatureExtractionResult {
+  features: Float32Array
+  dimensions: number[]
+}
 
 /**
  * 单个chunk的特征提取结果结构体。
@@ -67,8 +95,6 @@ export class StreamingFeatureExtractorService {
 
   /** 回调函数集合 */
   private callbacks: StreamingCallbacks = {}
-  /** 性能计时器 */
-  private timer = new PerformanceTimer()
   /** 存储每个chunk的处理结果，用于最终合并 */
   private chunkResults: (ChunkFeatureResult | null)[] = []
   /** 音频总chunk数 */
@@ -83,8 +109,8 @@ export class StreamingFeatureExtractorService {
   private audioBuffer: AudioBuffer | null = null
   /** 音频上下文实例，用于创建AudioBuffer */
   private audioContext: AudioContext | null = null
-  /** 复用的特征提取器实例，以提高性能 */
-  private featureExtractor: FeatureExtractorService | null = null
+  /** 复用的Worker实例，以提高性能 */
+  private worker: Worker | null = null
 
   /**
    * 创建AudioBuffer的兼容方法，处理Safari的限制。
@@ -123,6 +149,59 @@ export class StreamingFeatureExtractorService {
   }
 
   /**
+   * 使用Worker处理AudioBuffer，提取特征
+   * @param audioBuffer 输入的AudioBuffer
+   * @returns Promise<FeatureExtractionResult>
+   */
+  private async processWithWorker (audioBuffer: AudioBuffer): Promise<FeatureExtractionResult> {
+    if (!this.worker) {
+      throw new Error('Worker not initialized')
+    }
+
+    return new Promise((resolve, reject) => {
+      const cleanup = () => {
+        if (this.worker) {
+          this.worker.removeEventListener('message', handleMessage)
+          this.worker.removeEventListener('error', handleError)
+        }
+      }
+
+      function handleMessage (event: MessageEvent) {
+        cleanup()
+        if (event.data.status === 'success') {
+          resolve(event.data.payload)
+        }
+        else {
+          reject(new Error(event.data.error || 'Unknown worker error'))
+        }
+      }
+      function handleError (error: ErrorEvent) {
+        cleanup()
+        reject(error)
+      }
+
+      this.worker!.addEventListener('message', handleMessage)
+      this.worker!.addEventListener('error', handleError)
+
+      // 准备要发送到 Worker 的数据
+      const leftChannel = audioBuffer.getChannelData(0)
+      const rightChannel = audioBuffer.numberOfChannels > 1
+        ? audioBuffer.getChannelData(1)
+        : undefined
+
+      const message = {
+        leftChannel,
+        rightChannel,
+        sampleRate: audioBuffer.sampleRate,
+      }
+
+      // 发送消息，并将 Float32Array 的 buffer 作为 Transferable Objects 转移
+      const transferList = [leftChannel.buffer, rightChannel?.buffer].filter(Boolean) as ArrayBuffer[]
+      this.worker!.postMessage(message, transferList)
+    })
+  }
+
+  /**
    * 启动流式音频特征提取。
    * @param audioBuffer 输入的音频缓冲区。
    * @param callbacks 处理过程中的回调函数集合。
@@ -143,29 +222,31 @@ export class StreamingFeatureExtractorService {
     this.chunkResults = []
     this.completedChunks = 0
     this.totalFramesProcessed = 0
-    this.featureExtractor = new FeatureExtractorService() // 复用实例
+
+    // 创建 Worker 实例
+    if (!this.worker) {
+      this.worker = new Worker(
+        /* @vite-ignore */
+        `${workerConfig.path}/feature.worker.js`,
+        { type: 'module' },
+      )
+    }
 
     const durationSeconds = audioBuffer.duration
     this.totalChunks = Math.ceil(durationSeconds / CHUNK_DURATION_SECONDS)
 
     try {
-      this.timer.start('totalProcessing')
-
       // 优化：逐个处理chunk以减少内存叠加，并允许立即回调
       for (let chunkIndex = 0; chunkIndex < this.totalChunks; chunkIndex++) {
         if (!this.isRunning)
           break // 检查是否已停止
-        this.timer.start(`chunk_${chunkIndex}`)
         await this.processChunk(chunkIndex)
-        this.timer.end(`chunk_${chunkIndex}`)
       }
 
       // 优化：不再存储所有chunk，直接返回合并结果
       if (this.isRunning) {
         await this.finalize()
       }
-
-      this.timer.end('totalProcessing')
     }
     catch (error) {
       // 处理异常，通知上层
@@ -185,7 +266,7 @@ export class StreamingFeatureExtractorService {
    * @param chunkIndex chunk的索引（从0开始）。
    */
   private async processChunk (chunkIndex: number): Promise<void> {
-    if (!this.audioBuffer || !this.featureExtractor)
+    if (!this.audioBuffer || !this.worker)
       return
 
     // 1. 计算chunk的起止时间（秒）
@@ -202,11 +283,7 @@ export class StreamingFeatureExtractorService {
     const endSample = Math.floor(endTimeSeconds * this.audioBuffer.sampleRate)
     const chunkLength = endSample - startSample
 
-    console.log(
-      `处理chunk ${chunkIndex}: ${startTimeSeconds.toFixed(
-        2,
-      )}s - ${endTimeSeconds.toFixed(2)}s`,
-    )
+    // Processing chunk ${chunkIndex}: ${startTimeSeconds.toFixed(2)}s - ${endTimeSeconds.toFixed(2)}s
 
     // 3. 创建该chunk的AudioBuffer (Safari兼容)
     const chunkBuffer = await this.createAudioBuffer(
@@ -226,49 +303,39 @@ export class StreamingFeatureExtractorService {
       chunkData.set(sourceData.subarray(startSample, endSample))
     }
 
-    // 5. 使用复用的FeatureExtractorService实例处理该chunk
-    try {
-      this.timer.start(`extract_chunk_${chunkIndex}`)
-      const result = await this.featureExtractor.process(chunkBuffer)
-      this.timer.end(`extract_chunk_${chunkIndex}`)
-      const chunkResult: ChunkFeatureResult = {
-        chunkIndex,
-        features: result.features,
-        dimensions: result.dimensions,
-        startTimeSeconds,
-        endTimeSeconds,
-      }
+    // 5. 使用Worker直接处理该chunk
 
-      // 累加已处理的总帧数
-      this.totalFramesProcessed += chunkResult.dimensions[0]
-
-      this.chunkResults[chunkIndex] = chunkResult
-      this.completedChunks++
-
-      console.log(
-        `Chunk ${chunkIndex} 完成，特征维度: [${result.dimensions.join(', ')}]`,
-      )
-
-      // 7. 回调通知上层（立即传输数据）
-      this.callbacks.onChunkComplete?.(chunkResult)
-      this.callbacks.onProgress?.(this.completedChunks, this.totalChunks)
-
-      // 优化：立即释放对该chunk结果的引用，因为它已被传递
-      // 并且其ArrayBuffer很快会被转移，从而减少内存占用。
-      this.chunkResults[chunkIndex] = null as any
+    const result = await this.processWithWorker(chunkBuffer)
+    const chunkResult: ChunkFeatureResult = {
+      chunkIndex,
+      features: result.features,
+      dimensions: result.dimensions,
+      startTimeSeconds,
+      endTimeSeconds,
     }
-    catch (error) {
-      // 捕获错误并向上抛出，由 processStreaming 统一处理
-      console.error(`处理chunk ${chunkIndex} 时发生错误:`, error)
-      throw error
-    }
+
+    // 累加已处理的总帧数
+    this.totalFramesProcessed += chunkResult.dimensions[0]
+
+    this.chunkResults[chunkIndex] = chunkResult
+    this.completedChunks++
+
+    // Chunk ${chunkIndex} completed with dimensions: [${result.dimensions.join(', ')}]
+
+    // 7. 回调通知上层（立即传输数据）
+    this.callbacks.onChunkComplete?.(chunkResult)
+    this.callbacks.onProgress?.(this.completedChunks, this.totalChunks)
+
+    // 优化：立即释放对该chunk结果的引用，因为它已被传递
+    // 并且其ArrayBuffer很快会被转移，从而减少内存占用。
+    this.chunkResults[chunkIndex] = null as any
   }
 
   /**
    * 所有chunk处理完成后，合并特征并调用onComplete。
    */
   private async finalize (): Promise<void> {
-    console.log('最终确定所有chunk的处理...')
+    // Finalizing all chunk processing...
 
     // 【修复】不再访问 chunkResults 数组，因为它已被清空以释放内存。
     // 我们现在使用在处理过程中累积的总帧数。
@@ -284,7 +351,7 @@ export class StreamingFeatureExtractorService {
       NUM_MEL_BINS,
     ]
 
-    console.log(`特征处理完成, 总维度: [${totalDimensions.join(', ')}]`)
+    // Feature processing complete, total dimensions: [${totalDimensions.join(', ')}]
 
     // 4. 回调通知全部完成
     this.callbacks.onComplete?.(totalDimensions)
@@ -298,9 +365,9 @@ export class StreamingFeatureExtractorService {
     this.audioBuffer = null
 
     // 终止复用的Worker
-    if (this.featureExtractor) {
-      this.featureExtractor.terminate()
-      this.featureExtractor = null
+    if (this.worker) {
+      this.worker.terminate()
+      this.worker = null
     }
 
     // 清理chunk结果数组
@@ -316,9 +383,6 @@ export class StreamingFeatureExtractorService {
     this.completedChunks = 0
     this.totalChunks = 0
     this.totalFramesProcessed = 0
-
-    // 重置性能计时器
-    this.timer.reset()
   }
 
   /**
@@ -326,13 +390,13 @@ export class StreamingFeatureExtractorService {
    */
   public stop (): void {
     if (this.isRunning) {
-      console.log('停止流式音频处理')
+      // Stopping streaming audio processing
       this.isRunning = false
 
       // 终止复用的Worker
-      if (this.featureExtractor) {
-        this.featureExtractor.terminate()
-        this.featureExtractor = null
+      if (this.worker) {
+        this.worker.terminate()
+        this.worker = null
       }
 
       this.callbacks = {}

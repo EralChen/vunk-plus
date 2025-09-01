@@ -2,7 +2,7 @@
 import { computedAsync, debouncedRef } from '@vueuse/core'
 import { useModelComputed } from '@vunk/core/composables'
 import { noop } from '@vunk/shared/function'
-import { computed, defineComponent, ref, watch } from 'vue'
+import { computed, defineComponent, ref, watch, watchEffect } from 'vue'
 import { markdownItPromise } from './core'
 import { emits, props } from './ctx'
 
@@ -65,14 +65,10 @@ export default defineComponent({
       immediate: true,
     })
 
-    watch(
-      () => isFinished.value
-        && currentIndex.value < props.source.length,
-      () => { // 说明source变化了
-        isFinished.value = false
-        typeWriter()
-      },
-    )
+    watch(() => currentIndex.value < props.source.length, () => {
+      isFinished.value = false
+      typeWriter()
+    })
 
     return {
       htmlText,
