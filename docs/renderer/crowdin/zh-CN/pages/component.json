@@ -25,6 +25,10 @@
       {
         "link": "/text",
         "text": "Text"
+      },
+      {
+        "link": "/scrollbar",
+        "text": "Scrollbar"
       }
     ]
   },
@@ -91,7 +95,6 @@
         "link": "/agent-chat-provider",
         "text": "AgentChatProvider"
       },
-
       {
         "link": "/metahuman-broadcasting",
         "text": "MetahumanBroadcasting"

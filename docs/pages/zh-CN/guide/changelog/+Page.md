@@ -1,5 +1,8 @@
 # Changelog 更新日志
 
+## 1.8.1
++ [Scrollbar] 新增 component [Scrollbar](../../component/scrollbar/+Page.md):
+
 ## 1.7.4
 + [MetahumanBroadcasting] fix: 修复 addChunk 时机导致的播放问题
 + [BroadcastingMarkdown] fix: 修复播报状态
