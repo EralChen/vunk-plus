@@ -140,9 +140,9 @@ function handleScroll () {
   }
 }
 
-function scrollTo (xCord: number, yCord?: number): void
-function scrollTo (options: ScrollToOptions): void
-function scrollTo (arg1: unknown, arg2?: number) {
+// function scrollTo (xCord: number, yCord?: number): void
+// function scrollTo (options: ScrollToOptions): void
+function scrollTo (arg1: any, arg2?: number) {
   if (isObject(arg1)) {
     wrapRef.value!.scrollTo(arg1)
   }

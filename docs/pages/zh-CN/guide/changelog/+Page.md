@@ -1,6 +1,6 @@
 # Changelog 更新日志
 
-## 1.8.0
+## 1.8.1
 + [Scrollbar] 新增 component [Scrollbar](../../component/scrollbar/+Page.md):
 
 ## 1.7.4
