@@ -1,0 +1,11 @@
+import{a as u,t as f,V as d}from"./chunk-BynjkOys.js";import{T as i}from"./chunk-CntOc3u2.js";import{d as c,p as k,r as v,a as x,o as T,f as p,b as s,v as C,w as m,u as e,F as S}from"./chunk-D7x09NOF.js";import"./chunk-YBzfwCkb.js";import"./chunk-Db8R8jrI.js";/* empty css              */import"./chunk-Di9FnFMJ.js";/* empty css              *//* empty css              *//* empty css              *//* empty css              *//* empty css              *//* empty css              *//* empty css              *//* empty css              *//* empty css              *//* empty css              *//* empty css              *//* empty css              *//* empty css              *//* empty css              *//* empty css              *//* empty css              *//* empty css              *//* empty css              *//* empty css              *//* empty css              *//* empty css              *//* empty css              *//* empty css              *//* empty css              *//* empty css              *//* empty css              *//* empty css              *//* empty css              *//* empty css              *//* empty css              *//* empty css              */let n=null;async function g(l){return n||(n=u({access_token:"21c0f2a5067fb1cb"}).then(o=>{localStorage.setItem("accessToken",o),sessionStorage.setItem("accessToken",o)})),await n,f({application_id:"2c0946f4-02f0-11f0-b881-0242ac170002",text:l}).then(o=>o)}const B=`
+
+大自然里，草长莺飞，莺歌燕舞，她生活在一个美好的世界里。
+
+然而，当她经过茧里的痛苦与挣扎，终于破茧而出时，却不是一只在空中轻盈飞舞的花蝴蝶，而是蜕变成为了一只灰色的小飞蛾。
+
+在同伴的叹息中，她笑着流下了激动的泪水，微笑着说：“上帝给了我生命，就是宝贵的，渺小的我也依然能够在这个美丽的世界中划上一抹绚丽的色彩，做一只用于扑火的飞蛾，又何乐而不为呢？”
+
+没有翅膀的飞翔更接近天堂，有些美丽是不需要书写的。
+
+`,mt=c({__name:"index",setup(l){const o=k(i.play);return(b,t)=>{const a=v("ElButton");return T(),x(S,null,[p(C(o.value)+" ",1),s(a,{onClick:t[0]||(t[0]=r=>o.value=e(i).stop)},{default:m(()=>t[4]||(t[4]=[p(" 停止 ")])),_:1}),s(a,{onClick:t[1]||(t[1]=r=>o.value=e(i).pause)},{default:m(()=>t[5]||(t[5]=[p(" 暂停 ")])),_:1}),s(a,{onClick:t[2]||(t[2]=r=>o.value=e(i).play)},{default:m(()=>t[6]||(t[6]=[p(" 播放 ")])),_:1}),s(e(d),{status:o.value,"onUpdate:status":t[3]||(t[3]=r=>o.value=r),source:B,"text-to-speech":e(g)},null,8,["status","text-to-speech"])],64)}}});export{mt as default};
