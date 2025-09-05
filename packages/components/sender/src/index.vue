@@ -1,10 +1,10 @@
 <script lang="tsx" setup>
-import type { AnyFunc } from '@vunk/shared'
+import type { AnyFunc, NormalObject } from '@vunk/shared'
 import type { UploadChangeParam, UploadFile } from 'ant-design-vue'
 import type { AttachmentsRef } from 'ant-design-x-vue/typings/attachments/interface'
 import type { Ref } from 'vue'
 import type {} from 'vue-types'
-import { CloudUploadOutlined, LinkOutlined, SendOutlined } from '@ant-design/icons-vue'
+import { CloudUploadOutlined, LinkOutlined } from '@ant-design/icons-vue'
 import { useDeferred, useModelComputed } from '@vunk/core/composables'
 import { Button as AntButton } from 'ant-design-vue'
 import { Attachments, Sender } from 'ant-design-x-vue'
@@ -26,31 +26,52 @@ const loading = useModelComputed({
 }, props, emit)
 
 /* header */
-const headerOpen = ref(false)
+const headerOpen = useModelComputed({
+  key: 'attachmentsVisible',
+  default: false,
+}, props, emit)
 /* header End */
 
 /* UI */
-const actionsRender: AnyFunc = (_, info) => {
-  const { SendButton, LoadingButton } = info.components
-
-  const loadingRender = () => {
-    return (
-      <LoadingButton />
-    )
-  }
-  const sendRender = () => {
-    return (
+function createSendButtonDefault (components: NormalObject = {}) {
+  const { SendButton, LoadingButton } = components
+  return loading.value
+    ? <LoadingButton />
+    : (
       <SendButton
-        type="text"
-        icon={<SendOutlined />}
         disabled={props.sendDisabled}
       />
     )
-  }
+}
+function createSendButton (components) {
+  const fn = props.createSendButton || createSendButtonDefault
+  return fn(components)
+}
 
-  const sendAction = () => loading.value
-    ? loadingRender()
-    : sendRender()
+function createAttachmentsButtonDefault () {
+  return (
+    <AntButton
+      type="text"
+      onClick={() => headerOpen.value = !headerOpen.value}
+    >
+      {{
+        icon: () => <LinkOutlined></LinkOutlined>,
+      }}
+    </AntButton>
+  )
+}
+
+function createAttachmentsButton () {
+  const fn = props.createAttachmentsButton || createAttachmentsButtonDefault
+  return hasAttachments.value
+    ? fn()
+    : null
+}
+
+const actionsRender: AnyFunc = (_, info) => {
+  const { SendButton, LoadingButton } = info.components
+
+  const send = createSendButton({ SendButton, LoadingButton })
 
   return (
     <div class="vk-sender-actions">
@@ -58,8 +79,7 @@ const actionsRender: AnyFunc = (_, info) => {
         { slots.actions_before?.() }
       </div>
       <div class="vk-sender-actions__after">
-        { slots.actions_after?.() }
-        { sendAction() }
+        { slots.actions_after?.() ?? send }
       </div>
     </div>
   )
@@ -129,6 +149,7 @@ function handleChange (e: UploadChangeParam<UploadFile>) {
       !sendDisabled && $emit('submit', e)
     }"
     :on-cancel="() => $emit('cancel')"
+    :auto-size="autoSize"
     @update:value="$emit('update:modelValue', $event)"
     @paste-file="handlePasteFile"
   >
@@ -145,23 +166,26 @@ function handleChange (e: UploadChangeParam<UploadFile>) {
           :placeholder="attachmentsPlaceholder"
           :action="action"
           multiple
+          v-bind="attachmentsProps"
           @change="handleChange"
         ></Attachments>
       </SenderHeader>
+
+      <slot name="header"></slot>
     </template>
+
     <template #prefix>
-      <AntButton
-        v-if="hasAttachments"
-        type="text"
-        @click="headerOpen = !headerOpen"
-      >
-        <template #icon>
-          <LinkOutlined></LinkOutlined>
-        </template>
-      </AntButton>
+      <component :is="createAttachmentsButton()" v-if="!$slots.prefix" />
+      <slot name="prefix"></slot>
     </template>
-    <template v-if="$slots.footer" #footer>
-      <slot name="footer"></slot>
+
+    <template v-if="$slots.footer" #footer="{ info }">
+      <slot
+        name="footer"
+        :send-button="createSendButton(info.components)"
+        :attachments-button="createAttachmentsButton()"
+        :info="info"
+      ></slot>
     </template>
   </Sender>
 </template>

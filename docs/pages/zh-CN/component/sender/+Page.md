@@ -8,6 +8,12 @@
 sender/basic
 :::
 
+## Custom
+
+:::demo
+sender/custom
+:::
+
 ## Sender Props
 
 :::props
@@ -18,5 +24,5 @@ sender/src/ctx
 
 | name | arguments | description |
 | ---- | --------- | ----------- |
-| submit | string | 触发提交事件 |
-| cancel | - | 触发取消事件 |
+| submit | string | 非自定义 Send 触发提交事件 |
+| cancel | - | 非自定义 Send 触发取消事件 |
