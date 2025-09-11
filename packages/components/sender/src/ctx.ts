@@ -9,7 +9,7 @@ export const props = {
    * @description v-model 绑定文件列表
    */
   fileList: {
-    type: Array as PropType<UploadFile[]>,
+    type: Array as PropType<any[]>,
     default: undefined,
   },
 
@@ -99,7 +99,7 @@ export const props = {
 export const emits = {
   'update:fileList': (_: UploadFile[]) => true,
   'update:modelValue': (_: string) => true,
-  'update:headerVisible': (_: boolean) => true,
+  'update:attachmentsVisible': (_: boolean) => true,
   'submit': (_: string) => true,
   'cancel': null,
 }
