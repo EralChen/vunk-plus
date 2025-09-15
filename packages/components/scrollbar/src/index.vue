@@ -229,7 +229,29 @@ onMounted(() => {
 })
 onUpdated(() => update())
 
+function scrollToBottom (options?: ScrollToOptions) {
+  if (!wrapRef.value) { return }
+  scrollTo(options ?? {
+    top: wrapRef.value.scrollHeight,
+    behavior: 'smooth',
+  })
+}
+
+function scrollToTop (options?: ScrollToOptions) {
+  if (!wrapRef.value) { return }
+  scrollTo(options ?? {
+    top: 0,
+    behavior: 'smooth',
+  })
+}
+
 defineExpose({
+  /** @description scrollToTop method */
+  scrollToTop,
+
+  /** @description scrollToBottom method */
+  scrollToBottom,
+
   /** @description scrollbar wrap ref */
   wrapRef,
   /** @description update scrollbar state manually */

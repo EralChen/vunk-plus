@@ -12,6 +12,8 @@ export const props = {
     type: Function as PropType<AnyFunc>,
     default: noop,
   },
+
+  scrollbarAppendTo: null,
 }
 
 export const emits = {

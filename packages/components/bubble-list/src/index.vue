@@ -3,7 +3,7 @@ import type { VNode } from 'vue'
 import { VkBubbleRenderer, VkBubbleRenderTemplates, VkBubbleTemplates } from '@vunk-plus/components/bubble-templates'
 import { VkSpreadTo } from '@vunk/core/components/spread-to'
 import { ElAutoResizer } from 'element-plus'
-import { BubbleList } from 'vue-element-plus-x'
+import BubbleList from './core/index.vue'
 import {
   props as dProps,
 } from './ctx'
@@ -32,6 +32,7 @@ function getContentWraper (e: VNode) {
           :ref="elRef"
           :btn-icon-size="18"
           :max-height="`${height}px`"
+          :scrollbar-append-to="scrollbarAppendTo"
           :style="{
             '--el-bubble-list-max-height': `${height}px`,
           }"
