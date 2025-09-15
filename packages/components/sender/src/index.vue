@@ -162,7 +162,7 @@ function handleChange (e: UploadChangeParam<UploadFile>) {
       >
         <Attachments
           ref="attachmentsRef"
-          :file-list="theFileList"
+          :items="theFileList"
           :placeholder="attachmentsPlaceholder"
           :action="action"
           multiple
