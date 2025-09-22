@@ -14,6 +14,11 @@ export const props = {
   },
 
   scrollbarAppendTo: null,
+
+  autoScrollThreshold: {
+    type: Number,
+    default: 200,
+  },
 }
 
 export const emits = {

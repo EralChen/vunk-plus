@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import type { __VkAgentChatProvider } from '@vunk-plus/components/agent-chat-provider'
 import type { ElScrollbar } from 'element-plus'
-import type { PropType, TeleportProps } from 'vue'
+import type { PropType, Ref, TeleportProps } from 'vue'
 import { ArrowDownBold } from '@element-plus/icons-vue'
+import { useResizeObserver } from '@vueuse/core'
 import { VkScrollbar } from '@vunk-plus/components/scrollbar'
 import { computed, onMounted, ref, watch } from 'vue'
 import { Bubble } from 'vue-element-plus-x'
@@ -16,6 +17,10 @@ const props = defineProps({
   autoScroll: {
     type: Boolean,
     default: true,
+  },
+  autoScrollThreshold: {
+    type: Number,
+    default: 200,
   },
   maxHeight: {
     type: String,
@@ -98,6 +103,8 @@ watch(
 
 /* 滚动条 */
 const distanceToBottom = ref<number | undefined>()
+const scrollViewEl = computed(() => scrollbarRef.value?.wrapRef?.firstElementChild) as unknown as Ref<HTMLDivElement>
+
 const btnShow = computed(() => {
   return props.showBackButton
     && distanceToBottom.value !== undefined
@@ -113,9 +120,21 @@ function getDistanceToBottom () {
     return
   }
   distanceToBottom.value = wrap.scrollHeight - wrap.scrollTop - wrap.clientHeight
+  return distanceToBottom.value
 }
 function scrollToBottom () {
   scrollbarRef.value?.scrollToBottom()
+}
+
+// 开启自动滚动
+if (props.autoScroll) {
+  useResizeObserver(scrollViewEl, () => {
+    const distance = getDistanceToBottom()
+    if (distance !== undefined && distance > props.autoScrollThreshold) {
+      return
+    }
+    scrollToBottom()
+  })
 }
 
 // 父组件触发滚动到指定气泡框

@@ -33,6 +33,7 @@ function getContentWraper (e: VNode) {
           :btn-icon-size="18"
           :max-height="`${height}px`"
           :scrollbar-append-to="scrollbarAppendTo"
+          :auto-scroll-threshold="autoScrollThreshold"
           :style="{
             '--el-bubble-list-max-height': `${height}px`,
           }"
