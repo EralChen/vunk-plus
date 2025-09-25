@@ -101,12 +101,16 @@
       }
     ]
   },
-  "pixi": {
-    "text": "Pixi",
+  "player": {
+    "text": "Player",
     "children": [
       {
         "link": "/pixi-frame",
         "text": "PixiFrame"
+      },
+      {
+        "link": "/xgplayer",
+        "text": "Xgplayer"
       }
     ]
   }

@@ -1,7 +1,11 @@
 # Changelog 更新日志
 
+## 1.9.0
+
++ [Xgplayer] 新增 component [Xgplayer](../../component/xgplayer/+Page.md): 基于 xgplayer 的视频播放器组件
+
 ## 1.8.1
-+ [Scrollbar] 新增 component [Scrollbar](../../component/scrollbar/+Page.md):
++ [Scrollbar] 新增 component [Scrollbar](../../component/scrollbar/+Page.md)
 
 ## 1.7.4
 + [MetahumanBroadcasting] fix: 修复 addChunk 时机导致的播放问题

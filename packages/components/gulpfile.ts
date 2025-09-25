@@ -18,6 +18,7 @@ const external = [
   'ant-design-x-vue',
   // 'vue-element-plus-x',
   /^recorder-core/,
+  'xgplayer-flv',
 ]
 
 const filePaths = sync(buildFile, {
