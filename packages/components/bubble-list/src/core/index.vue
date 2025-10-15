@@ -201,6 +201,9 @@ defineExpose({
         :avatar-alt="item.avatarAlt"
         :avatar-fit="item.avatarFit"
         :no-style="item.noStyle"
+        :class="{
+          [`is-${item.role}`]: true,
+        }"
       >
         <template v-if="$slots.avatar" #avatar>
           <slot name="avatar" :item="item" />
