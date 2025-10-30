@@ -162,7 +162,6 @@ function getBubbleDataAt (index: number) {
             <VkSender
               v-show="inputType === InputType.Text"
               v-model="content"
-              :auto-size="true"
               placeholder="请输入内容"
               :send-disabled="senderDisabled"
               :loading="clientLoading"

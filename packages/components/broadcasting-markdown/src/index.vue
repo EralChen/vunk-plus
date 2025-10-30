@@ -208,16 +208,16 @@ export default defineComponent({
     })
 
     watch(() => props.status, () => {
+      if (props.status === TickerStatus.stop) {
+        theData.value.forEach((item) => {
+          item.broadcast = Broadcast.stop
+        })
+      }
       if (!currentPragraph.value) {
         return
       }
       if (currentPragraph.value.broadcast !== props.status) {
         currentPragraph.value.broadcast = props.status
-      }
-      if (props.status === TickerStatus.stop) {
-        theData.value.forEach((item) => {
-          item.broadcast = Broadcast.stop
-        })
       }
     }, { immediate: true })
 
