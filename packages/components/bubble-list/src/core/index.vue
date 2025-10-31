@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { __VkAgentChatProvider } from '@vunk-plus/components/agent-chat-provider'
+import type { AnyFunc } from '@vunk/shared'
 import type { ElScrollbar } from 'element-plus'
 import type { PropType, Ref, TeleportProps } from 'vue'
 import { ArrowDownBold } from '@element-plus/icons-vue'
@@ -75,8 +76,8 @@ defineEmits({
 })
 
 const scrollbarRef = ref<{
-  scrollToBottom: () => void
-  scrollToTop: () => void
+  scrollToBottom: AnyFunc
+  scrollToTop: AnyFunc
 } & InstanceType<typeof ElScrollbar>>()
 
 /* css var */
@@ -122,8 +123,12 @@ function getDistanceToBottom () {
   distanceToBottom.value = wrap.scrollHeight - wrap.scrollTop - wrap.clientHeight
   return distanceToBottom.value
 }
-function scrollToBottom () {
-  scrollbarRef.value?.scrollToBottom()
+function scrollToBottom (...args) {
+  scrollbarRef.value?.scrollToBottom(...args)
+}
+
+function scrollToTop (...args) {
+  scrollbarRef.value?.scrollToTop(...args)
 }
 
 // 开启自动滚动
@@ -166,7 +171,7 @@ function scrollToBubble (index: number) {
 /* 滚动条 END */
 
 defineExpose({
-  scrollToTop: scrollbarRef.value?.scrollToTop,
+  scrollToTop,
   scrollToBottom,
   scrollToBubble,
 })
