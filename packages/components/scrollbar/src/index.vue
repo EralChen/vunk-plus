@@ -231,17 +231,19 @@ onUpdated(() => update())
 
 function scrollToBottom (options?: ScrollToOptions) {
   if (!wrapRef.value) { return }
-  scrollTo(options ?? {
+  scrollTo({
     top: wrapRef.value.scrollHeight,
     behavior: 'smooth',
+    ...options,
   })
 }
 
 function scrollToTop (options?: ScrollToOptions) {
   if (!wrapRef.value) { return }
-  scrollTo(options ?? {
+  scrollTo({
     top: 0,
     behavior: 'smooth',
+    ...options,
   })
 }
 
