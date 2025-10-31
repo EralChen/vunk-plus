@@ -45,6 +45,7 @@
     "recorder-core": "^1.3.25011100",
     "vditor": "^3.10.7",
     "vue": "^3.5.13",
+    "vue-router": "^4.3.2",
     "xgplayer": "^3.0.23"
   },
   "devDependencies": {
