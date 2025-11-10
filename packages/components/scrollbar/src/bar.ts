@@ -1,4 +1,4 @@
-import type { __ExtractPublicPropTypes, ExtractPropTypes } from 'vue'
+import type { ExtractPropTypes } from 'vue'
 
 import type Bar from './bar.vue'
 
@@ -13,6 +13,5 @@ export const barProps = {
   },
 }
 export type BarProps = ExtractPropTypes<typeof barProps>
-export type BarPropsPublic = __ExtractPublicPropTypes<typeof barProps>
 
 export type BarInstance = InstanceType<typeof Bar> & unknown

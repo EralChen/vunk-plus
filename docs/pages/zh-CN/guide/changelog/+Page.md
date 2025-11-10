@@ -1,5 +1,9 @@
 # Changelog 更新日志
 
+## 1.10.0
+
++ [Drawer] 新增 component [VkDrawer](../../component/drawer/+Page.md): 抽屉组件
+
 ## 1.9.0
 
 + [Xgplayer] 新增 component [Xgplayer](../../component/xgplayer/+Page.md): 基于 xgplayer 的视频播放器组件
