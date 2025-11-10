@@ -29,6 +29,10 @@
       {
         "link": "/scrollbar",
         "text": "Scrollbar"
+      },
+      {
+        "link": "/drawer",
+        "text": "Drawer"
       }
     ]
   },

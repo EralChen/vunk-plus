@@ -34,6 +34,13 @@ const alias: AliasOptions = [
     find: '#',
     replacement: path.resolve(appRoot),
   },
+
+    // 'element-plus/es': path.resolve(__dirname, 'node_modules/element-plus/es'),
+  {
+    find: 'element-plus/es',
+    replacement: path.resolve(workRoot, 'node_modules/element-plus/es'),
+  },
+
 ]
 
 export default defineConfig(async ({ mode }) => {

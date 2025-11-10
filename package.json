@@ -33,7 +33,7 @@
     "@vunk/shared": "0.8.17",
     "apng-js": "^1.1.5",
     "echarts": "^6.0.0",
-    "element-plus": "^2.11.1",
+    "element-plus": "^2.11.7",
     "fft.js": "^4.0.4",
     "jszip": "^3.10.1",
     "lottie-web": "^5.12.2",
