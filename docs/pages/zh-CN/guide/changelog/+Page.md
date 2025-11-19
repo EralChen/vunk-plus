@@ -1,5 +1,10 @@
 # Changelog 更新日志
 
+## 1.10.1
+
++ [Scrollbar] 新增 prop `hideAfter`: 隐藏滚动条的延时，单位毫秒
++ [Scrollbar] 新增 emit `contentInsufficient`: 当内容不足时触发
+
 ## 1.10.0
 
 + [Drawer] 新增 component [VkDrawer](../../component/drawer/+Page.md): 抽屉组件
