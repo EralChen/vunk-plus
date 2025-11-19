@@ -2,7 +2,7 @@
 import type { ScrollbarDirection } from 'element-plus'
 import type { CSSProperties, StyleValue } from 'vue'
 import type { BarInstance } from './bar'
-import { isObject, useEventListener, useResizeObserver } from '@vueuse/core'
+import { isObject, useEventListener, useMutationObserver, useResizeObserver } from '@vueuse/core'
 import { VkAsyncTeleport } from '@vunk/core/components/async-teleport'
 import { scrollbarContextKey, scrollbarEmits, scrollbarProps, useNamespace } from 'element-plus'
 
@@ -10,6 +10,7 @@ import {
   computed,
   nextTick,
   onActivated,
+  onBeforeUnmount,
   onMounted,
   onUpdated,
   provide,
@@ -23,9 +24,20 @@ import { addUnit, isNumber } from './util'
 const props = defineProps({
   ...scrollbarProps,
   appendTo: null,
+
+  hideAfter: {
+    type: Number,
+    default: 0,
+  },
 })
 
-const emit = defineEmits(scrollbarEmits)
+const emit = defineEmits({
+  ...scrollbarEmits,
+  contentInsufficient: (_: {
+    vertical: boolean
+    horizontal: boolean
+  }) => true,
+})
 
 const COMPONENT_NAME = 'ElScrollbar'
 
@@ -43,6 +55,8 @@ const distanceScrollState = {
   right: false,
   left: false,
 }
+let hasEmittedInsufficient = false
+let stopContentMutationObserver: (() => void) | undefined
 
 const scrollbarRef = ref<HTMLDivElement>()
 const wrapRef = ref<HTMLDivElement>()
@@ -134,6 +148,7 @@ function handleScroll () {
       }
       updateTriggerStatus(arrivedStates)
     }
+
     if (arrivedStates[direction])
       // eslint-disable-next-line vue/custom-event-name-casing
       emit('end-reached', direction)
@@ -172,6 +187,32 @@ function setScrollLeft (value: number) {
 function update () {
   barRef.value?.update()
   distanceScrollState[direction] = false
+  checkContentInsufficient()
+}
+
+function checkContentInsufficient () {
+  if (!wrapRef.value)
+    return
+
+  const verticalInsufficient = wrapRef.value.scrollHeight <= wrapRef.value.clientHeight
+  const horizontalInsufficient = wrapRef.value.scrollWidth <= wrapRef.value.clientWidth
+  const isInsufficient = verticalInsufficient || horizontalInsufficient
+
+  if (isInsufficient) {
+    if (!hasEmittedInsufficient) {
+      hasEmittedInsufficient = true
+      nextTick(() => {
+        emit('contentInsufficient', {
+          vertical: verticalInsufficient,
+          horizontal: horizontalInsufficient,
+        })
+      })
+    }
+  }
+  else {
+    // 内容变为充足时，重置标志，允许下次内容不足时再次触发
+    hasEmittedInsufficient = false
+  }
 }
 
 watch(
@@ -226,8 +267,26 @@ onMounted(() => {
       update()
     })
   }
+  // 监听内容 DOM 变化（即使尺寸不变也重置触发状态）
+  ;({ stop: stopContentMutationObserver } = useMutationObserver(
+    resizeRef,
+    () => {
+      // 内容发生结构变化，允许再次触发 contentInsufficient
+      hasEmittedInsufficient = false
+      checkContentInsufficient()
+    },
+    { childList: true, subtree: true },
+  ))
 })
-onUpdated(() => update())
+onUpdated(() => {
+  nextTick(() => {
+    update()
+  })
+})
+
+onBeforeUnmount(() => {
+  stopContentMutationObserver?.()
+})
 
 function scrollToBottom (options?: ScrollToOptions) {
   if (!wrapRef.value) { return }
@@ -293,7 +352,10 @@ defineExpose({
     </div>
     <template v-if="!native">
       <VkAsyncTeleport :disabled="!appendTo" :to="appendTo">
-        <Bar ref="barRef" :always="always" :min-size="minSize" />
+        <Bar
+          ref="barRef" :always="always" :min-size="minSize"
+          :hide-after="hideAfter"
+        />
       </VkAsyncTeleport>
     </template>
   </div>

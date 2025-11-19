@@ -11,6 +11,11 @@ export const thumbProps = {
     required: true as const,
   },
   always: Boolean,
+
+  hideAfter: {
+    type: Number,
+    default: 0,
+  },
 }
 export type ThumbProps = ExtractPropTypes<typeof thumbProps>
 

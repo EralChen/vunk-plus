@@ -11,6 +11,10 @@ export const barProps = {
     type: Number,
     required: true as const,
   },
+  hideAfter: {
+    type: Number,
+    default: 0,
+  },
 }
 export type BarProps = ExtractPropTypes<typeof barProps>
 

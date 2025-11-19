@@ -11,6 +11,7 @@ import { VkDuplexCalc } from '@vunk/core/components/duplex-calc'
 
     <VkScrollbar
       append-to=".demo-scrollbar-basic > .vk-duplex-calc-two"
+      :hide-after="400"
     >
       <ul>
         <li v-for="i in 50" :key="i">

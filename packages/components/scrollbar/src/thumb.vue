@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { isClient, useEventListener } from '@vueuse/core'
+import { sleep } from '@vunk/shared/promise'
 import { BAR_MAP, renderThumbStyle, scrollbarContextKey, useNamespace } from 'element-plus'
-
 import { computed, inject, onBeforeUnmount, ref, toRef } from 'vue'
 import { thumbProps } from './thumb'
 
@@ -57,7 +57,7 @@ function clickThumbHandler (e: MouseEvent) {
     return
   thumbState.value[bar.value.axis]
     = el[bar.value.offset]
-      - (e[bar.value.client] - el.getBoundingClientRect()[bar.value.direction])
+    - (e[bar.value.client] - el.getBoundingClientRect()[bar.value.direction])
 }
 
 function clickTrackHandler (e: MouseEvent) {
@@ -71,11 +71,11 @@ function clickTrackHandler (e: MouseEvent) {
   const thumbHalf = thumb.value[bar.value.offset] / 2
   const thumbPositionPercentage
     = ((offset - thumbHalf) * 100 * offsetRatio.value)
-      / instance.value[bar.value.offset]
+    / instance.value[bar.value.offset]
 
   scrollbar.wrapElement[bar.value.scroll]
     = (thumbPositionPercentage * scrollbar.wrapElement[bar.value.scrollSize])
-      / 100
+    / 100
 }
 
 function startDrag (e: MouseEvent) {
@@ -106,7 +106,7 @@ function mouseMoveDocumentHandler (e: MouseEvent) {
   const thumbClickPosition = thumb.value[bar.value.offset] - prevPage
   const thumbPositionPercentage
     = ((offset - thumbClickPosition) * 100 * offsetRatio.value)
-      / instance.value[bar.value.offset]
+    / instance.value[bar.value.offset]
 
   if (bar.value.scroll === 'scrollLeft') {
     scrollbar.wrapElement[bar.value.scroll]
@@ -124,8 +124,9 @@ function mouseUpDocumentHandler () {
   document.removeEventListener('mousemove', mouseMoveDocumentHandler)
   document.removeEventListener('mouseup', mouseUpDocumentHandler)
   restoreOnselectstart()
-  if (cursorLeave)
-    visible.value = false
+
+  const hidden = () => cursorLeave && (visible.value = false)
+  sleep(props.hideAfter).then(hidden)
 }
 
 function mouseMoveScrollbarHandler () {
@@ -135,7 +136,16 @@ function mouseMoveScrollbarHandler () {
 
 function mouseLeaveScrollbarHandler () {
   cursorLeave = true
-  visible.value = cursorDown
+
+  if (cursorDown) {
+    visible.value = true
+  }
+  else {
+    sleep(props.hideAfter).then(() => {
+      if (cursorLeave)
+        visible.value = false
+    })
+  }
 }
 
 onBeforeUnmount(() => {
@@ -167,6 +177,8 @@ useEventListener(
       ref="instance"
       :class="[ns.e('bar'), ns.is(bar.key)]"
       @mousedown="clickTrackHandler"
+      @mousemove="mouseMoveScrollbarHandler"
+      @mouseleave="mouseLeaveScrollbarHandler"
       @click.stop
     >
       <div

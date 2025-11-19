@@ -51,12 +51,16 @@ defineExpose({
 </script>
 
 <template>
-  <Thumb :move="moveX" :ratio="ratioX" :size="sizeWidth" :always="always" />
+  <Thumb
+    :move="moveX" :ratio="ratioX" :size="sizeWidth" :always="always"
+    :hide-after="hideAfter"
+  />
   <Thumb
     :move="moveY"
     :ratio="ratioY"
     :size="sizeHeight"
     vertical
     :always="always"
+    :hide-after="hideAfter"
   />
 </template>
