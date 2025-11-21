@@ -16,8 +16,9 @@ const external = [
   'vditor',
   'ant-design-vue',
   'ant-design-x-vue',
-  // 'vue-element-plus-x',
+  'vue-element-plus-x',
   /^recorder-core/,
+  'xgplayer',
   'xgplayer-flv',
 ]
 
