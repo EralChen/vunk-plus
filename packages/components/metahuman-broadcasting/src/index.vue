@@ -91,17 +91,8 @@ function onProgress (processed: number, total: number) {
     frameStatus.value = TickerStatus.play
   }
 }
-function onFrame (frame: ImageBitmap, index) {
+function onFrame (frame: ImageBitmap) {
   frames.value.push(frame)
-}
-
-function changeFrameStatus (status: TickerStatus) {
-  if (status === TickerStatus.playing) {
-    slientFrameStatus.value = TickerStatus.pause
-  }
-  if (status === TickerStatus.stopped) {
-    slientFrameStatus.value = TickerStatus.play
-  }
 }
 </script>
 
@@ -122,7 +113,6 @@ function changeFrameStatus (status: TickerStatus) {
     v-model:status="frameStatus"
     :data="frames"
     @set-data="setData(frames, $event)"
-    @update:status="changeFrameStatus"
   ></VkPixiFrameBitmap>
 
   <VkPixiFrameBitmapGenerator

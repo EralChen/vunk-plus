@@ -35,8 +35,8 @@ function updateTextureFromBitmap (bitmap: ImageBitmap) {
     resource: bitmap,
   })
   texture.source = source
-  resizeSprite()
   texture.update()
+  resizeSprite()
 }
 
 emit('load', {
@@ -73,16 +73,18 @@ function play () {
 }
 // 停止动画
 function pause () {
+  application.ticker.remove(drawFrame)
   emit('update:status', TickerStatus.paused)
 }
 
 function stop () {
-  emit('update:status', TickerStatus.stopped)
   application.ticker.remove(drawFrame)
+  emit('update:status', TickerStatus.stopped)
 }
 
 onBeforeUnmount(() => {
-
+  stop()
+  texture.destroy()
 })
 </script>
 
