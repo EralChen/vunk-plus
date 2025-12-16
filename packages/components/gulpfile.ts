@@ -20,6 +20,7 @@ const external = [
   /^recorder-core/,
   'xgplayer',
   'xgplayer-flv',
+  'onnxruntime-web',
 ]
 
 const filePaths = sync(buildFile, {
