@@ -1,15 +1,17 @@
 import type { OnCreateAppSync } from 'vike-vue/types'
-import { workerConfig } from '@vunk-plus/shared/audioToFrames'
 import { VkClientOnly } from '@vunk/core/components/client-only'
 import ElmentPlus, { ID_INJECTION_KEY } from 'element-plus'
-import { env } from 'onnxruntime-web'
+import { env as ortEnt } from 'onnxruntime-web'
+import { env } from 'sophontalk-services'
 
 import 'uno.css'
 import '#/src/styles'
 import '#/api/init'
 
-env.wasm.wasmPaths = `${import.meta.env.VITE_BASE_URL}/sophontalk`
-workerConfig.path = `${import.meta.env.VITE_BASE_URL}/sophontalk`
+ortEnt.wasm.wasmPaths = `${import.meta.env.VITE_BASE_URL}/sophontalk/`
+env.workersPath = `${import.meta.env.VITE_BASE_URL}/sophontalk`
+env.jsonUrl = `${import.meta.env.VITE_BASE_URL}/sophontalk/complete_dataset.json`
+env.zipUrl = `${import.meta.env.VITE_BASE_URL}/sophontalk/processed_images.zip`
 
 export const onCreateApp: OnCreateAppSync = (pageContext) => {
   const { app } = pageContext

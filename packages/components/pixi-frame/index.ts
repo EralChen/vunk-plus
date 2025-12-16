@@ -1,5 +1,6 @@
 import type { App } from 'vue'
 import VkPixiFrameApng from './src/apng.vue'
+import VkPixiFrameBitmapGenerator from './src/bitmap-generator.vue'
 import VkPixiFrameBitmap from './src/bitmap.vue'
 import VkPixiFrameCore from './src/core.vue'
 import VkPixiFrame from './src/index.vue'
@@ -8,6 +9,8 @@ import VkPixiFrameVideo from './src/video.vue'
 import VkPixiFrameView from './src/view.vue'
 
 export * as __VkPixiFrame from './src/types'
+export { usePixiApp } from './src/use'
+export { useSprite } from './src/useSprite'
 export { TickerStatus } from '@vunk/shared/enum'
 
 VkPixiFrame.install = (app: App): void => {
@@ -17,6 +20,7 @@ export {
   VkPixiFrame,
   VkPixiFrameApng,
   VkPixiFrameBitmap,
+  VkPixiFrameBitmapGenerator,
   VkPixiFrameCore,
   VkPixiFrameProvider,
   VkPixiFrameVideo,

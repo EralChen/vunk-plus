@@ -1,6 +1,5 @@
 <script lang="ts">
 import type { Paragraph } from './types'
-import { VkTypingMarkdown } from '@vunk-plus/components/typing-markdown'
 import { setData } from '@vunk/core'
 import { useDataComputed } from '@vunk/core/composables'
 import { blobToDataURL } from '@vunk/shared/data/blob'
@@ -15,7 +14,6 @@ export default defineComponent({
   name: 'VkBroadcastingMarkdown',
   components: {
     ParagraphView,
-    VkTypingMarkdown,
     HowlerSpeechView,
   },
   props,
@@ -27,8 +25,8 @@ export default defineComponent({
     }, props, emit)
 
     const addParagraph = (paragraph: Paragraph) => {
-      const k = theData.value.length
-      if (k === 0) {
+      const k = theData.value.length // 新增段落的索引
+      if (k === 0) { // 第一个段落
         paragraph.broadcast = props.status
       }
       handleSetData({
@@ -41,11 +39,11 @@ export default defineComponent({
       if (!props.textToSpeech) {
         return
       }
-      if (props.separators.includes(paragraph.value)) {
+      const value = props.render(paragraph.value)
+      if (props.separators.includes(value)) {
         return
       }
 
-      const value = props.render(paragraph.value)
       if (!value) {
         return
       }
@@ -248,10 +246,11 @@ export default defineComponent({
 
 <template>
   <slot :paragraphs="theData">
-    <VkTypingMarkdown
-      :source="fulfilledTextValue"
-      :pause="status === TickerStatus.stopped"
-    ></VkTypingMarkdown>
+    <ElButton
+      @click="() => console.log(theData)"
+    >
+      paragraphs
+    </ElButton>
   </slot>
 
   <ParagraphView

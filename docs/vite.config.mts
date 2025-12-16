@@ -53,7 +53,6 @@ export default defineConfig(async ({ mode }) => {
     resolve: {
       alias,
     },
-
     server: {
       port: 9995,
 
@@ -112,7 +111,7 @@ export default defineConfig(async ({ mode }) => {
         ],
       }),
 
-      Icons(),
+      Icons()
       
     ],
     // We manually add a list of dependencies to be pre-bundled, in order to avoid a page reload at dev start which breaks vike's CI
@@ -127,14 +126,6 @@ export default defineConfig(async ({ mode }) => {
         },
       },
 
-    },
-
-    css: { // https://www.cnblogs.com/crispyChicken/p/18420010
-      preprocessorOptions: {
-        scss: {
-          api: 'modern',
-        },
-      },
     },
   }
   return config

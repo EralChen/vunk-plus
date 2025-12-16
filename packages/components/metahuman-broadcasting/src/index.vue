@@ -1,15 +1,14 @@
 <script lang="ts" setup>
 import type { __VkBroadcastingMarkdown } from '@vunk-plus/components/broadcasting-markdown'
-import type { ImageDataResponse } from '@vunk-plus/shared/audioToFrames'
-import type JSZip from 'jszip'
 import type { Ref } from 'vue'
 import { VkBroadcastingMarkdown } from '@vunk-plus/components/broadcasting-markdown'
-import { VkPixiFrameBitmap, VkPixiFrameCore } from '@vunk-plus/components/pixi-frame'
-import { blobToAudioBuffer, getStremingStartData, processStreaming, StreamingInferenceService } from '@vunk-plus/shared/audioToFrames'
-import { useDeferred, useModelComputed } from '@vunk/core/composables'
+import { VkPixiFrameBitmap, VkPixiFrameBitmapGenerator } from '@vunk-plus/components/pixi-frame'
+import { blobToAudioBuffer } from '@vunk-plus/shared/data'
+import { useModelComputed } from '@vunk/core/composables'
 import { setData } from '@vunk/core/shared'
 import { TickerStatus } from '@vunk/shared/enum'
-import { onMounted, ref, shallowReactive } from 'vue'
+import { FeatureExtractor, InferenceEngine, loadDataset } from 'sophontalk-services'
+import { onMounted, ref } from 'vue'
 import { props as dProps, emits } from './ctx'
 
 defineOptions({
@@ -20,64 +19,47 @@ defineOptions({
 const props = defineProps(dProps)
 const emit = defineEmits(emits)
 const paragraphData = ref([]) as Ref<__VkBroadcastingMarkdown.Paragraph[]>
-
-const streamingInferenceService = new StreamingInferenceService(props.modelUrl)
-
-const frameUrls = ref<ImageBitmap[]>([])
-const silentFrameUrls = shallowReactive<string[]>([]) // 预加载的静默帧
-
-const startedDef = useDeferred()
+const extractor = new FeatureExtractor()
+const engine = new InferenceEngine({
+  onFrame,
+  onError (error) {
+    console.error('Inference engine error:', error)
+  },
+  onProgress,
+})
+const silentFrameGenerator = engine.createSilentFrameGenerator()
+const slientFrameStatus = ref(TickerStatus.pending)
+const frames = ref([]) as Ref<ImageBitmap[]>
 
 const frameStatus = useModelComputed({
   default: TickerStatus.pending,
   key: 'status',
 }, props, emit)
 
-const slientFrameStatus = ref(TickerStatus.pending)
-
 onMounted(async () => {
-  await streamingInferenceService.when()
-  const { blendingMaskBitmap, dataset, zipBlob, zip } = await getStremingStartData({
-    datasetUrl: props.datasetUrl,
-    sourceUrl: props.sourceUrl,
+  const { dataset, zipBuffer } = await loadDataset({
+    jsonUrl: props.datasetUrl,
+    zipUrl: props.sourceUrl,
   })
-
-  loadAllSilentFrames(dataset, zip)
-
-  await streamingInferenceService.startStreaming({
-    blendingMaskBitmap,
+  engine.init({
+    modelPath: props.modelUrl,
     dataset,
-    zipBlob,
-  }, {
-    onFrame (frame) {
-      frameUrls.value.push(frame)
-    },
-    onProgress (processed, total) {
-      if (total < props.playAfterCache && processed === total || processed === props.playAfterCache) {
-        frameStatus.value = TickerStatus.play
-      }
-    },
+    zipBuffer,
   })
-
-  startedDef.resolve()
+  await engine.when()
+  slientFrameStatus.value = TickerStatus.play
 })
 
-async function requestProcessStreaming (
+async function engineRun (
   buffer: AudioBuffer,
 ) {
-  await streamingInferenceService.when()
-  await startedDef.promise
-
-  try {
-    await processStreaming(buffer, {
-      onChunkComplete (result) {
-        streamingInferenceService.addChunk(result)
-      },
-    })
-  }
-  catch (error) {
-    console.error('音频处理错误:', error)
-  }
+  const { dimensions, features } = await extractor.process(buffer)
+  await engine.when()
+  engine.run({
+    audioFeatures: features,
+    audioDimensions: dimensions,
+    reset: false,
+  })
 }
 async function processingParagraph (
   item: __VkBroadcastingMarkdown.Paragraph,
@@ -88,41 +70,38 @@ async function processingParagraph (
 
   try {
     const audioBuffer = await blobToAudioBuffer(item.blob)
-    await requestProcessStreaming(audioBuffer)
+    await engineRun(audioBuffer)
   }
   catch (error) {
     console.error('Error processing paragraph:', error)
   }
 }
-
 function allParagraphCompleted () {
   if (paragraphData.value.length) {
     frameStatus.value = TickerStatus.stop
-    frameUrls.value.length = 0
+    frames.value.length = 0
   }
 }
 
-const ready = ref(false)
-
-async function loadAllSilentFrames (
-  dataset: ImageDataResponse,
-  zip: JSZip,
-) {
-  // 加载所有图片作为静默帧（默认不说话状态）
-  for (const image of dataset.images) {
-    const imageFile = zip.file(image.full_image)
-    if (imageFile) {
-      const blob = await imageFile.async('blob')
-      const url = URL.createObjectURL(blob)
-
-      silentFrameUrls.push(url)
-    }
-
-    if (slientFrameStatus.value === TickerStatus.pending) {
-      slientFrameStatus.value = TickerStatus.play
-    }
+function onProgress (processed: number, total: number) {
+  if (
+    total < props.playAfterCache && processed === total
+    || processed === props.playAfterCache
+  ) {
+    frameStatus.value = TickerStatus.play
   }
-  ready.value = true
+}
+function onFrame (frame: ImageBitmap, index) {
+  frames.value.push(frame)
+}
+
+function changeFrameStatus (status: TickerStatus) {
+  if (status === TickerStatus.playing) {
+    slientFrameStatus.value = TickerStatus.pause
+  }
+  if (status === TickerStatus.stopped) {
+    slientFrameStatus.value = TickerStatus.play
+  }
 }
 </script>
 
@@ -141,16 +120,15 @@ async function loadAllSilentFrames (
 
   <VkPixiFrameBitmap
     v-model:status="frameStatus"
-    :data="frameUrls"
-    @set-data="setData(frameUrls, $event)"
+    :data="frames"
+    @set-data="setData(frames, $event)"
+    @update:status="changeFrameStatus"
   ></VkPixiFrameBitmap>
 
-  <VkPixiFrameCore
-    v-if="ready"
+  <VkPixiFrameBitmapGenerator
     v-model:status="slientFrameStatus"
-    :data="silentFrameUrls"
-    :loop="true"
-    :prerender="true"
+    :generator="silentFrameGenerator"
     :visible="frameStatus !== TickerStatus.playing"
-  ></VkPixiFrameCore>
+  >
+  </VkPixiFrameBitmapGenerator>
 </template>
