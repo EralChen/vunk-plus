@@ -21,6 +21,7 @@ const external = [
   'xgplayer',
   'xgplayer-flv',
   'onnxruntime-web',
+  'sophontalk-services',
 ]
 
 const filePaths = sync(buildFile, {
