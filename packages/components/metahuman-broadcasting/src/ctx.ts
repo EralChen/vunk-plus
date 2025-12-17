@@ -58,6 +58,11 @@ export const props = {
     type: Number,
     default: 100,
   },
+
+  disabled: {
+    type: Boolean,
+    default: false,
+  },
 }
 
 export const emits = {

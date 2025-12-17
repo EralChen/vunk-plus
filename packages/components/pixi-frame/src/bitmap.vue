@@ -6,7 +6,7 @@ import { TickerStatus } from '@vunk/shared/enum'
 import { pickObject } from '@vunk/shared/object'
 import { sleep } from '@vunk/shared/promise'
 import { ImageSource, Texture } from 'pixi.js'
-import { computed, nextTick, onBeforeUnmount, ref, useId, watch, watchEffect } from 'vue'
+import { onBeforeUnmount, ref, watch, watchEffect } from 'vue'
 import { props as dProps, emits } from './ctx'
 import { useSprite } from './useSprite'
 
@@ -28,51 +28,29 @@ const emit = defineEmits({
   'update:frameIndex': null,
   'notFound': (_index: number) => true,
 })
-const compId = useId()
-const getAlias = (key: string | number) => `${compId}-${key}`
+
 // 创建精灵并将其添加到舞台
 const { sprite, resizeSprite, application } = useSprite(props)
 
-const textureMap = new Map<string, Texture>()
-const completedIndex = ref(0)
-const enabledData = computed(() => {
-  return props.data.slice(completedIndex.value)
+/**
+ * 单个动态纹理：仅更新 source，不再为每帧创建 Texture
+ * 参考 bitmap-generator.vue
+ */
+const texture = new Texture({
+  dynamic: true,
 })
+sprite.texture = texture
 
-watchEffect(() => {
-  for (const key in enabledData.value) {
-    const theKey = +key + completedIndex.value
-    const alias = `${compId}-${theKey}`
-    const image = enabledData.value[key]
-
-    if (!image) {
-      continue
-    }
-
-    if (textureMap.has(alias)) {
-      continue
-    }
-
-    const source = new ImageSource({
-      resource: image,
-    })
-
-    const texture = new Texture({
-      source,
-    })
-
-    textureMap.set(alias, undefined as never)
-
-    nextTick(() => {
-      (texture as any)._meta = enabledData.value[key]
-      textureMap.set(alias, texture)
-      if (props.prerender && theKey === 0) {
-        sprite.texture = texture
-        resizeSprite()
-      }
-    })
-  }
-})
+function updateTextureFromBitmap (bitmap: ImageBitmap) {
+  // 释放上一帧的 source，避免累计占用
+  texture.source?.destroy()
+  const source = new ImageSource({
+    resource: bitmap,
+  })
+  texture.source = source
+  texture.update()
+  resizeSprite()
+}
 
 emit('load', {
   application,
@@ -84,6 +62,27 @@ const index = useModelComputed({
   key: 'frameIndex',
 }, props, emit)
 
+/**
+ * 避免重复清理同一帧（暂停/继续时可能重复触发）
+ */
+const lastScheduledClearIndex = ref(-1)
+
+function scheduleClearFrame (frameIndex: number) {
+  if (frameIndex <= lastScheduledClearIndex.value)
+    return
+
+  lastScheduledClearIndex.value = frameIndex
+
+  Promise
+    .resolve(sleep(500))
+    .then(() => {
+      emit('setData', {
+        k: frameIndex,
+        v: null,
+      })
+    })
+}
+
 function drawFrame () {
   if (
     props.data.length === 0
@@ -92,47 +91,36 @@ function drawFrame () {
     return
   }
 
-  const currentTexture = textureMap.get(
-    getAlias(index.value),
-  )
-
-  if (currentTexture) {
-    /* 清理上一帧 */
-    const originTexture = sprite.texture
+  const bitmap = props.data[index.value]
+  if (bitmap) {
     const originIndex = index.value - 1
-    if (
-      originTexture && originIndex >= 0
-    ) {
-      Promise
-        .resolve(sleep(500))
-        .then(() => {
-          originTexture.destroy(true)
-          textureMap.set(
-            getAlias(originIndex),
-            undefined as never,
-          )
-          emit('setData', {
-            k: originIndex,
-            v: null,
-          })
-          completedIndex.value = originIndex
-        })
+    if (originIndex >= 0) {
+      scheduleClearFrame(originIndex)
     }
-    /* 清理上一帧 END */
 
-    sprite.texture = currentTexture
-
-    resizeSprite()
+    updateTextureFromBitmap(bitmap)
 
     index.value = index.value + 1 // 非循环播放
   }
   else {
     console.warn(
-      `Texture for index ${index.value} not found. Ensure the texture is loaded.`,
+      `Bitmap for index ${index.value} not found. Ensure the data is loaded.`,
     )
     emit('notFound', index.value)
   }
 }
+
+watchEffect(() => {
+  // 预渲染第一帧（仅在有资源时）
+  if (
+    props.prerender
+    && index.value === 0
+    && props.data.length > 0
+    && props.data[0]
+  ) {
+    updateTextureFromBitmap(props.data[0])
+  }
+})
 
 watch(() => props.status, (newStatus) => {
   newStatus === TickerStatus.play && play()
@@ -153,27 +141,24 @@ function play () {
     emit('update:status', TickerStatus.stopped)
   }
 }
-// 停止动画
+
+// 暂停动画
 function pause () {
+  application.ticker.remove(drawFrame)
   emit('update:status', TickerStatus.paused)
 }
 
 function stop () {
-  emit('update:status', TickerStatus.stopped)
   application.ticker.remove(drawFrame)
+  emit('update:status', TickerStatus.stopped)
   emit('update:data', [])
-  textureMap.clear()
   index.value = 0
+  lastScheduledClearIndex.value = -1
 }
 
 onBeforeUnmount(() => {
-  const entries = Array.from(textureMap.entries())
-  entries.forEach(([_, texture]) => {
-    if (texture) {
-      texture.destroy(true)
-    }
-  })
   stop()
+  texture.destroy()
 })
 </script>
 

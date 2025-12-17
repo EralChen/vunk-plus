@@ -50,17 +50,6 @@ onMounted(async () => {
   slientFrameStatus.value = TickerStatus.play
 })
 
-async function engineRun (
-  buffer: AudioBuffer,
-) {
-  const { dimensions, features } = await extractor.process(buffer)
-  await engine.when()
-  engine.run({
-    audioFeatures: features,
-    audioDimensions: dimensions,
-    reset: false,
-  })
-}
 async function processingParagraph (
   item: __VkBroadcastingMarkdown.Paragraph,
 ) {
@@ -70,7 +59,13 @@ async function processingParagraph (
 
   try {
     const audioBuffer = await blobToAudioBuffer(item.blob)
-    await engineRun(audioBuffer)
+    const { dimensions, features } = await extractor.process(audioBuffer)
+    await engine.when()
+    engine.run({
+      audioFeatures: features,
+      audioDimensions: dimensions,
+      reset: false,
+    })
   }
   catch (error) {
     console.error('Error processing paragraph:', error)
@@ -104,9 +99,13 @@ function onFrame (frame: ImageBitmap) {
     :text-to-speech="textToSpeech"
     :source="source"
     :processing="processingParagraph"
+    :disabled="disabled"
     @set-data="setData(paragraphData, $event)"
     @complete="allParagraphCompleted"
   >
+    <template #default="{ paragraphs }">
+      <slot :paragraphs="paragraphs"></slot>
+    </template>
   </VkBroadcastingMarkdown>
 
   <VkPixiFrameBitmap

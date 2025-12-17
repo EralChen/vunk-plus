@@ -83,6 +83,14 @@ export const props = {
     default: 20,
   },
 
+  /**
+   * @description 禁用, 即不产出段落
+   */
+  disabled: {
+    type: Boolean,
+    default: false,
+  },
+
 }
 
 export const emits = {

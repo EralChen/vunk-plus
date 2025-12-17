@@ -1,5 +1,6 @@
 <script lang="ts">
 import type { Paragraph } from './types'
+import { VkTypingMarkdown } from '@vunk-plus/components/typing-markdown'
 import { setData } from '@vunk/core'
 import { useDataComputed } from '@vunk/core/composables'
 import { blobToDataURL } from '@vunk/shared/data/blob'
@@ -15,6 +16,7 @@ export default defineComponent({
   components: {
     ParagraphView,
     HowlerSpeechView,
+    VkTypingMarkdown,
   },
   props,
   emits,
@@ -73,6 +75,9 @@ export default defineComponent({
       return props.source.substring(0, currentIndex.value)
     })
     const fulfilledTextValue = computed(() => {
+      if (props.disabled) {
+        return props.source
+      }
       return theData.value
         .filter(
           item => item.status === ParagraphStatus.fulfilled
@@ -89,6 +94,9 @@ export default defineComponent({
 
     // 如果未完成触发 写入
     watch(isFinished, (val) => {
+      if (props.disabled) {
+        return
+      }
       !val && write()
     }, { immediate: true })
 
@@ -208,7 +216,9 @@ export default defineComponent({
     watch(() => props.status, () => {
       if (props.status === TickerStatus.stop) {
         theData.value.forEach((item) => {
-          item.broadcast = Broadcast.stop
+          if (item.broadcast !== TickerStatus.stopped) {
+            item.broadcast = Broadcast.stop
+          }
         })
       }
       if (!currentPragraph.value) {
@@ -246,11 +256,9 @@ export default defineComponent({
 
 <template>
   <slot :paragraphs="theData">
-    <ElButton
-      @click="() => console.log(theData)"
-    >
-      paragraphs
-    </ElButton>
+    <VkTypingMarkdown
+      :source="fulfilledTextValue"
+    ></VkTypingMarkdown>
   </slot>
 
   <ParagraphView
@@ -271,7 +279,6 @@ export default defineComponent({
           :source="item.url"
           @update:status="(e) => {
             handleParagraphStatus(item, e);
-
             e === TickerStatus.stopped && deferred.resolve(true);
             index === theData.length - 1 && e === TickerStatus.stopped && $emit('complete')
           }"
