@@ -22,6 +22,7 @@ const external = [
   'xgplayer-flv',
   'onnxruntime-web',
   'sophontalk-services',
+  'pixi.js'
 ]
 
 const filePaths = sync(buildFile, {
