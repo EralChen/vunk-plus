@@ -1,10 +1,10 @@
 import type { SSEOutput } from 'ant-design-x-vue'
-import type { AgentChatContext, AgentMessage, BubbleItem, BubbleMessage, Parser, Request, RequestParams } from './types'
+import type { AgentChatContext, AgentMessage, BubbleItem, BubbleMessage, formatSend, Parser, Request, RequestParams } from './types'
 import { useXAgent, useXChat } from 'ant-design-x-vue'
 import { computed, inject, provide } from 'vue'
 
 import { ChatAgentInjectKey } from './const'
-import { Role, roleMap } from './const-roles'
+import { roleMap } from './const-roles'
 
 export function useAgent (request: Request): ReturnType<typeof useXAgent<
   AgentMessage,
@@ -19,6 +19,7 @@ export function useAgent (request: Request): ReturnType<typeof useXAgent<
 export function initAgentChat (
   request: Request,
   parser: Parser,
+  formatSend: formatSend,
 ): AgentChatContext {
   const [agent] = useAgent(request)
   const chat = useXChat<AgentMessage, BubbleMessage>({
@@ -29,10 +30,8 @@ export function initAgentChat (
   })
 
   const onRequest = (message: string) => {
-    chat.onRequest({
-      role: Role.User,
-      content: message,
-    })
+    const userMessage = formatSend(message)
+    chat.onRequest(userMessage)
   }
   const items = computed(() => {
     return chat.parsedMessages.value.map((item) => {

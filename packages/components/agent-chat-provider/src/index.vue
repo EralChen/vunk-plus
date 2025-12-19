@@ -1,7 +1,7 @@
 <script lang="ts">
 import type { AnyFunc, NormalObject } from '@vunk/shared'
 import type { PropType } from 'vue'
-import type { AgentMessage, Parser, Request, RequestOutput } from './types'
+import type { AgentMessage, formatSend, Parser, Request, RequestOutput } from './types'
 import { defineComponent } from 'vue'
 import { agentRequest } from './api'
 import { Role } from './const-roles'
@@ -14,6 +14,9 @@ export default defineComponent({
       type: Function as PropType<AnyFunc>,
     },
     parser: {
+      type: Function as PropType<AnyFunc>,
+    },
+    formatSend: {
       type: Function as PropType<AnyFunc>,
     },
   },
@@ -104,9 +107,17 @@ export default defineComponent({
       return list
     }
 
+    const formatSend: formatSend = (message: string) => {
+      return {
+        role: Role.User,
+        content: message,
+      }
+    }
+
     const agentChat = initAgentChat(
       props.request ?? request,
       props.parser ?? parser,
+      props.formatSend ?? formatSend,
     )
 
     emit('load', agentChat)

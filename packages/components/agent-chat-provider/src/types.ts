@@ -29,6 +29,8 @@ export type Request = RequestFn<
 
 export type Parser = (message: Partial<AgentMessage>) => MaybeArray<BubbleMessage>
 
+export type formatSend = (message: string) => AgentMessage
+
 export type RequestOutput = AgentMessage & SSEOutput
 
 /**
