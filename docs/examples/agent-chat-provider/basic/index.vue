@@ -2,8 +2,8 @@
 import type { __VkAgentChatProvider } from '@vunk-plus/components/agent-chat-provider'
 import type { NormalObject } from '@vunk/shared'
 import { MessageViewManager, VkAgentChatProvider } from '@vunk-plus/components/agent-chat-provider'
-import { treeToTokens, VkRendererTemplate, VkRendererTemplates, VkTemplatesDefault } from '@vunk/markdown'
-import { Thinking } from 'vue-element-plus-x'
+import { Thinking } from '@vunk-plus/element/thinking'
+import { VkRendererTemplate, VkRendererTemplates, VkTemplatesDefault } from '@vunk/markdown'
 import { agentRequest } from './api'
 import View from './view.vue'
 

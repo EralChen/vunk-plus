@@ -1,0 +1,154 @@
+.el-bubble {
+  display: flex;
+  gap: var(--el-bubble-avatar-placeholder-gap);
+}
+
+.el-bubble-avatar-size {
+  :deep(.el-avatar) {
+    width: var(--el-bubble-avatar-placeholder-width);
+    height: var(--el-bubble-avatar-placeholder-height);
+  }
+}
+
+.el-bubble-avatar-placeholder {
+  width: var(--el-bubble-avatar-placeholder-width);
+  height: var(--el-bubble-avatar-placeholder-height);
+}
+
+.el-bubble-start {
+  .el-bubble-content-wrapper {
+    .el-bubble-content-corner {
+      border-start-start-radius: calc(var(--el-border-radius-base) - 2px);
+    }
+  }
+}
+
+.el-bubble-end {
+  justify-content: end;
+  flex-direction: row-reverse;
+
+  .el-bubble-content-wrapper {
+    align-items: flex-end;
+
+    .el-bubble-content-corner {
+      border-start-end-radius: calc(var(--el-border-radius-base) - 2px);
+    }
+  }
+}
+
+.el-bubble-no-style {
+  .el-bubble-content-wrapper {
+    .el-bubble-content {
+      background-color: transparent;
+      padding: 0;
+    }
+  }
+}
+
+.el-bubble-content-wrapper {
+  flex: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-width: 0;
+  max-width: 100%;
+
+  .el-bubble-header,
+  .el-bubble-content,
+  .el-bubble-footer {
+    font-size: var(--el-font-size-base);
+    color: var(--el-text-color-primary);
+    line-height: var(--el-font-line-height-primary);
+  }
+
+  .el-bubble-content {
+    background-color: var(--el-fill-color);
+    padding: var(--el-padding-sm, 12px) calc(var(--el-padding-sm, 12px) + 4px);
+    border-radius: calc(var(--el-border-radius-base) + 4px);
+    position: relative;
+    box-sizing: border-box;
+    min-width: 0;
+    max-width: var(--bubble-content-max-width);
+    color: var(--el-text-color-primary);
+    font-size: var(--el-font-size-base);
+    line-height: var(--el-font-line-height-primary);
+    min-height: calc(var(--el-padding-sm, 12px) * 2 + var(--el-font-line-height-primary) * var(--el-font-size-base));
+    word-break: break-word;
+
+    // 打字器没有内容时候展示高度
+    .no-content {
+      // height: 16px;
+      height: 0;
+    }
+  }
+
+  // 气泡圆角
+  .el-bubble-content-round {
+    border-radius: var(--el-border-radius-round);
+  }
+
+  // 气泡样式
+  .el-bubble-content-filled {
+    background-color: var(--el-fill-color);
+  }
+
+  .el-bubble-content-borderless {
+    background-color: var(--el-fill-color);
+    border: var(--el-border-width) solid var(--el-border-color);
+  }
+
+  .el-bubble-content-outlined {
+    background: none;
+    border: var(--el-border-width) solid var(--el-border-color);
+  }
+
+  .el-bubble-content-shadow {
+    background: none;
+    // box-shadow: var(--el-box-shadow-tertiary);
+    box-shadow: var(--el-box-shadow);
+  }
+
+  .el-bubble-content-loading {
+    width: fit-content;
+
+    .el-bubble-loading-wrap {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .dot {
+      will-change: transform;
+      width: 5px;
+      height: 5px;
+      background-color: var(--el-color-primary);
+      border-radius: 50%;
+      animation: wave 1s infinite ease-in-out;
+    }
+
+    .dot-2 {
+      animation-delay: 0.2s;
+    }
+
+    .dot-3 {
+      animation-delay: 0.4s;
+    }
+
+    /* 波浪动画 */
+    @keyframes wave {
+      0%,
+      100% {
+        transform: translateY(-2px);
+      }
+
+      50% {
+        transform: translateY(2px);
+      }
+    }
+  }
+
+  .el-bubble-footer {
+    margin-top: var(--el-padding-sm, 12px);
+  }
+}

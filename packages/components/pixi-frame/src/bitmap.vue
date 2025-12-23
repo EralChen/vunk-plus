@@ -83,31 +83,79 @@ function scheduleClearFrame (frameIndex: number) {
     })
 }
 
-function drawFrame () {
-  if (
-    props.data.length === 0
-    || props.status !== TickerStatus.playing
-  ) {
-    return
-  }
+let animationId: number | null = null
+let lastFrameTime = 0
+let frameCount = 0
+let lastFpsUpdateTime = 0
 
-  const bitmap = props.data[index.value]
-  if (bitmap) {
-    const originIndex = index.value - 1
-    if (originIndex >= 0) {
-      scheduleClearFrame(originIndex)
+function startFrameLoop () {
+  if (animationId !== null)
+    return // 防止重复启动
+
+  lastFrameTime = performance.now()
+  lastFpsUpdateTime = lastFrameTime
+  frameCount = 0
+
+  function renderFrame () {
+    const now = performance.now()
+    const frameDuration = 1000 / props.frameRate
+    const delta = now - lastFrameTime
+
+    if (delta >= frameDuration) {
+      lastFrameTime = now - (delta % frameDuration) // 修正误差抖动
+
+      // 执行绘制逻辑
+      drawFrame()
+
+      // 统计 FPS
+      frameCount++
+      const elapsed = now - lastFpsUpdateTime
+      if (elapsed >= 1000) {
+        const currentFps = Math.round((frameCount * 1000) / elapsed)
+        console.log(`[Bitmap] FPS: ${currentFps}`)
+        frameCount = 0
+        lastFpsUpdateTime = now
+      }
     }
 
-    updateTextureFromBitmap(bitmap)
+    // 只有在播放状态下才继续请求下一帧
+    if (props.status === TickerStatus.playing) {
+      animationId = requestAnimationFrame(renderFrame)
+    }
+    else {
+      animationId = null
+    }
+  }
 
-    index.value = index.value + 1 // 非循环播放
+  function drawFrame () {
+    if (
+      props.data.length === 0
+      || props.status !== TickerStatus.playing
+    ) {
+      return
+    }
+
+    const bitmap = props.data[index.value]
+    if (bitmap) {
+      const originIndex = index.value - 1
+      if (originIndex >= 0) {
+        scheduleClearFrame(originIndex)
+      }
+
+      updateTextureFromBitmap(bitmap)
+
+      index.value = index.value + 1 // 非循环播放
+    }
+    else {
+      console.warn(
+        `Bitmap for index ${index.value} not found. Ensure the data is loaded.`,
+      )
+      emit('notFound', index.value)
+    }
   }
-  else {
-    console.warn(
-      `Bitmap for index ${index.value} not found. Ensure the data is loaded.`,
-    )
-    emit('notFound', index.value)
-  }
+
+  // 启动动画循环
+  animationId = requestAnimationFrame(renderFrame)
 }
 
 watchEffect(() => {
@@ -131,11 +179,8 @@ watch(() => props.status, (newStatus) => {
 // 开始播放动画
 function play () {
   if (props.data.length > 0) {
-    application.ticker.minFPS = props.frameRate
-    application.ticker.maxFPS = props.frameRate
-
     emit('update:status', TickerStatus.playing)
-    application.ticker.add(drawFrame)
+    startFrameLoop()
   }
   else {
     emit('update:status', TickerStatus.stopped)
@@ -144,13 +189,15 @@ function play () {
 
 // 暂停动画
 function pause () {
-  application.ticker.remove(drawFrame)
   emit('update:status', TickerStatus.paused)
 }
 
 function stop () {
-  application.ticker.remove(drawFrame)
   emit('update:status', TickerStatus.stopped)
+  if (animationId !== null) {
+    cancelAnimationFrame(animationId)
+    animationId = null
+  }
   emit('update:data', [])
   index.value = 0
   lastScheduledClearIndex.value = -1

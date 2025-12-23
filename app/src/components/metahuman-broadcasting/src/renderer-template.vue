@@ -2,10 +2,11 @@
 import type { __VkBroadcastingMarkdown } from '@vunk-plus/components/broadcasting-markdown'
 import type { __VkBubbleList } from '@vunk-plus/components/bubble-list'
 import type { SetDataEvent } from '@vunk/core'
+import type { PropType } from 'vue'
 import { useWebSocket } from '@vueuse/core'
+import { Thinking } from '@vunk-plus/element/thinking'
 import { VkRendererTemplate } from '@vunk/core/components/renderer-template'
-import { markRaw, onBeforeUnmount, type PropType } from 'vue'
-import { Thinking } from 'vue-element-plus-x'
+import { markRaw, onBeforeUnmount } from 'vue'
 import MetahumanBroadcasting from './index.vue'
 
 defineProps({

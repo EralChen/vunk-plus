@@ -6,8 +6,8 @@ import type { PropType, Ref, TeleportProps } from 'vue'
 import { ArrowDownBold } from '@element-plus/icons-vue'
 import { useResizeObserver } from '@vueuse/core'
 import { VkScrollbar } from '@vunk-plus/components/scrollbar'
+import { Bubble } from '@vunk-plus/element/bubble'
 import { computed, onMounted, ref, watch } from 'vue'
-import { Bubble } from 'vue-element-plus-x'
 import loadingBg from './loading.vue'
 
 const props = defineProps({

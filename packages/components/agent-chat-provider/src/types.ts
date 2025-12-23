@@ -1,8 +1,8 @@
 import type { __VkBubbleTemplates } from '@vunk-plus/components/bubble-templates'
+import type { BubbleProps } from '@vunk-plus/element/bubble'
 import type { MaybeArray, Media, NormalObject } from '@vunk/shared'
 import type { RequestFn, SSEOutput, useXChat, XAgent, XRequestParams } from 'ant-design-x-vue'
 import type { ComputedRef } from 'vue'
-import type { BubbleListItemProps } from 'vue-element-plus-x/types/components/BubbleList/types'
 import type { MessageView } from './MessageView'
 
 export type RequestParams<Message> = Omit<XRequestParams, 'message'> & {
@@ -45,7 +45,7 @@ export type AgentMessage = Partial<BubbleMessage> & {
 /**
  * @description useXChat parser 解析数据
  */
-export type BubbleMessage = Partial<BubbleListItemProps> & {
+export type BubbleMessage = Partial<BubbleProps> & {
   role: string
   content: string
 
@@ -78,7 +78,7 @@ export interface BubbleItemBasic extends BubbleMessage {
   key: string
   modules?: BubbleItemModule[]
 }
-export interface RoleMediaBasic extends Partial<BubbleItemBasic>
-  , Media {
+export interface RoleMediaBasic extends Partial<BubbleItemBasic>,
+  Media {
   value: string
 }

@@ -53,7 +53,6 @@ export function useHowlerParagraph (
       src: [url],
       format: ['mp3', 'wav', 'aac'],
 
-      // 事件处理
       onplay: () => {
         broadcast.value = TickerStatus.playing
       },
