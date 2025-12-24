@@ -1,5 +1,6 @@
 <script lang="ts">
 import type { Paragraph } from './types'
+import { AsyncQueue } from '@sapphire/async-queue'
 import { VkTypingMarkdown } from '@vunk-plus/components/typing-markdown'
 import { setData } from '@vunk/core'
 import { useDataComputed } from '@vunk/core/composables'
@@ -26,6 +27,7 @@ export default defineComponent({
       default: [] as Paragraph[],
     }, props, emit)
 
+    const queue = new AsyncQueue()
     const addParagraph = (paragraph: Paragraph) => {
       const k = theData.value.length // 新增段落的索引
       if (k === 0) { // 第一个段落
@@ -37,7 +39,7 @@ export default defineComponent({
       })
     }
 
-    const processingParagraph = (paragraph: Paragraph) => {
+    const processingParagraph = async (paragraph: Paragraph) => {
       if (!props.textToSpeech) {
         return
       }
@@ -50,18 +52,20 @@ export default defineComponent({
         return
       }
 
-      return props.textToSpeech(`${value}`)
-        .then(async (res) => {
-          if (res instanceof Blob) {
-            paragraph.blob = res
-            paragraph.url = await blobToDataURL(res)
-          }
-          if (typeof res === 'string') {
-            paragraph.url = res
-          }
-        })
+      const resPromise = props.textToSpeech(value)
+      await queue.wait()
+      return resPromise.then(async (res) => {
+        if (res instanceof Blob) {
+          paragraph.blob = res
+          paragraph.url = await blobToDataURL(res)
+        }
+        if (typeof res === 'string') {
+          paragraph.url = res
+        }
+      })
         .then(async () => {
           await props.processing?.(paragraph)
+          queue.shift()
         })
     }
 
