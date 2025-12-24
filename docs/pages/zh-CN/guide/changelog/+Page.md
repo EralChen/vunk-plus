@@ -1,5 +1,11 @@
 # Changelog 更新日志
 
+## 1.11.3
+
++ [BubbleList] refactor: 除去 `vue-element-plus-x` 依赖
++ [MetahumanBroadcasting] refactor: 重构 MetahumanBroadcasting 组件，使用更好的推理引擎
++ [BroadcastingMarkdown] fix: 修复段落执行顺序问题
+
 ## 1.10.1
 
 + [Scrollbar] 新增 prop `hideAfter`: 隐藏滚动条的延时，单位毫秒
