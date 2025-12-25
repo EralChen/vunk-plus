@@ -1,21 +1,23 @@
-import { dest, series, src } from 'gulp'
-import { gulpTask } from '@vunk/shared/function'
-
+import path from 'node:path'
 import { distDir } from '@lib-env/path'
-import path from 'path'
+
+import { gulpTask } from '@vunk/shared/function'
 import { sync } from 'fast-glob'
+import { dest, series, src } from 'gulp'
 import concat from 'gulp-concat'
+
 export default series(
   // 合并所有css到入口
   gulpTask('buildCss', async () => {
-
     const cssOutPath = path.resolve(distDir, './components')
 
     const cssFiles = sync('**/*.css', {
       cwd: cssOutPath,
       onlyFiles: true,
     })
-    if (!cssFiles.length) return
+    const elementCssFile = path.resolve(distDir, './element/index.css')
+    cssFiles.push(elementCssFile)
+
     src(
       cssFiles.map(css => path.resolve(cssOutPath, css)),
     )
@@ -27,8 +29,6 @@ export default series(
           path.resolve(distDir),
         ),
       )
-    
   }),
-  
 
 )
