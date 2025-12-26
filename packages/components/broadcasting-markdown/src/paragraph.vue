@@ -1,10 +1,11 @@
 <script lang="ts" setup>
 import type { AnyFunc } from '@vunk/shared'
+import type { PropType } from 'vue'
 import { useDeferred } from '@vunk/core/composables'
 import { noop } from '@vunk/shared/function'
 import { Deferred } from '@vunk/shared/promise'
 import { consola } from 'consola'
-import { nextTick, onMounted, type PropType, shallowRef, watch } from 'vue'
+import { nextTick, onMounted, shallowRef, watch } from 'vue'
 import { ParagraphStatus } from './const'
 
 const props = defineProps({
@@ -20,15 +21,9 @@ const props = defineProps({
     type: Function as PropType<AnyFunc>,
     default: noop,
   },
-  retryTimes: {
-    type: Number,
-    default: 3,
-  },
 })
 const emit = defineEmits(['update:status'])
 const theDef = shallowRef<Deferred<any>>()
-
-let retryTimes = props.retryTimes
 
 const processingDef = useDeferred()
 onMounted(async () => {
@@ -58,13 +53,6 @@ async function init () {
     emit('update:status', ParagraphStatus.fulfilled)
   }).catch(async (err) => {
     consola.error('error', err)
-    if (retryTimes > 0) {
-      retryTimes--
-      await props.processing?.()
-      consola.info('retryTimes', retryTimes)
-      init()
-      return
-    }
     emit('update:status', ParagraphStatus.rejected)
   })
 
