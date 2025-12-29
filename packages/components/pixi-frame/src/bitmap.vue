@@ -42,6 +42,7 @@ const texture = new Texture({
 sprite.texture = texture
 
 function updateTextureFromBitmap (bitmap: ImageBitmap) {
+  texture.source?.resource?.close()
   // 释放上一帧的 source，避免累计占用
   texture.source?.destroy()
   const source = new ImageSource({
