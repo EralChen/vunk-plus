@@ -95,7 +95,7 @@ const attachmentsPlaceholder: AnyFunc = (type) => {
     return {
       icon: <CloudUploadOutlined />,
       title: '上传文件',
-      description: '点击上传或拖拽文件到此处',
+      description: props.attachmentsPlaceholder,
     }
   }
 }

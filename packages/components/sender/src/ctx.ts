@@ -94,6 +94,11 @@ export const props = {
     type: Object,
     default: () => ({}),
   },
+
+  attachmentsPlaceholder: {
+    type: String,
+    default: '点击上传或拖拽文件到此处',
+  },
 }
 
 export const emits = {
