@@ -1,11 +1,12 @@
 <script lang="ts" setup>
+import type { TEXTURE_FORMATS } from 'pixi.js'
 import type { PropType } from 'vue'
 import type { LoadEvent } from './types'
 import { useModelComputed } from '@vunk/core/composables'
 import { TickerStatus } from '@vunk/shared/enum'
 import { pickObject } from '@vunk/shared/object'
 import { sleep } from '@vunk/shared/promise'
-import { ImageSource, Texture } from 'pixi.js'
+import { BufferImageSource, Texture } from 'pixi.js'
 import { onBeforeUnmount, ref, watch, watchEffect } from 'vue'
 import { props as dProps, emits } from './ctx'
 import { useSprite } from './useSprite'
@@ -15,11 +16,27 @@ const props = defineProps({
     excludes: ['loop'],
   }),
   data: {
-    type: undefined as unknown as PropType<ImageBitmap[]>,
+    type: Array,
     required: true,
+  },
+  /**
+   * Pixel format for BufferImageSource.
+   * Default to rgba8unorm for broadest compatibility (WebGL often ignores format hints).
+   */
+  format: {
+    type: String as PropType<TEXTURE_FORMATS>,
+    default: 'rgba8unorm' as TEXTURE_FORMATS,
   },
   frameIndex: {
     type: Number,
+  },
+  height: {
+    type: Number,
+    required: true,
+  },
+  width: {
+    type: Number,
+    required: true,
   },
 })
 const emit = defineEmits({
@@ -41,12 +58,14 @@ const texture = new Texture({
 })
 sprite.texture = texture
 
-function updateTextureFromBitmap (bitmap: ImageBitmap) {
-  texture.source?.resource?.close()
+function updateTexture (resource: any) {
   // 释放上一帧的 source，避免累计占用
   texture.source?.destroy()
-  const source = new ImageSource({
-    resource: bitmap,
+  const source = new BufferImageSource({
+    resource,
+    height: props.height,
+    width: props.width,
+    format: props.format,
   })
   texture.source = source
   texture.update()
@@ -141,7 +160,7 @@ function startFrameLoop () {
         scheduleClearFrame(originIndex)
       }
 
-      updateTextureFromBitmap(bitmap)
+      updateTexture(bitmap)
 
       index.value = index.value + 1 // 非循环播放
     }
@@ -165,7 +184,7 @@ watchEffect(() => {
     && props.data.length > 0
     && props.data[0]
   ) {
-    updateTextureFromBitmap(props.data[0])
+    updateTexture(props.data[0])
   }
 })
 

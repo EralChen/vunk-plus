@@ -2,6 +2,7 @@ import type { App } from 'vue'
 import VkPixiFrameApng from './src/apng.vue'
 import VkPixiFrameBitmapGenerator from './src/bitmap-generator.vue'
 import VkPixiFrameBitmap from './src/bitmap.vue'
+import VkPixiFrameBufferImage from './src/buffer-image.vue'
 import VkPixiFrameCore from './src/core.vue'
 import VkPixiFrame from './src/index.vue'
 import VkPixiFrameProvider from './src/provider.vue'
@@ -21,6 +22,7 @@ export {
   VkPixiFrameApng,
   VkPixiFrameBitmap,
   VkPixiFrameBitmapGenerator,
+  VkPixiFrameBufferImage,
   VkPixiFrameCore,
   VkPixiFrameProvider,
   VkPixiFrameVideo,
