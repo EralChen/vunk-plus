@@ -30,7 +30,6 @@ const texture = new Texture({
 sprite.texture = texture
 
 function updateTextureFromBitmap (bitmap: ImageBitmap) {
-  texture.source.resource?.close()
   texture.source.destroy()
 
   const source = new ImageSource({
