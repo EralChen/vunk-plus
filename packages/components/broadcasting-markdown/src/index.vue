@@ -11,6 +11,7 @@ import { Broadcast, ParagraphStatus } from './const'
 import { emits, props } from './ctx'
 import HowlerSpeechView from './howler-speech.vue'
 import ParagraphView from './paragraph.vue'
+import { resolveSeparatorParagraphActions, resolveTailParagraphAction } from './utils'
 
 export default defineComponent({
   name: 'VkBroadcastingMarkdown',
@@ -75,9 +76,6 @@ export default defineComponent({
     const isFinished = computed(() => {
       return currentIndex.value >= props.source.length
     })
-    const currentText = computed(() => {
-      return props.source.substring(0, currentIndex.value)
-    })
     const fulfilledTextValue = computed(() => {
       if (props.disabled) {
         return props.source
@@ -107,54 +105,26 @@ export default defineComponent({
     function write () { // 写入
       const lastParagraph = theData.value.at(-1)
 
-      // 遇到标点符号 添加段落
-      for (const separator of sortedSeparators.value) {
-        const separatorLen = separator.length
-        // 需要比对的文字
-        const compareText = currentText.value.slice(
-          currentIndex.value - separatorLen,
-          currentIndex.value,
-        )
+      const separatorActions = resolveSeparatorParagraphActions({
+        source: props.source,
+        currentIndex: currentIndex.value,
+        sortedSeparators: sortedSeparators.value,
+        paragraphMinlength: props.paragraphMinlength,
+        lastParagraph,
+      })
 
-        // 如果匹配到了
-        if (compareText === separator) {
-          const start = lastParagraph?.end ?? 0
-          const end = currentIndex.value
-
-          const value = props.source.slice(
-            start,
-            end,
-          )
-          if (
-            lastParagraph && separator.length >= value.length
-          ) { // 比如 separators 设置了 /n/n 和 /n, 在 /n/n 命中的时候, 直接加入 上个段落的 end
-            if (
-              lastParagraph.status === ParagraphStatus.initial
-            ) {
-              lastParagraph.end = end
-              lastParagraph.value = props.source.slice(
-                lastParagraph.start,
-                end,
-              )
-              lastParagraph.separator = separator
-            }
-            else {
-              // 上一段落已经在处理中, 无需合并 separator
-            }
-          }
-          else if (value.length > props.paragraphMinlength) {
-            const paragraph = {
-              start,
-              separator,
-              end,
-              status: ParagraphStatus.initial,
-              value,
-              broadcast: Broadcast.play,
-            }
-            addParagraph(paragraph as Paragraph)
-          }
+      separatorActions.mergeActions.forEach((action) => {
+        if (!lastParagraph) {
+          return
         }
-      }
+        lastParagraph.end = action.end
+        lastParagraph.value = action.value
+        lastParagraph.separator = action.separator
+      })
+
+      separatorActions.appendActions.forEach((action) => {
+        addParagraph(action as Paragraph)
+      })
 
       if (currentIndex.value < props.source.length) {
         currentIndex.value++
@@ -168,37 +138,27 @@ export default defineComponent({
         }
 
         // 游标完成阅读, 对最后一个段落进行处理
-        if (lastParagraph?.end === currentIndex.value) {
+        const tailAction = resolveTailParagraphAction({
+          source: props.source,
+          currentIndex: currentIndex.value,
+          lastParagraph,
+        })
+
+        if (tailAction.type === 'none') {
           return
         }
 
-        // 有未完成的段落
-        const start = lastParagraph?.end ?? 0
-        const end = currentIndex.value
-        const value = props.source.slice(start, end)
-        if (
-          lastParagraph
-          && lastParagraph.status === ParagraphStatus.initial
-          && lastParagraph.separator === ''
-        ) {
-          lastParagraph.end = end
-          lastParagraph.value = props.source.slice(
-            lastParagraph.start,
-            end,
-          )
-          lastParagraph.separator = ''
-        }
-        else {
-          const paragraph = {
-            start,
-            separator: '',
-            end,
-            status: ParagraphStatus.initial,
-            value,
-            broadcast: Broadcast.play,
+        if (tailAction.type === 'merge') {
+          if (!lastParagraph) {
+            return
           }
-          addParagraph(paragraph as Paragraph)
+          lastParagraph.end = tailAction.data.end
+          lastParagraph.value = tailAction.data.value
+          lastParagraph.separator = tailAction.data.separator
+          return
         }
+
+        addParagraph(tailAction.data as Paragraph)
       }
     }
 
