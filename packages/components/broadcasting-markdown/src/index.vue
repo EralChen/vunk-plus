@@ -138,10 +138,11 @@ export default defineComponent({
         }
 
         // 游标完成阅读, 对最后一个段落进行处理
+        const latestParagraph = theData.value.at(-1)
         const tailAction = resolveTailParagraphAction({
           source: props.source,
           currentIndex: currentIndex.value,
-          lastParagraph,
+          lastParagraph: latestParagraph,
         })
 
         if (tailAction.type === 'none') {
@@ -149,12 +150,12 @@ export default defineComponent({
         }
 
         if (tailAction.type === 'merge') {
-          if (!lastParagraph) {
+          if (!latestParagraph) {
             return
           }
-          lastParagraph.end = tailAction.data.end
-          lastParagraph.value = tailAction.data.value
-          lastParagraph.separator = tailAction.data.separator
+          latestParagraph.end = tailAction.data.end
+          latestParagraph.value = tailAction.data.value
+          latestParagraph.separator = tailAction.data.separator
           return
         }
 

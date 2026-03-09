@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
-import { ParagraphStatus } from '../src/const'
+import { Broadcast, ParagraphStatus } from '../src/const'
 import { resolveSeparatorParagraphActions, resolveTailParagraphAction } from '../src/utils'
+import rawText from './raw.txt?raw'
 
 describe('broadcasting-markdown utils', () => {
   it('creates append action when separator matches and segment length exceeds minlength', () => {
@@ -19,7 +20,7 @@ describe('broadcasting-markdown utils', () => {
         end: 6,
         status: ParagraphStatus.initial,
         value: 'hello\n',
-        broadcast: 'play',
+        broadcast: Broadcast.play,
       },
     ])
   })
@@ -36,7 +37,7 @@ describe('broadcasting-markdown utils', () => {
         separator: '\n',
         value: 'foo\n',
         status: ParagraphStatus.initial,
-        broadcast: 'play',
+        broadcast: Broadcast.play,
         url: '',
       },
     })
@@ -60,7 +61,7 @@ describe('broadcasting-markdown utils', () => {
         separator: '',
         value: 'hello',
         status: ParagraphStatus.initial,
-        broadcast: 'play',
+        broadcast: Broadcast.play,
         url: '',
       },
     })
@@ -89,8 +90,32 @@ describe('broadcasting-markdown utils', () => {
         end: 5,
         status: ParagraphStatus.initial,
         value: 'hello',
-        broadcast: 'play',
+        broadcast: Broadcast.play,
       },
     })
+  })
+
+  it('does not append duplicated tail when content already ends with a separator paragraph', () => {
+    const separatorActions = resolveSeparatorParagraphActions({
+      source: rawText,
+      currentIndex: rawText.length,
+      sortedSeparators: ['\n'],
+      paragraphMinlength: 2,
+    })
+
+    const lastParagraph = {
+      ...separatorActions.appendActions[0],
+      url: '',
+    }
+
+    const action = resolveTailParagraphAction({
+      source: rawText,
+      currentIndex: rawText.length,
+      lastParagraph,
+    })
+
+    expect(separatorActions.appendActions).toHaveLength(1)
+    expect(separatorActions.appendActions[0]?.value).toBe(rawText)
+    expect(action).toEqual({ type: 'none' })
   })
 })
