@@ -4,7 +4,7 @@ import type { __VkBubbleList } from '@vunk-plus/components/bubble-list'
 import type { SetDataEvent } from '@vunk/core'
 import type { PropType } from 'vue'
 import { useWebSocket } from '@vueuse/core'
-import { Thinking } from '@vunk-plus/element/thinking'
+import { VkThinking as Thinking } from '@vunk-plus/components/thinking'
 import { VkRendererTemplate } from '@vunk/core/components/renderer-template'
 import { markRaw, onBeforeUnmount } from 'vue'
 import MetahumanBroadcasting from './index.vue'
@@ -46,6 +46,30 @@ function initRenderData (
     v: props.templateType,
   })
 }
+
+function updateMetaField (
+  emitSetData: (e: SetDataEvent) => void,
+  props: __VkBubbleList.Item,
+  key: string,
+  value: unknown,
+) {
+  emitSetData?.({
+    k: [props.key, 'meta', key],
+    v: value,
+  })
+}
+
+function updateField (
+  emitSetData: (e: SetDataEvent) => void,
+  props: __VkBubbleList.Item,
+  key: string,
+  value: unknown,
+) {
+  emitSetData?.({
+    k: [props.key, key],
+    v: value,
+  })
+}
 </script>
 
 <template>
@@ -64,18 +88,9 @@ function initRenderData (
         :keep-read="!props.seviceEnd"
         :text-to-speech="textToSpeech"
         @vue:mounted="initRenderData(emitSetData, props)"
-        @update:broadcasting="(v) => emitSetData({
-          k: [props.key, 'meta', 'broadcasting'],
-          v,
-        })"
-        @update:completed="(v) => emitSetData({
-          k: [props.key, 'completed'],
-          v,
-        })"
-        @update:error="(v) => emitSetData({
-          k: [props.key, 'error'],
-          v,
-        })"
+        @update:broadcasting="updateMetaField(emitSetData, props, 'broadcasting', $event)"
+        @update:completed="updateField(emitSetData, props, 'completed', $event)"
+        @update:error="updateField(emitSetData, props, 'error', $event)"
       ></MetahumanBroadcasting>
     </template>
   </VkRendererTemplate>
