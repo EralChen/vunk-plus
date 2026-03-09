@@ -91,7 +91,7 @@ export const props = {
    */
   showSkip: {
     type: Boolean,
-    default: true,
+    default: false,
   },
   /**
    * @description 卡片圆角

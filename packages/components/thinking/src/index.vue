@@ -219,10 +219,17 @@ function skipThinking () {
 }
 
 .vk-thinking__title {
+  position: relative;
+  display: inline-flex;
+  align-items: baseline;
   color: var(--el-text-color-primary);
   font-size: var(--vk-thinking-font-size-title);
   font-weight: 700;
   line-height: 1.5;
+}
+
+.vk-thinking__card.is-thinking .vk-thinking__title {
+  animation: vk-thinking-blink 1.6s ease-in-out infinite;
 }
 
 .vk-thinking__caret {
@@ -283,6 +290,17 @@ function skipThinking () {
 
 .vk-thinking__card.is-disabled {
   opacity: 0.7;
+}
+
+@keyframes vk-thinking-blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.58;
+  }
 }
 
 @media (width <= 768px) {
