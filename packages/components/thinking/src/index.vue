@@ -1,10 +1,9 @@
 <script lang="ts" setup>
-import type { ThinkingEmits } from './types'
 import { ArrowRightBold } from '@element-plus/icons-vue'
 import { VkScrollbar } from '@vunk-plus/components/scrollbar'
 import { ElCollapseTransition, ElIcon } from 'element-plus'
 import { computed, nextTick, ref, useSlots, watch } from 'vue'
-import { props as dProps } from './ctx'
+import { props as dProps, emits } from './ctx'
 
 defineOptions({
   name: 'VkThinking',
@@ -12,7 +11,7 @@ defineOptions({
 })
 
 const props = defineProps(dProps)
-const emit = defineEmits<ThinkingEmits>()
+const emit = defineEmits(emits)
 const slots = useSlots()
 
 const isExpanded = ref(props.modelValue)

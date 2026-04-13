@@ -184,6 +184,7 @@ defineExpose({
       class="vk-bubble-list"
       :append-to="scrollbarAppendTo"
       :always="alwaysShowScrollbar"
+      :hide-after="800"
       @scroll="getDistanceToBottom"
     >
       <Bubble
