@@ -61,15 +61,3 @@ function resetCode () {
     </div>
   </MonacoEnvironment>
 </template>
-
-<style>
-.auto-height-monaco-editor {
-  overflow: hidden;
-  border: 1px solid var(--el-border-color);
-  border-radius: 4px;
-}
-
-/* .auto-height-monaco-editor .vk-monaco-editor {
-  transition: height var(--el-transition-duration) ease;
-} */
-</style>
