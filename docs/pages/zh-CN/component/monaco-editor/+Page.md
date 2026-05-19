@@ -19,6 +19,16 @@ monaco-editor/basic/index
 :::
 
 
+## Auto Height
+
+:::demo
+monaco-editor/auto-height/index
+>>>subs
+[monaco-editor/basic/MonacoEnvironment]
+>>>
+:::
+
+
 ## MonacoEnvironment
 
 :::warning

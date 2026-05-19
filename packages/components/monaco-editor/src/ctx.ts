@@ -1,5 +1,5 @@
-import { PropType } from 'vue'
-import { editor } from 'monaco-editor'
+import type { editor } from 'monaco-editor'
+import type { PropType } from 'vue'
 import { bindPropsFactory, onEmitsFactory } from '@vunk/core/shared/utils-vue'
 
 export const props = {
@@ -17,14 +17,18 @@ export const props = {
     type: Boolean,
     default: false,
   },
+
+  autoHeight: {
+    type: Boolean,
+    default: false,
+  },
 }
 
 export const createBindProps = bindPropsFactory(props)
 
-
-
 export const emits = {
   'update:modelValue': null,
+  'load': (_editor: editor.IStandaloneCodeEditor) => true,
 }
 
 export const createOnEmits = onEmitsFactory(emits)
