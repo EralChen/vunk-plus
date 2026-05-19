@@ -1,5 +1,48 @@
 # Changelog 更新日志
 
+## 1.12.2
+
++ [MonacoEditor] feat: 新增 prop `autoHeight`，优化编辑器加载体验
+
+## 1.12.1
+
++ [BubbleList] feat: 内置滚动条 `hideAfter` 调整为 `800ms`，优化交互体验
++ [Thinking] fix: 修复 emits 定义，补齐 `ctx` 中声明的事件
+
+## 1.12.0
+
++ [Thinking] 新增 component [Thinking](../../component/thinking/+Page.md): 用于展示 AI 模型思考过程的组件
++ [Thinking] feat: 默认隐藏 skip 按钮，激活态标题支持闪烁提示
+
+## 1.11.10
+
++ [BroadcastingMarkdown] fix: 防止尾段落重复追加
+
+## 1.11.9
+
++ [BroadcastingMarkdown] fix: 优化流式解析逻辑并补充测试
+
+## 1.11.8
+
++ [PixiFrame] refactor: 移除冗余资源释放逻辑
+
+## 1.11.7
+
++ [Sender] 新增 prop `attachmentsPlaceholder`: 附件上传区域占位文案
++ [PixiFrame] feat: 新增 `VkPixiFrameBufferImage`，优化位图清理
+
+## 1.11.6
+
++ [PixiFrame] fix: 销毁纹理前关闭 bitmap 资源
+
+## 1.11.5
+
++ [BroadcastingMarkdown] refactor: 移除段落组件重试逻辑
+
+## 1.11.4
+
++ [build] build: dist 合并流程包含 element css
+
 ## 1.11.3
 
 + [BubbleList] refactor: 除去 `vue-element-plus-x` 依赖
