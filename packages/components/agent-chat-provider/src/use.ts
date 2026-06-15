@@ -11,7 +11,9 @@ export function useAgent (request: Request): ReturnType<typeof useXAgent<
   RequestParams<AgentMessage>,
   AgentMessage & SSEOutput
 >> {
+  // @ts-expect-error ant-design-x-vue generic type mismatch
   return useXAgent<AgentMessage>({
+    // @ts-expect-error ant-design-x-vue generic type mismatch
     request,
   })
 }
@@ -23,6 +25,7 @@ export function initAgentChat (
 ): AgentChatContext {
   const [agent] = useAgent(request)
   const chat = useXChat<AgentMessage, BubbleMessage>({
+    // @ts-expect-error ant-design-x-vue generic type mismatch
     agent: agent.value,
     // Convert AgentMessage to BubbleMessage
     parser,

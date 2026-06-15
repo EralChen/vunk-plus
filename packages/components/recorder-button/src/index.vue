@@ -41,7 +41,7 @@ export default defineComponent({
       }
       catch (e) {
         console.error('录音失败:', e)
-        emit('error', e)
+        emit('error', e as Error)
         isDragging.value = false
         return
       }

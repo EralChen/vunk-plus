@@ -7,6 +7,18 @@ export const packagesDir = path.resolve(workRoot, './packages')
 // components
 export const pkgsComponentsDir = path.resolve(packagesDir, './components')
 
+// shared
+export const pkgsSharedDir = path.resolve(packagesDir, './shared')
+
+// composables
+export const pkgsComposablesDir = path.resolve(packagesDir, './composables')
+
+// icons
+export const pkgsIconsDir = path.resolve(packagesDir, './icons')
+
+// element
+export const pkgsElementDir = path.resolve(packagesDir, './element')
+
 // entry
 export const pkgsEntryDir = path.resolve(packagesDir, './entry')
 export const pkgsEntryFile = path.resolve(pkgsEntryDir, './main.ts')

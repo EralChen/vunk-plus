@@ -5,9 +5,8 @@
   "license": "ISC",
   "keywords": [],
   "scripts": {
-    "build": "vite build"
-  },
-  "devDependencies": {
-    "vite-plugin-dts": "^4.5.4"
+    "build": "run-p build:es build:types",
+    "build:es": "vite build",
+    "build:types": "vue-tsc"
   }
 }

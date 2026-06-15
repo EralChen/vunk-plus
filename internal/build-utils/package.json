@@ -13,14 +13,5 @@
     "build": "unbuild",
     "dev": "pnpm run stub",
     "stub": "unbuild --stub"
-  },
-  "devDependencies": {
-    "@pnpm/types": "^9.4.2",
-    "@rollup/plugin-commonjs": "^25.0.7",
-    "@rollup/plugin-node-resolve": "^15.2.3",
-    "rollup-plugin-css-only": "^4.5.2",
-    "rollup-plugin-esbuild": "^6.1.1",
-    "rollup-plugin-multi-input": "^1.4.1",
-    "ts-morph": "^26.0.0"
   }
 }

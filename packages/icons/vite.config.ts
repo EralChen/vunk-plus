@@ -2,6 +2,7 @@ import { defineConfig, type UserConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import fg from 'fast-glob'
 import path from 'node:path'
+import { libExternal } from '@lib-env/build-constants'
 import { replaceLibAlias } from '@lib-env/build-utils'
 
 export default defineConfig(() => {
@@ -19,7 +20,6 @@ export default defineConfig(() => {
         }, {} as Record<string, string>),
 
         formats: ['es', 'cjs'],
-        cssFileName: 'index',
 
         fileName(format, entryName) {
           const ext = format === 'es' ? 'mjs' : 'cjs'
@@ -31,22 +31,9 @@ export default defineConfig(() => {
       },
       emptyOutDir: false,
       rollupOptions: {
-        external: [
-          'vue',
-          'element-plus',
-        ],
+        external: libExternal,
         output: {
           exports: 'named',
-        },
-      },
-    },
-    css: {
-      preprocessorOptions: {
-        scss: {
-          api: 'modern',
-        },
-        sass: {
-          api: 'modern',
         },
       },
     },

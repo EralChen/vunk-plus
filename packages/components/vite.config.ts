@@ -1,8 +1,9 @@
 import { defineConfig, type UserConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
+import vueJsx from '@vitejs/plugin-vue-jsx'
 import fg from 'fast-glob'
 import path from 'node:path'
-import { replaceLibAlias } from '@lib-env/build-utils'
+import { libExternal } from '@lib-env/build-constants'
 
 export default defineConfig(() => {
   const buildLibEntry = getBuildLibEntry()
@@ -19,7 +20,6 @@ export default defineConfig(() => {
         }, {} as Record<string, string>),
 
         formats: ['es', 'cjs'],
-        cssFileName: 'index',
 
         fileName(format, entryName) {
           const ext = format === 'es' ? 'mjs' : 'cjs'
@@ -32,8 +32,33 @@ export default defineConfig(() => {
       emptyOutDir: false,
       rollupOptions: {
         external: [
-          'vue',
-          'element-plus',
+          ...libExternal,
+          'lottie-web',
+          'markdown-it',
+          'markdown-it-async',
+          /^monaco-editor/,
+          'vditor',
+          'ant-design-vue',
+          'ant-design-x-vue',
+          /^ant-design-x-vue/,
+          '@ant-design/icons-vue',
+          'vue-element-plus-x',
+          /^recorder-core/,
+          'xgplayer',
+          'xgplayer-flv',
+          'onnxruntime-web',
+          'sophontalk-services',
+          'pixi.js',
+          'mitt',
+          'howler',
+          'apng-js',
+          'naive-ui',
+          'consola',
+          'vue-router',
+          'vue-types',
+          '@element-plus/icons-vue',
+          '@sapphire/async-queue',
+          '@vue/shared',
         ],
         output: {
           exports: 'named',
@@ -52,7 +77,7 @@ export default defineConfig(() => {
     },
     plugins: [
       vue(),
-      replaceLibAlias(),
+      vueJsx(),
     ],
   } as UserConfig
 })

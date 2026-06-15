@@ -5,13 +5,20 @@
   "license": "ISC",
   "keywords": [],
   "scripts": {
-    "build": "gulp -f gulpfile.ts"
+    "build": "run-p build:es build:types",
+    "build:es": "vite build",
+    "build:types": "vue-tsc"
   },
   "dependencies": {
+    "@ant-design/icons-vue": "^7.0.1",
+    "@vue/shared": "^3.5.38",
     "ant-design-vue": "^4.2.6",
     "ant-design-x-vue": "1.3.2",
+    "consola": "^3.4.2",
     "howler": "^2.2.4",
-    "markdown-it-async": "^2.2.0"
+    "markdown-it-async": "^2.2.0",
+    "mitt": "^3.0.1",
+    "vue-types": "^7.0.0"
   },
   "devDependencies": {
     "@types/howler": "^2.2.12"

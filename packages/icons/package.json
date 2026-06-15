@@ -5,6 +5,8 @@
   "license": "ISC",
   "keywords": [],
   "scripts": {
-    "build": "gulp -f gulpfile.ts"
+    "build": "run-p build:es build:types",
+    "build:es": "vite build",
+    "build:types": "vue-tsc"
   }
 }

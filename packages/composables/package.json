@@ -4,6 +4,11 @@
   "private": true,
   "module": "index.ts",
   "scripts": {
-    "build": "gulp -f gulpfile.ts"
+    "build": "run-p build:es build:types",
+    "build:es": "vite build",
+    "build:types": "vue-tsc"
+  },
+  "dependencies": {
+    "consola": "^3.4.2"
   }
 }

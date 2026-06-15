@@ -4,4 +4,10 @@ packages:
   - docs
   - app
   - app-ssr
-  
+allowBuilds:
+  '@parcel/watcher': set this to true or false
+  core-js: set this to true or false
+  es5-ext: set this to true or false
+  esbuild: set this to true or false
+  protobufjs: set this to true or false
+  vue-demi: set this to true or false

@@ -5,7 +5,7 @@ import { run } from '@vunk/shared/node/process'
 import { series } from 'gulp'
 import clearDist from './clear-dist'
 import mergeCssToDist from './merge-css-to-dist'
-import toDistType from './to-dist-type'
+import distPackages from './dist-packages'
 
 export default series(
 
@@ -17,6 +17,6 @@ export default series(
     workRoot,
   )),
 
-  toDistType,
+  distPackages,
   mergeCssToDist,
 )

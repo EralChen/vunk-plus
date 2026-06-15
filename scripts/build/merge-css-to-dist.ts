@@ -1,4 +1,5 @@
 import path from 'node:path'
+import fs from 'node:fs'
 import { distDir } from '@lib-env/path'
 
 import { gulpTask } from '@vunk/shared/function'
@@ -16,7 +17,11 @@ export default series(
       onlyFiles: true,
     })
     const elementCssFile = path.resolve(distDir, './element/index.css')
-    cssFiles.push(elementCssFile)
+    if (fs.existsSync(elementCssFile)) {
+      cssFiles.push(elementCssFile)
+    }
+
+    if (!cssFiles.length) return
 
     src(
       cssFiles.map(css => path.resolve(cssOutPath, css)),
