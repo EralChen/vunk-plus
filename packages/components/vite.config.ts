@@ -51,8 +51,6 @@ export default defineConfig(() => {
           'pixi.js',
           'mitt',
           'howler',
-          'apng-js',
-          'naive-ui',
           'consola',
           'vue-router',
           'vue-types',
