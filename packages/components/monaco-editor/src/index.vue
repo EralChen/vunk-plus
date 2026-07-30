@@ -23,7 +23,15 @@ export default defineComponent({
     })
 
     onMounted(() => {
-      const editor = mEditor.create(editorNode.value, props.defaultOptions)
+      const config = {
+        ...props.defaultOptions,
+      }
+      if (props.autoHeight) {
+        // 自动高度时，禁止编辑器滚动到内容最后一行之后；否则死循环
+        config.scrollBeyondLastLine = false
+      }
+      const editor = mEditor.create(editorNode.value, config)
+
       emit('load', editor)
 
       function syncAutoHeight () {

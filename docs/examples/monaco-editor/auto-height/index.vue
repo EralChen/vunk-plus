@@ -28,7 +28,7 @@ const defaultOptions: editor.IStandaloneEditorConstructionOptions = {
     vertical: 'hidden',
     alwaysConsumeMouseWheel: false,
   },
-  wordWrap: 'on',
+  wordWrap: 'off',
 }
 
 function appendLine () {
@@ -57,6 +57,9 @@ function resetCode () {
         v-model="code"
         auto-height
         :default-options="defaultOptions"
+        :style="{
+          'max-height': '200px'
+        }"
       ></VkMonacoEditor>
     </div>
   </MonacoEnvironment>
