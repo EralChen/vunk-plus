@@ -54,6 +54,9 @@ export default defineConfig(() => {
     },
     plugins: [
       VueMacros({
+        // Vue 3.5 原生支持 defineProps<Type>()，无需 better-define 宏
+        //（其依赖 TypeScript compiler API，TS7 下无法解析泛型类型）
+        betterDefine: false,
         plugins: {
           vue: vue({
             template: {
