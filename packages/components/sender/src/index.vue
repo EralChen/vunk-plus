@@ -1,13 +1,13 @@
 <script lang="tsx" setup>
 import type { AnyFunc, NormalObject } from '@vunk/shared'
-import type { UploadChangeParam, UploadFile } from 'ant-design-vue'
-import type { AttachmentsRef } from 'ant-design-x-vue/typings/attachments/interface'
+import type { UploadChangeParam, UploadFile } from '@vunk-plus/ant'
+import type { AttachmentsRef } from '@vunk-plus/antx'
 import type { Ref } from 'vue'
 import type {} from 'vue-types'
 import { CloudUploadOutlined, LinkOutlined } from '@ant-design/icons-vue'
 import { useDeferred, useModelComputed } from '@vunk/core/composables'
-import { Button as AntButton } from 'ant-design-vue'
-import { Attachments, Sender } from 'ant-design-x-vue'
+import { Button as AntButton } from '@vunk-plus/ant'
+import { Attachments, Sender } from '@vunk-plus/antx'
 import { computed, nextTick, ref } from 'vue'
 import { props as dProps, emits } from './ctx'
 import SenderHeader from './SenderHeader.vue'
@@ -119,7 +119,7 @@ async function handlePasteFile (file: File) {
 
   await nextTick()
 
-  // [TODO] ant-design-x-vue 中 为完成 upload
+  // [TODO] vendored antx 中 为完成 upload
   // attachmentsRef.value.upload(file)
   // 这里先手动实现
   const fileInput = attachmentWrap.querySelector('input[type="file"]') as HTMLInputElement

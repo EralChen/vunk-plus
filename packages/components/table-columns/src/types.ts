@@ -1,6 +1,5 @@
-import { Func, Keyof, NormalObject, VueComponentPropsType } from '@vunk/core'
-import { ElTableColumn } from 'element-plus'
-import type { TableColumnCtx } from 'element-plus/es/components/table/src/table-column/defaults'
+import { Func, Keyof, NormalObject } from '@vunk/core'
+import type { TableColumnCtx, TableColumnProps } from 'element-plus/es/components/table/src/table-column/defaults'
 
 export type DefaultSlot<R extends NormalObject> = Func<{
   row: R,
@@ -9,7 +8,7 @@ export type DefaultSlot<R extends NormalObject> = Func<{
 }>
 
 export interface Source<T extends NormalObject = NormalObject>
-  extends VueComponentPropsType<typeof ElTableColumn> {
+  extends Partial<TableColumnProps<T>> {
   prop?: Keyof<T>,
   slots?: DefaultSlot<T> | {
     default?: DefaultSlot<T>,

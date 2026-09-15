@@ -6,4 +6,4 @@ const Icon = function (props) {
   return h(ElIcon, props, () => h(Core))
 }
 
-export default Icon as typeof ElIcon
+export default Icon as unknown as typeof ElIcon

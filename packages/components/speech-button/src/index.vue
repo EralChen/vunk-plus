@@ -1,7 +1,7 @@
 <script lang="tsx">
 import { AudioMutedOutlined, AudioOutlined } from '@ant-design/icons-vue'
 import { useRecorder } from '@vunk-plus/composables/recorder'
-import { Button } from 'ant-design-vue'
+import { Button } from '@vunk-plus/ant'
 import { defineComponent } from 'vue'
 import { emits, props } from './ctx'
 import LoadingIcon from './LoadingIcon.vue'

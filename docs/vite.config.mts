@@ -1,5 +1,6 @@
 import vue from '@vitejs/plugin-vue'
 import vueJsx from '@vitejs/plugin-vue-jsx'
+import VueMacros from 'unplugin-vue-macros/vite'
 import vike from 'vike/plugin'
 import { AliasOptions, UserConfig, defineConfig, loadEnv } from 'vite'
 import { appRoot, srcRoot } from './path.config'
@@ -84,10 +85,14 @@ export default defineConfig(async ({ mode }) => {
 
       vike(),
 
-      vue({
-        include: [/\.vue$/, /\.md$/],
+      VueMacros({
+        plugins: {
+          vue: vue({
+            include: [/\.vue$/, /\.md$/],
+          }),
+          vueJsx: vueJsx({}),
+        },
       }),
-      vueJsx({}),
 
       unocss(),
 

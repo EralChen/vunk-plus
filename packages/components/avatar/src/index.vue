@@ -10,7 +10,7 @@ export default defineComponent({
   },
   props,
   emits,
-})
+}) as unknown as ReturnType<typeof defineComponent>
 </script>
 
 <template>

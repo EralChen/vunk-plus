@@ -1,0 +1,21 @@
+{
+  "name": "@vunk-plus/antx",
+  "version": "1.6.0",
+  "private": true,
+  "module": "index.ts",
+  "scripts": {
+    "build": "run-p build:es build:types",
+    "build:es": "vite build",
+    "build:types": "vue-tsc"
+  },
+  "dependencies": {
+    "@ant-design/fast-color": "^2.0.6",
+    "@ant-design/icons-vue": "^7.0.1",
+    "@emotion/hash": "^0.8.0",
+    "@emotion/unitless": "^0.8.1",
+    "@vunk-plus/ant": "workspace:*",
+    "classnames": "^2.5.1",
+    "csstype": "^3.2.3",
+    "stylis": "^4.4.0"
+  }
+}

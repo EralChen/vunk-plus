@@ -1,0 +1,32 @@
+{
+  "extends": "@vue/tsconfig/tsconfig.dom.json",
+  "include": [
+    "index.ts",
+    "env.d.ts",
+    "typings/**/*.d.ts"
+  ],
+  "exclude": [
+    "dist",
+    "vite.config.ts"
+  ],
+  "compilerOptions": {
+    "types": [
+      "node"
+    ],
+    "lib": [
+      "ESNext",
+      "DOM"
+    ],
+    "noEmit": false,
+    "allowImportingTsExtensions": true,
+    "emitDeclarationOnly": true,
+    "declaration": true,
+    "rootDir": "./",
+    "outDir": "dist",
+    "skipLibCheck": true,
+    "verbatimModuleSyntax": false,
+    "noImplicitAny": false,
+    "strict": false,
+    "strictNullChecks": false
+  }
+}

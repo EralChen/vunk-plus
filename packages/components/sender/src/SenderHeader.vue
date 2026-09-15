@@ -3,7 +3,7 @@ import type { AnyFunc } from '@vunk/shared'
 import type { PropType } from 'vue'
 import { CloseOutlined } from '@ant-design/icons-vue'
 import { noop } from '@vunk/shared/function'
-import { Button as AntButton } from 'ant-design-vue'
+import { Button as AntButton } from '@vunk-plus/ant'
 import { ElCollapseTransition } from 'element-plus'
 
 defineOptions({

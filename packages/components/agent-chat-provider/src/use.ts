@@ -1,6 +1,6 @@
-import type { SSEOutput } from 'ant-design-x-vue'
+import type { SSEOutput } from '@vunk-plus/antx'
 import type { AgentChatContext, AgentMessage, BubbleItem, BubbleMessage, formatSend, Parser, Request, RequestParams } from './types'
-import { useXAgent, useXChat } from 'ant-design-x-vue'
+import { useXAgent, useXChat } from '@vunk-plus/antx'
 import { computed, inject, provide } from 'vue'
 
 import { ChatAgentInjectKey } from './const'
@@ -11,9 +11,7 @@ export function useAgent (request: Request): ReturnType<typeof useXAgent<
   RequestParams<AgentMessage>,
   AgentMessage & SSEOutput
 >> {
-  // @ts-expect-error ant-design-x-vue generic type mismatch
   return useXAgent<AgentMessage>({
-    // @ts-expect-error ant-design-x-vue generic type mismatch
     request,
   })
 }
@@ -25,7 +23,6 @@ export function initAgentChat (
 ): AgentChatContext {
   const [agent] = useAgent(request)
   const chat = useXChat<AgentMessage, BubbleMessage>({
-    // @ts-expect-error ant-design-x-vue generic type mismatch
     agent: agent.value,
     // Convert AgentMessage to BubbleMessage
     parser,

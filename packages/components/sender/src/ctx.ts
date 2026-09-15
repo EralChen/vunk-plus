@@ -1,5 +1,5 @@
 import type { AnyFunc } from '@vunk/shared'
-import type { UploadFile } from 'ant-design-vue'
+import type { UploadFile } from '@vunk-plus/ant'
 import type { PropType } from 'vue'
 import type { Module } from './types'
 

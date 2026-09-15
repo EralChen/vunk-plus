@@ -9,6 +9,8 @@ import {
   pkgsComposablesDir,
   pkgsIconsDir,
   pkgsElementDir,
+  pkgsAntDir,
+  pkgsAntxDir,
   pkgsEntryDir,
 } from '@lib-env/path'
 import path from 'path'
@@ -21,6 +23,8 @@ const packages = [
   { name: 'composables', dir: pkgsComposablesDir },
   { name: 'icons', dir: pkgsIconsDir },
   { name: 'element', dir: pkgsElementDir },
+  { name: 'ant', dir: pkgsAntDir },
+  { name: 'antx', dir: pkgsAntxDir },
   { name: 'entry', dir: pkgsEntryDir, isEntry: true },
 ]
 

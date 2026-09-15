@@ -1,5 +1,25 @@
 {
   "extends": "@vue/tsconfig/tsconfig.dom.json",
+  "compilerOptions": {
+    "lib": [
+      "ESNext",
+      "DOM"
+    ],
+    "rootDir": "./",
+    "types": [
+      "unplugin-vue-macros/macros-global"
+    ],
+    "allowImportingTsExtensions": true,
+    "strictFunctionTypes": false,
+    "strictNullChecks": false,
+    "noImplicitAny": false,
+    "declaration": true,
+    "emitDeclarationOnly": true,
+    "noEmit": false,
+    "outDir": "dist",
+    "verbatimModuleSyntax": false,
+    "skipLibCheck": true
+  },
   "include": [
     "./**/*.ts",
     "./**/*.tsx",
@@ -9,20 +29,5 @@
   "exclude": [
     "dist",
     "vite.config.ts"
-  ],
-  "compilerOptions": {
-    "lib": [
-      "ESNext",
-      "DOM"
-    ],
-    "noEmit": false,
-    "allowImportingTsExtensions": true,
-    "emitDeclarationOnly": true,
-    "declaration": true,
-    "rootDir": "./",
-    "outDir": "dist",
-    "skipLibCheck": true,
-    "verbatimModuleSyntax": false,
-    "noImplicitAny": false
-  }
+  ]
 }

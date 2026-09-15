@@ -1,7 +1,7 @@
 import type { __VkBubbleTemplates } from '@vunk-plus/components/bubble-templates'
 import type { BubbleProps } from '@vunk-plus/element/bubble'
 import type { MaybeArray, Media, NormalObject } from '@vunk/shared'
-import type { RequestFn, SSEOutput, useXChat, XAgent, XRequestParams } from 'ant-design-x-vue'
+import type { RequestFn, SSEOutput, useXChat, XAgent, XRequestParams } from '@vunk-plus/antx'
 import type { ComputedRef } from 'vue'
 import type { MessageView } from './MessageView'
 

@@ -19,6 +19,12 @@ export const pkgsIconsDir = path.resolve(packagesDir, './icons')
 // element
 export const pkgsElementDir = path.resolve(packagesDir, './element')
 
+// ant (vendored ant-design-vue)
+export const pkgsAntDir = path.resolve(packagesDir, './ant')
+
+// antx (vendored ant-design-x-vue)
+export const pkgsAntxDir = path.resolve(packagesDir, './antx')
+
 // entry
 export const pkgsEntryDir = path.resolve(packagesDir, './entry')
 export const pkgsEntryFile = path.resolve(pkgsEntryDir, './main.ts')

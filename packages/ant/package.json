@@ -1,0 +1,29 @@
+{
+  "name": "@vunk-plus/ant",
+  "version": "4.2.6",
+  "private": true,
+  "module": "index.ts",
+  "types": "index.ts",
+  "scripts": {
+    "build": "run-p build:es build:types",
+    "build:es": "vite build",
+    "build:types": "vue-tsc"
+  },
+  "dependencies": {
+    "@ant-design/colors": "^7.0.0",
+    "@ant-design/icons-vue": "^7.0.1",
+    "@ctrl/tinycolor": "^3.4.0",
+    "@emotion/hash": "^0.8.0",
+    "@emotion/unitless": "^0.8.0",
+    "async-validator": "^4.1.0",
+    "csstype": "^3.2.3",
+    "date-fns": "^2.29.0",
+    "dayjs": "^1.11.0",
+    "dom-align": "^1.12.0",
+    "lodash-es": "^4.17.0",
+    "resize-observer-polyfill": "^1.5.0",
+    "scroll-into-view-if-needed": "^3.0.0",
+    "stylis": "^4.1.0",
+    "vue-types": "^7.0.0"
+  }
+}
