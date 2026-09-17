@@ -1,5 +1,6 @@
 import vue from '@vitejs/plugin-vue'
 import vueJsx from '@vitejs/plugin-vue-jsx'
+import { fileViewerRenderers } from '@file-viewer/vite-plugin'
 import VueMacros from 'unplugin-vue-macros/vite'
 import vike from 'vike/plugin'
 import { AliasOptions, UserConfig, defineConfig, loadEnv } from 'vite'
@@ -84,6 +85,10 @@ export default defineConfig(async ({ mode }) => {
       vueDevTools(),
 
       vike(),
+
+      fileViewerRenderers({
+        copyAssets: true,
+      }),
 
       VueMacros({
         // Vue 3.5 原生支持 defineProps<Type>()，无需 better-define 宏

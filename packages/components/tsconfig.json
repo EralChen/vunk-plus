@@ -18,7 +18,11 @@
     "noEmit": false,
     "outDir": "dist",
     "verbatimModuleSyntax": false,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "paths": {
+      "@file-viewer/core": ["./node_modules/@file-viewer/core/dist/index.d.ts"],
+      "@file-viewer/vue3": ["./node_modules/@file-viewer/vue3/dist/src/package/index.d.ts"]
+    }
   },
   "include": [
     "./**/*.ts",

@@ -34,6 +34,7 @@ export default defineConfig(() => {
         external: [
           ...libExternal,
           'lottie-web',
+          /^@file-viewer\//,
           'markdown-it',
           'markdown-it-async',
           /^monaco-editor/,

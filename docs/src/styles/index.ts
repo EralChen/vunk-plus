@@ -4,6 +4,7 @@ import './element-plus'
 import '@vunk/core/index.css'
 import '@vunk/form/index.css'
 import '@vunk/gsap/index.css'
+import '@file-viewer/vue3/dist/file-viewer3.css'
 
 import './form'
 import './layout/index.css'

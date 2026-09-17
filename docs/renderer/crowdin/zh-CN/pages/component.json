@@ -36,6 +36,15 @@
       }
     ]
   },
+  "file": {
+    "text": "File",
+    "children": [
+      {
+        "link": "/file-viewer",
+        "text": "FileViewer"
+      }
+    ]
+  },
   "markdown": {
     "text": "Markdown",
     "children": [

@@ -11,6 +11,8 @@
   },
   "dependencies": {
     "@ant-design/icons-vue": "^7.0.1",
+    "@file-viewer/core": "^3.1.1",
+    "@file-viewer/vue3": "^3.1.1",
     "@vue/shared": "^3.5.38",
     "@vunk-plus/ant": "workspace:*",
     "@vunk-plus/antx": "workspace:*",

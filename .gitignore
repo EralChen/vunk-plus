@@ -5,3 +5,7 @@ docs/public/Esri
 .pnpm-store
 *.tar
 .dev/
+
+# file-viewer vite-plugin copyAssets 生成产物
+docs/public/vendor
+docs/public/flyfish-viewer-assets.json
