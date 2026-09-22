@@ -1,0 +1,1682 @@
+import type { View } from '../types'
+import { mount } from '@vue/test-utils'
+import { describe, expect, it, vi } from 'vitest'
+import { defineComponent, nextTick, reactive, ref } from 'vue'
+import config from '../config'
+import { useRecycleScroller } from './useRecycleScroller'
+
+function createView(index: number, used = true): View {
+  return {
+    item: { id: index },
+    position: 0,
+    offset: 0,
+    nr: {
+      id: index,
+      index,
+      used,
+      key: index,
+      type: 'default',
+    },
+  }
+}
+
+function mountHarness(overrides: Partial<{
+  items: Array<Record<string, unknown>>
+  keyField: string | ((item: Record<string, unknown>, index: number) => string | number)
+  direction: 'vertical' | 'horizontal' | undefined
+  itemSize: number | null | ((item: Record<string, unknown>, index: number) => number)
+  gridItems: number | undefined
+  itemSecondarySize: number | undefined
+  minItemSize: number | null
+  sizeField: string
+  shift: boolean
+  cache: any
+  disableTransform: boolean
+  flowMode: boolean
+  hiddenPosition: number
+  updateInterval: number
+  itemsLimit: number | undefined
+  clientHeight: number
+  clientWidth: number
+}> = {}) {
+  const onUpdate = vi.fn()
+  const clientHeight = overrides.clientHeight ?? 100
+  const clientWidth = overrides.clientWidth ?? 100
+  const options = reactive({
+    items: Array.from({ length: 6 }, (_, id) => ({ id })),
+    keyField: 'id',
+    direction: 'vertical' as const,
+    itemSize: 10,
+    gridItems: undefined,
+    itemSecondarySize: undefined,
+    minItemSize: null,
+    sizeField: 'size',
+    typeField: 'type',
+    buffer: 0,
+    pageMode: false,
+    shift: false,
+    cache: undefined,
+    prerender: 0,
+    emitUpdate: true,
+    disableTransform: false,
+    flowMode: false,
+    hiddenPosition: undefined,
+    updateInterval: 0,
+    itemsLimit: undefined,
+    ...overrides,
+  })
+
+  const Harness = defineComponent({
+    setup() {
+      const el = ref<HTMLElement>()
+      const state = useRecycleScroller(options, el, undefined, undefined, {
+        onUpdate,
+      })
+
+      return {
+        ...state,
+        el,
+      }
+    },
+    template: '<div ref="el" style="height: 100px; overflow-y: auto;" />',
+  })
+
+  const wrapper = mount(Harness)
+  const el = (wrapper.vm as any).el as HTMLElement
+  Object.defineProperty(el, 'clientHeight', {
+    configurable: true,
+    get: () => clientHeight,
+  })
+  Object.defineProperty(el, 'clientWidth', {
+    configurable: true,
+    get: () => clientWidth,
+  })
+  el.scrollTo = vi.fn(({ top, left }: ScrollToOptions & { top?: number, left?: number }) => {
+    if (typeof top === 'number') {
+      el.scrollTop = top
+    }
+    if (typeof left === 'number') {
+      el.scrollLeft = left
+    }
+  }) as any
+
+  return {
+    wrapper,
+    vm: wrapper.vm as any,
+    onUpdate,
+    options,
+  }
+}
+
+function mountObjectHarness(initialItems: Array<Record<string, unknown>>) {
+  const onUpdate = vi.fn()
+  const items = ref(initialItems)
+
+  const Harness = defineComponent({
+    setup() {
+      const el = ref<HTMLElement>()
+      const state = useRecycleScroller({
+        items,
+        el,
+        keyField: 'id',
+        direction: 'vertical',
+        itemSize: 10,
+        minItemSize: null,
+        sizeField: 'size',
+        typeField: 'type',
+        buffer: 0,
+        pageMode: false,
+        shift: false,
+        prerender: 0,
+        emitUpdate: true,
+        disableTransform: false,
+        hiddenPosition: undefined,
+        updateInterval: 0,
+        onUpdate,
+      })
+
+      return {
+        ...state,
+        el,
+        items,
+      }
+    },
+    template: '<div ref="el" style="height: 100px; overflow-y: auto;" />',
+  })
+
+  const wrapper = mount(Harness)
+  const el = (wrapper.vm as any).el as HTMLElement
+  Object.defineProperty(el, 'clientHeight', {
+    configurable: true,
+    get: () => 100,
+  })
+  Object.defineProperty(el, 'clientWidth', {
+    configurable: true,
+    get: () => 100,
+  })
+  el.scrollTo = vi.fn(({ top, left }: ScrollToOptions & { top?: number, left?: number }) => {
+    if (typeof top === 'number') {
+      el.scrollTop = top
+    }
+    if (typeof left === 'number') {
+      el.scrollLeft = left
+    }
+  }) as any
+
+  return {
+    wrapper,
+    vm: wrapper.vm as any,
+    items,
+    onUpdate,
+  }
+}
+
+function mountFactoryHarness(initialItems: Array<Record<string, unknown>>) {
+  const onUpdate = vi.fn()
+  const items = ref(initialItems)
+  const optionsFactory = vi.fn(() => ({
+    items: items.value,
+    keyField: 'id' as const,
+    direction: 'vertical' as const,
+    itemSize: 10,
+    minItemSize: null,
+    sizeField: 'size' as const,
+    typeField: 'type',
+    buffer: 0,
+    pageMode: false,
+    shift: false,
+    prerender: 0,
+    emitUpdate: true,
+    disableTransform: false,
+    hiddenPosition: undefined,
+    updateInterval: 0,
+    onUpdate,
+  }))
+
+  const Harness = defineComponent({
+    setup() {
+      const el = ref<HTMLElement>()
+      const state = useRecycleScroller(optionsFactory, el)
+
+      return {
+        ...state,
+        el,
+        items,
+      }
+    },
+    template: '<div ref="el" style="height: 100px; overflow-y: auto;" />',
+  })
+
+  const wrapper = mount(Harness)
+  const el = (wrapper.vm as any).el as HTMLElement
+  Object.defineProperty(el, 'clientHeight', {
+    configurable: true,
+    get: () => 100,
+  })
+  Object.defineProperty(el, 'clientWidth', {
+    configurable: true,
+    get: () => 100,
+  })
+  el.scrollTo = vi.fn(({ top, left }: ScrollToOptions & { top?: number, left?: number }) => {
+    if (typeof top === 'number') {
+      el.scrollTop = top
+    }
+    if (typeof left === 'number') {
+      el.scrollLeft = left
+    }
+  }) as any
+
+  return {
+    wrapper,
+    vm: wrapper.vm as any,
+    items,
+    onUpdate,
+    optionsFactory,
+  }
+}
+
+describe('useRecycleScroller', () => {
+  it('does not refresh when visible views remain contiguous after sorting', async () => {
+    const { vm, onUpdate } = mountHarness()
+
+    await nextTick()
+    await nextTick()
+    onUpdate.mockClear()
+
+    vm.pool = [
+      createView(3, true),
+      createView(1, false),
+      createView(4, true),
+    ]
+
+    vm.sortViews()
+
+    expect(onUpdate).not.toHaveBeenCalled()
+    expect(vm.visiblePool.map((view: View) => view.nr.index)).toEqual([3, 4])
+  })
+
+  it('refreshes when sorting reveals a gap between visible views', async () => {
+    const { vm, onUpdate } = mountHarness()
+
+    await nextTick()
+    await nextTick()
+    onUpdate.mockClear()
+
+    vm.pool = [
+      createView(3, true),
+      createView(1, false),
+      createView(5, true),
+    ]
+
+    vm.sortViews()
+
+    expect(onUpdate).toHaveBeenCalledTimes(1)
+  })
+
+  it('supports aligned scrolling and offset lookup helpers', async () => {
+    const { vm } = mountHarness({
+      items: Array.from({ length: 20 }, (_, id) => ({ id })),
+    })
+
+    await nextTick()
+    await nextTick()
+
+    vm.scrollToItem(15, { align: 'end' })
+    expect(vm.el.scrollTop).toBe(60)
+    expect(vm.getItemOffset(4)).toBe(40)
+    expect(vm.getItemSize(4)).toBe(10)
+    expect(vm.findItemIndex(34)).toBe(3)
+
+    vm.el.scrollTop = 20
+    vm.scrollToItem(2, { align: 'nearest' })
+    expect(vm.el.scrollTop).toBe(20)
+  })
+
+  it('supports single-object options with nested items and el refs', async () => {
+    const { vm, items, onUpdate } = mountObjectHarness([
+      { id: 1 },
+      { id: 2 },
+      { id: 3 },
+    ])
+
+    await nextTick()
+    await nextTick()
+
+    expect(vm.visiblePool.map((view: View) => view.nr.index)).toEqual([0, 1, 2])
+
+    onUpdate.mockClear()
+    items.value = [{ id: 4 }, { id: 5 }]
+    await nextTick()
+
+    expect(onUpdate).toHaveBeenCalledTimes(1)
+    expect(vm.visiblePool.slice(0, 2).map((view: View) => (view.item as { id: number }).id)).toEqual([4, 5])
+  })
+
+  it('caches getter-based option factories between reactive changes', async () => {
+    const { vm, items, optionsFactory } = mountFactoryHarness([
+      { id: 1 },
+      { id: 2 },
+      { id: 3 },
+    ])
+
+    await nextTick()
+    await nextTick()
+
+    optionsFactory.mockClear()
+
+    vm.getScroll()
+    vm.getItemSize(0)
+    vm.getItemOffset(2)
+    vm.getViewStyle(vm.pool[0])
+    vm.updateVisibleItems(false)
+    vm.updateVisibleItems(false)
+
+    expect(optionsFactory).not.toHaveBeenCalled()
+
+    items.value = [{ id: 4 }, { id: 5 }]
+    await nextTick()
+
+    expect(optionsFactory).toHaveBeenCalled()
+    expect(vm.visiblePool.slice(0, 2).map((view: View) => (view.item as { id: number }).id)).toEqual([4, 5])
+  })
+
+  it('reacts to native scroll events without exposing a public handler', async () => {
+    const requestAnimationFrameSpy = vi.spyOn(window, 'requestAnimationFrame')
+    requestAnimationFrameSpy.mockImplementation((callback: FrameRequestCallback) => {
+      callback(0)
+      return 321
+    })
+
+    const { vm, onUpdate } = mountHarness({
+      items: Array.from({ length: 20 }, (_, id) => ({ id })),
+    })
+
+    await nextTick()
+    await nextTick()
+    onUpdate.mockClear()
+
+    vm.el.scrollTop = 40
+    vm.el.dispatchEvent(new Event('scroll'))
+
+    expect(onUpdate).toHaveBeenCalledTimes(1)
+    expect(vm.visiblePool[0].nr.index).toBe(4)
+
+    requestAnimationFrameSpy.mockRestore()
+  })
+
+  it('emits updates for large variable-size rows before scrolling a full minItemSize', async () => {
+    const { vm, onUpdate } = mountHarness({
+      items: [
+        { id: 1, size: 300 },
+        { id: 2, size: 300 },
+        { id: 3, size: 300 },
+      ],
+      itemSize: null,
+      minItemSize: 300,
+    })
+
+    await nextTick()
+    await nextTick()
+
+    expect(vm.visiblePool.map((view: View) => view.nr.index)).toEqual([0])
+    onUpdate.mockClear()
+
+    vm.el.scrollTop = 250
+    vm.updateVisibleItems(false, true)
+
+    expect(onUpdate).toHaveBeenCalledTimes(1)
+    expect(vm.visiblePool.map((view: View) => view.nr.index)).toEqual([0, 1])
+  })
+
+  it('virtualizes grid items across the secondary axis and updates on horizontal scroll', async () => {
+    const { vm } = mountHarness({
+      items: Array.from({ length: 16 }, (_, id) => ({ id })),
+      itemSize: 10,
+      gridItems: 4,
+      itemSecondarySize: 20,
+      clientHeight: 25,
+      clientWidth: 35,
+    })
+
+    await nextTick()
+    await nextTick()
+
+    expect(vm.visiblePool.map((view: View) => view.nr.index).sort((a: number, b: number) => a - b)).toEqual([0, 1, 4, 5, 8, 9])
+
+    vm.el.scrollLeft = 20
+    vm.updateVisibleItems(false)
+
+    expect(vm.visiblePool.map((view: View) => view.nr.index).sort((a: number, b: number) => a - b)).toEqual([1, 2, 5, 6, 9, 10])
+  })
+
+  it('counts sparse grid views instead of their flattened index span for the item limit', async () => {
+    const { vm } = mountHarness({
+      items: Array.from({ length: 3000 }, (_, id) => ({ id })),
+      itemSize: 10,
+      gridItems: 300,
+      itemSecondarySize: 10,
+      clientHeight: 100,
+      clientWidth: 20,
+    })
+
+    await nextTick()
+    await nextTick()
+
+    expect(vm.visiblePool.map((view: View) => view.nr.index).sort((a: number, b: number) => a - b)).toEqual(
+      Array.from({ length: 10 }, (_, row) => [row * 300, row * 300 + 1]).flat(),
+    )
+  })
+
+  it('uses an instance item limit instead of the global default', async () => {
+    const previousItemsLimit = config.itemsLimit
+    const { wrapper, vm } = mountHarness({
+      items: Array.from({ length: 20 }, (_, id) => ({ id })),
+      itemSize: 10,
+      clientHeight: 50,
+      itemsLimit: 5,
+    })
+
+    await nextTick()
+    await nextTick()
+
+    try {
+      config.itemsLimit = 4
+      expect(() => vm.updateVisibleItems(false)).not.toThrow()
+    }
+    finally {
+      config.itemsLimit = previousItemsLimit
+      wrapper.unmount()
+    }
+  })
+
+  it('keeps the global item limit for ordinary lists and grids without an instance override', async () => {
+    const previousItemsLimit = config.itemsLimit
+    const listHarness = mountHarness({
+      items: Array.from({ length: 20 }, (_, id) => ({ id })),
+      itemSize: 10,
+      clientHeight: 50,
+    })
+    const gridHarness = mountHarness({
+      items: Array.from({ length: 16 }, (_, id) => ({ id })),
+      itemSize: 10,
+      gridItems: 4,
+      itemSecondarySize: 10,
+      clientHeight: 30,
+      clientWidth: 20,
+    })
+
+    await nextTick()
+    await nextTick()
+
+    try {
+      config.itemsLimit = 4
+      expect(() => listHarness.vm.updateVisibleItems(false)).toThrow('Rendered items limit reached')
+      expect(() => gridHarness.vm.updateVisibleItems(false)).toThrow('Rendered items limit reached')
+    }
+    finally {
+      config.itemsLimit = previousItemsLimit
+      listHarness.wrapper.unmount()
+      gridHarness.wrapper.unmount()
+    }
+  })
+
+  it('scrolls grid items into view on both axes', async () => {
+    const { vm } = mountHarness({
+      items: Array.from({ length: 16 }, (_, id) => ({ id })),
+      itemSize: 10,
+      gridItems: 4,
+      itemSecondarySize: 20,
+      clientHeight: 10,
+      clientWidth: 35,
+    })
+
+    await nextTick()
+    await nextTick()
+
+    vm.scrollToItem(6, { align: 'start' })
+
+    expect(vm.el.scrollTop).toBe(10)
+    expect(vm.el.scrollLeft).toBe(40)
+  })
+
+  it('keeps the viewport anchored when prepending items with shift enabled', async () => {
+    const { vm, options } = mountHarness({
+      items: [{ id: 1 }, { id: 2 }, { id: 3 }],
+      shift: true,
+    })
+
+    await nextTick()
+    await nextTick()
+
+    vm.el.scrollTop = 20
+    options.items = [{ id: 0 }, ...options.items]
+    await nextTick()
+
+    expect(vm.el.scrollTop).toBe(30)
+  })
+
+  it('does not adjust scroll when prepending items without shift', async () => {
+    const { vm, options } = mountHarness({
+      items: [{ id: 1 }, { id: 2 }, { id: 3 }],
+      shift: false,
+    })
+
+    await nextTick()
+    await nextTick()
+
+    vm.el.scrollTop = 20
+    options.items = [{ id: 0 }, ...options.items]
+    await nextTick()
+
+    expect(vm.el.scrollTop).toBe(20)
+  })
+
+  it('keeps visible view ids stable when same-key items are replaced', async () => {
+    const { vm, options } = mountHarness({
+      items: Array.from({ length: 4 }, (_, id) => ({ id, label: `Row ${id}` })),
+      itemSize: 10,
+      clientHeight: 40,
+    })
+
+    await nextTick()
+    await nextTick()
+
+    const initialIdsByKey = new Map(vm.visiblePool.map((view: View) => [view.nr.key, view.nr.id]))
+
+    options.items = options.items.map((item, index) => ({
+      ...item,
+      label: `Updated ${index}`,
+    }))
+    await nextTick()
+
+    expect(vm.visiblePool.map((view: View) => view.nr.index)).toEqual([0, 1, 2, 3])
+    for (const view of vm.visiblePool) {
+      expect(view.nr.id).toBe(initialIdsByKey.get(view.nr.key))
+    }
+  })
+
+  it('recycles visible views when same-key item types change', async () => {
+    const { vm, options } = mountHarness({
+      items: Array.from({ length: 4 }, (_, id) => ({ id, type: 'row' })),
+      itemSize: 10,
+      clientHeight: 40,
+    })
+
+    await nextTick()
+    await nextTick()
+
+    const initialIds = vm.visiblePool.map((view: View) => view.nr.id)
+
+    options.items = options.items.map(item => ({
+      ...item,
+      type: 'detail',
+    }))
+    await nextTick()
+
+    expect(vm.visiblePool.map((view: View) => view.nr.id)).not.toEqual(initialIds)
+    expect(vm.visiblePool.every((view: View) => view.nr.type === 'detail')).toBe(true)
+  })
+
+  it('supports function keyField for cache snapshots and shift anchoring', async () => {
+    const keyField = (item: { threadId: string, id: number }) => `${item.threadId}:${item.id}`
+    const { vm, options } = mountHarness({
+      items: [
+        { threadId: 'general', id: 1, size: 10 },
+        { threadId: 'general', id: 2, size: 10 },
+        { threadId: 'general', id: 3, size: 10 },
+      ],
+      itemSize: null,
+      minItemSize: 10,
+      keyField,
+      shift: true,
+    } as any)
+
+    await nextTick()
+    await nextTick()
+
+    expect(vm.cacheSnapshot.keys).toEqual(['general:1', 'general:2', 'general:3'])
+
+    const initialView = vm.visiblePool.find((view: View) => view.nr.key === 'general:2')
+    const initialViewId = initialView.nr.id
+
+    options.items = [
+      { threadId: 'general', id: 1, size: 10, label: 'updated' },
+      { threadId: 'general', id: 2, size: 10 },
+      { threadId: 'general', id: 3, size: 10 },
+    ]
+    await nextTick()
+
+    expect(vm.visiblePool.find((view: View) => view.nr.key === 'general:2').nr.id).toBe(initialViewId)
+
+    vm.el.scrollTop = 20
+    options.items = [
+      { threadId: 'general', id: 0, size: 10 },
+      ...options.items,
+    ]
+    await nextTick()
+
+    expect(vm.el.scrollTop).toBe(30)
+    expect(vm.restoreCache(vm.cacheSnapshot)).toBe(true)
+  })
+
+  it('supports function itemSize for variable-size math and scrolling', async () => {
+    const itemSize = (item: Record<string, unknown>, index: number) => Number(item.size ?? ((index + 1) * 10))
+    const { vm } = mountHarness({
+      items: [
+        { id: 'a', size: 15 },
+        { id: 'b', size: 25 },
+        { id: 'c', size: 35 },
+        { id: 'd', size: 45 },
+      ],
+      itemSize,
+      minItemSize: 10,
+    })
+
+    await nextTick()
+    await nextTick()
+
+    expect(vm.getItemSize(2)).toBe(35)
+    expect(vm.getItemOffset(2)).toBe(40)
+    expect(vm.findItemIndex(41)).toBe(2)
+
+    vm.scrollToItem(2, { align: 'start' })
+
+    expect(vm.el.scrollTop).toBe(40)
+  })
+
+  it('reuses variable-size accumulator entries across size updates', async () => {
+    const { vm, options } = mountHarness({
+      items: [
+        { id: 'a', size: 20 },
+        { id: 'b', size: 30 },
+        { id: 'c', size: 40 },
+      ],
+      itemSize: null,
+      minItemSize: 10,
+      sizeField: 'size',
+    })
+
+    await nextTick()
+    await nextTick()
+
+    const firstEntry = vm.sizes[0]
+    const secondEntry = vm.sizes[1]
+
+    ;(options.items[0] as { size: number }).size = 24
+    await nextTick()
+
+    expect(vm.sizes[0]).toBe(firstEntry)
+    expect(vm.sizes[1]).toBe(secondEntry)
+    expect(vm.sizes[0].size).toBe(24)
+    expect(vm.sizes[1].accumulator).toBe(54)
+  })
+
+  it('builds and restores cache snapshots for function itemSize', async () => {
+    const itemSize = (item: Record<string, unknown>) => Number(item.size || 0)
+    const { vm, options } = mountHarness({
+      items: [
+        { id: 'a', size: 15 },
+        { id: 'b', size: 25 },
+      ],
+      itemSize,
+      minItemSize: 10,
+    })
+
+    await nextTick()
+    await nextTick()
+
+    const snapshot = vm.cacheSnapshot
+
+    expect(snapshot).toEqual({
+      keys: ['a', 'b'],
+      sizes: [15, 25],
+    })
+
+    options.items = [{ id: 'a' }, { id: 'b' }]
+    await nextTick()
+
+    expect(vm.getItemOffset(1)).toBe(10)
+    expect(vm.restoreCache(snapshot)).toBe(true)
+    await nextTick()
+    expect(vm.getItemOffset(1)).toBe(15)
+  })
+
+  it('rejects grid mode when itemSize is a function getter', async () => {
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+
+    mountHarness({
+      items: Array.from({ length: 4 }, (_, id) => ({ id, size: 20 })),
+      itemSize: item => Number(item.size || 0),
+      minItemSize: 20,
+      gridItems: 2,
+    })
+
+    expect(consoleErrorSpy).toHaveBeenCalledWith('[vue-recycle-scroller] You must provide an itemSize when using gridItems')
+
+    consoleErrorSpy.mockRestore()
+  })
+
+  it('builds transform styles by default', async () => {
+    const { vm } = mountHarness()
+
+    await nextTick()
+    await nextTick()
+
+    const targetView = vm.pool.find((view: View) => view.nr.index === 0)
+    const style = vm.getViewStyle(targetView)
+    expect(style.transform).toBe('translateY(0px) translateX(0px)')
+    expect(style.top).toBe('0px')
+    expect(style.left).toBe('0px')
+    expect(style.willChange).toBe('transform')
+  })
+
+  it('uses top and left when disableTransform is enabled', async () => {
+    const { vm } = mountHarness({
+      disableTransform: true,
+    })
+
+    await nextTick()
+    await nextTick()
+
+    const view = vm.pool[0]
+    view.position = 40
+    view.offset = 12
+
+    const style = vm.getViewStyle(view)
+    expect(style.top).toBe('40px')
+    expect(style.left).toBe('12px')
+    expect(style.transform).toBe('none')
+    expect(style.willChange).toBe('unset')
+  })
+
+  it('uses native flow styles and spacer sizes when flowMode is enabled', async () => {
+    const { vm } = mountHarness({
+      items: Array.from({ length: 8 }, (_, id) => ({ id })),
+      itemSize: 10,
+      flowMode: true,
+      clientHeight: 25,
+    })
+
+    await nextTick()
+    await nextTick()
+
+    const view = vm.pool[0]
+    let style = vm.getViewStyle(view)
+    expect(style.position).toBeUndefined()
+    expect(style.top).toBeUndefined()
+    expect(style.left).toBeUndefined()
+    expect(style.transform).toBeUndefined()
+    expect(style.display).toBeUndefined()
+    expect(vm.startSpacerSize).toBe(0)
+    expect(vm.endSpacerSize).toBe(50)
+
+    vm.el.scrollTop = 20
+    vm.updateVisibleItems(false)
+
+    style = vm.getViewStyle(vm.pool[0])
+    expect(style.position).toBeUndefined()
+    expect(style.display).toBeUndefined()
+    expect(vm.pool.slice(0, 3).map((currentView: View) => currentView.nr.index)).toEqual([2, 3, 4])
+    expect(vm.startSpacerSize).toBe(20)
+    expect(vm.endSpacerSize).toBe(30)
+  })
+
+  it('keeps flow-mode pool ordered as active views followed by parked views', async () => {
+    const { vm, options } = mountHarness({
+      items: Array.from({ length: 6 }, (_, id) => ({ id })),
+      itemSize: 10,
+      flowMode: true,
+      clientHeight: 50,
+    })
+
+    await nextTick()
+    await nextTick()
+
+    expect(vm.pool).toHaveLength(5)
+
+    options.items = options.items.slice(0, 3)
+    await nextTick()
+
+    expect(vm.pool.slice(0, 3).map((view: View) => [view.nr.used, view.nr.index])).toEqual([
+      [true, 0],
+      [true, 1],
+      [true, 2],
+    ])
+    expect(vm.pool.slice(3).every((view: View) => !view.nr.used)).toBe(true)
+
+    const parkedStyle = vm.getViewStyle(vm.pool[3])
+    expect(parkedStyle.display).toBe('none')
+    expect(parkedStyle.pointerEvents).toBe('none')
+  })
+
+  it('keeps idle flow-mode variable-size boundaries stable across tiny size changes', async () => {
+    const { vm, onUpdate, options } = mountHarness({
+      items: Array.from({ length: 6 }, (_, id) => ({ id, size: 20 })),
+      itemSize: null,
+      minItemSize: 20,
+      flowMode: true,
+      clientHeight: 60,
+    })
+
+    await nextTick()
+    await nextTick()
+
+    vm.el.scrollTop = 0
+    onUpdate.mockClear()
+    vm.updateVisibleItems(false)
+
+    const baselineRange = onUpdate.mock.lastCall!.slice(0, 4)
+    const baselineUsedIndices = vm.pool
+      .filter((view: View) => view.nr.used)
+      .map((view: View) => view.nr.index)
+
+    ;(options.items[2] as { size: number }).size = 19
+    await nextTick()
+
+    onUpdate.mockClear()
+    vm.updateVisibleItems(false)
+
+    expect(onUpdate).toHaveBeenCalledWith(...baselineRange)
+    expect(vm.pool
+      .filter((view: View) => view.nr.used)
+      .map((view: View) => view.nr.index))
+      .toEqual(baselineUsedIndices)
+  })
+
+  it('preserves flow-mode visible order across continuous multi-item downward scroll shifts', async () => {
+    const { vm } = mountHarness({
+      items: Array.from({ length: 8 }, (_, id) => ({ id })),
+      itemSize: 10,
+      flowMode: true,
+      clientHeight: 30,
+    })
+
+    await nextTick()
+    await nextTick()
+
+    expect(vm.pool.map((view: View) => [view.nr.used, view.nr.index])).toEqual([
+      [true, 0],
+      [true, 1],
+      [true, 2],
+    ])
+
+    vm.el.scrollTop = 20
+    vm.updateVisibleItems(false)
+
+    expect(vm.pool.map((view: View) => [view.nr.used, view.nr.index])).toEqual([
+      [true, 2],
+      [true, 3],
+      [true, 4],
+    ])
+  })
+
+  it('keeps fixed-grid secondary axis placement in disableTransform mode', async () => {
+    const { vm } = mountHarness({
+      items: Array.from({ length: 16 }, (_, id) => ({ id })),
+      itemSize: 10,
+      gridItems: 4,
+      itemSecondarySize: 20,
+      disableTransform: true,
+    })
+
+    await nextTick()
+    await nextTick()
+
+    const targetView = vm.pool.find((view: View) => view.nr.index === 1)
+    const style = vm.getViewStyle(targetView)
+    expect(style.top).toBe('0px')
+    expect(style.left).toBe('20px')
+    expect(style.width).toBe('20px')
+    expect(style.height).toBe('10px')
+  })
+
+  it('uses the main axis for horizontal positioning styles', async () => {
+    const { vm } = mountHarness({
+      direction: 'horizontal',
+      disableTransform: true,
+    })
+
+    await nextTick()
+    await nextTick()
+
+    const view = vm.pool[0]
+    view.position = 40
+    view.offset = 12
+
+    const style = vm.getViewStyle(view)
+    expect(style.left).toBe('40px')
+    expect(style.top).toBe('12px')
+    expect(style.transform).toBe('none')
+  })
+
+  it('warns once and falls back when flowMode is incompatible with horizontal or grid mode', async () => {
+    const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const horizontalHarness = mountHarness({
+      direction: 'horizontal',
+      flowMode: true,
+    })
+    const gridHarness = mountHarness({
+      items: Array.from({ length: 8 }, (_, id) => ({ id })),
+      itemSize: 10,
+      gridItems: 2,
+      flowMode: true,
+    })
+
+    await nextTick()
+    await nextTick()
+    await horizontalHarness.wrapper.vm.$nextTick()
+    await gridHarness.wrapper.vm.$nextTick()
+
+    horizontalHarness.vm.updateVisibleItems(false)
+    gridHarness.vm.updateVisibleItems(false)
+
+    expect(consoleWarnSpy).toHaveBeenCalledTimes(2)
+    expect(consoleWarnSpy).toHaveBeenNthCalledWith(1, '[vue-recycle-scroller] flowMode only supports vertical lists. Falling back to standard positioning.')
+    expect(consoleWarnSpy).toHaveBeenNthCalledWith(2, '[vue-recycle-scroller] flowMode does not support gridItems. Falling back to standard positioning.')
+    expect(horizontalHarness.vm.getViewStyle(horizontalHarness.vm.pool[0]).transform).toBe(
+      `translateX(${horizontalHarness.vm.pool[0].position}px) translateY(${horizontalHarness.vm.pool[0].offset}px)`,
+    )
+    expect(gridHarness.vm.getViewStyle(gridHarness.vm.pool[0]).transform).toBe(
+      `translateY(${gridHarness.vm.pool[0].position}px) translateX(${gridHarness.vm.pool[0].offset}px)`,
+    )
+
+    consoleWarnSpy.mockRestore()
+  })
+
+  it('defaults omitted direction to vertical behavior', async () => {
+    const { vm } = mountHarness({
+      direction: undefined,
+    })
+
+    await nextTick()
+    await nextTick()
+
+    vm.scrollToItem(2)
+
+    expect(vm.el.scrollTop).toBe(20)
+    expect(vm.getScroll()).toEqual({ start: 20, end: 120 })
+  })
+
+  it('parks recycled views at configured hidden position and keeps default fallback', async () => {
+    const defaultHarness = mountHarness()
+    const configuredHarness = mountHarness({
+      hiddenPosition: -12345,
+    })
+
+    await nextTick()
+    await nextTick()
+    await configuredHarness.wrapper.vm.$nextTick()
+    await configuredHarness.wrapper.vm.$nextTick()
+
+    defaultHarness.options.items = []
+    configuredHarness.options.items = []
+
+    await nextTick()
+    await configuredHarness.wrapper.vm.$nextTick()
+
+    expect(defaultHarness.vm.pool.every((view: View) => !view.nr.used)).toBe(true)
+    expect(defaultHarness.vm.pool.every((view: View) => view.position === -999999)).toBe(true)
+    expect(configuredHarness.vm.pool.every((view: View) => !view.nr.used)).toBe(true)
+    expect(configuredHarness.vm.pool.every((view: View) => view.position === -12345)).toBe(true)
+  })
+
+  it('builds and restores cache snapshots for variable-size lists', async () => {
+    const { vm, options } = mountHarness({
+      items: [
+        { id: 'a', size: 15 },
+        { id: 'b', size: 25 },
+      ],
+      itemSize: null,
+      minItemSize: 10,
+    })
+
+    await nextTick()
+    await nextTick()
+
+    const snapshot = vm.cacheSnapshot
+
+    expect(snapshot).toEqual({
+      keys: ['a', 'b'],
+      sizes: [15, 25],
+    })
+    expect(vm.getItemOffset(1)).toBe(15)
+
+    options.items = [{ id: 'a' }, { id: 'b' }]
+    await nextTick()
+
+    expect(vm.getItemOffset(1)).toBe(10)
+    expect(vm.restoreCache(snapshot)).toBe(true)
+    await nextTick()
+    expect(vm.getItemOffset(1)).toBe(15)
+
+    expect(vm.restoreCache({
+      keys: ['x', 'y'],
+      sizes: [15, 25],
+    })).toBe(false)
+  })
+
+  it('cancels pending animation frames on unmount', async () => {
+    const requestAnimationFrameSpy = vi.spyOn(window, 'requestAnimationFrame')
+    requestAnimationFrameSpy.mockImplementation(() => 123)
+    const cancelAnimationFrameSpy = vi.spyOn(window, 'cancelAnimationFrame')
+
+    const { wrapper, vm } = mountHarness()
+    await nextTick()
+    await nextTick()
+
+    vm.handleVisibilityChange(true, {
+      boundingClientRect: {
+        width: 10,
+        height: 10,
+      },
+    } as IntersectionObserverEntry)
+
+    wrapper.unmount()
+
+    expect(cancelAnimationFrameSpy).toHaveBeenCalledWith(123)
+
+    requestAnimationFrameSpy.mockRestore()
+    cancelAnimationFrameSpy.mockRestore()
+  })
+
+  it('does not leave duplicate used views after replacing a large list with a single entry of a new key in flow-mode variable size', async () => {
+    // Regression: skeleton→real transition swapped a 25-row placeholder list for
+    // one real row with a completely different key. In flow-mode variable-size,
+    // two pooled views ended up with `used: true` at the same index, surfacing
+    // as a duplicate row in the virtualized table.
+    const { vm, options } = mountHarness({
+      items: Array.from({ length: 25 }, (_, id) => ({ id: String(id) })),
+      itemSize: null,
+      minItemSize: 40,
+      flowMode: true,
+      clientHeight: 400,
+    })
+
+    await nextTick()
+    await nextTick()
+
+    options.items = [{ id: 'b899c68c-350f-40e1-9018-17d1e8acd7d9' }]
+    await nextTick()
+    await nextTick()
+
+    const usedViews = vm.pool.filter((view: View) => view.nr.used)
+    expect(usedViews.map((view: View) => view.nr.index)).toEqual([0])
+    expect(vm.visiblePool.map((view: View) => view.nr.index)).toEqual([0])
+  })
+
+  it('recomputes visiblePool when a view is manually flipped to unused', async () => {
+    // Regression: `view.nr` is markRaw, so `visiblePool`'s `.filter(view => view.nr.used)`
+    // establishes no reactive dep on `.used`. Without tracking `_vs_visibilityStamp`,
+    // the computed stays stale when `used` flips without a pool mutation — external
+    // consumers rendering from `visiblePool` then see stale/duplicate rows.
+    const { vm } = mountHarness({
+      items: Array.from({ length: 3 }, (_, id) => ({ id })),
+      itemSize: 40,
+      clientHeight: 120,
+    })
+
+    await nextTick()
+    await nextTick()
+
+    expect(vm.visiblePool.map((view: View) => view.nr.index)).toEqual([0, 1, 2])
+
+    const target = vm.visiblePool[1]
+    target.nr.used = false
+    target._vs_visibilityStamp++
+
+    expect(vm.visiblePool.map((view: View) => view.nr.index)).toEqual([0, 2])
+  })
+
+  it('clears pending timeouts on unmount', async () => {
+    const setTimeoutSpy = vi.spyOn(globalThis, 'setTimeout')
+    setTimeoutSpy.mockImplementation(() => 789 as unknown as ReturnType<typeof setTimeout>)
+    const clearTimeoutSpy = vi.spyOn(globalThis, 'clearTimeout')
+
+    const { wrapper, vm } = mountHarness({
+      updateInterval: 10,
+    })
+    await nextTick()
+    await nextTick()
+
+    vm.el.dispatchEvent(new Event('scroll'))
+
+    wrapper.unmount()
+
+    expect(clearTimeoutSpy).toHaveBeenCalledWith(789)
+
+    setTimeoutSpy.mockRestore()
+    clearTimeoutSpy.mockRestore()
+  })
+
+  it('keeps prior items rendered when the variable-size cache trips the readiness gate on append', async () => {
+    // Regression for issue #925: 3.0.3's readiness gate (commit 396e736) zeroed
+    // all render indices whenever `sizesValue[count - 1] == null`, which blanked
+    // the viewport during in-place item appends (e.g. streaming chat). The fix
+    // preserves the last good range so the viewport stays populated for one
+    // tick until the sizes computed reconciles.
+    const { vm, onUpdate } = mountHarness({
+      items: Array.from({ length: 5 }, (_, id) => ({ id, size: 20 })),
+      itemSize: null,
+      minItemSize: 20,
+      clientHeight: 100,
+    })
+
+    await nextTick()
+    await nextTick()
+
+    const initialIndices = vm.visiblePool.map((view: View) => view.nr.index)
+    expect(initialIndices.length).toBeGreaterThan(0)
+    const baselineCall = onUpdate.mock.lastCall as [number, number, number, number]
+    expect(baselineCall).not.toEqual([0, 0, 0, 0])
+
+    // Force the readiness gate to trip by punching a hole at the last index of
+    // the cached `sizes` array. The `sizes` computed is lazy and only
+    // re-evaluates when its dependencies change, so a direct mutation persists
+    // for the next `updateVisibleItems` call that doesn't itself touch deps.
+    const sizesRef = vm.sizes as Array<{ accumulator: number, size: number | undefined } | undefined>
+    const lastIndex = sizesRef.length - 1
+    const savedLast = sizesRef[lastIndex]
+    sizesRef[lastIndex] = undefined
+
+    onUpdate.mockClear()
+    vm.updateVisibleItems(true)
+
+    // Restore so harness teardown is clean.
+    sizesRef[lastIndex] = savedLast
+
+    // With the fix the gate trip restores the previously computed range; the
+    // current `master` zeroes everything instead.
+    expect(onUpdate).toHaveBeenCalled()
+    const recoveryCall = onUpdate.mock.lastCall as [number, number, number, number]
+    expect(recoveryCall).not.toEqual([0, 0, 0, 0])
+    expect(recoveryCall).toEqual(baselineCall)
+  })
+
+  it('clamps the restored range to current count on wholesale shrinkage', async () => {
+    // Regression for issue #925: after the gate restores from `_lastGoodRange`,
+    // the restored indices must be clamped to the current `count` so a
+    // wholesale shrink (e.g. N=10 → N=3) can't leave `endIndex` pointing past
+    // `currentItems` and crash `forEachRenderedIndex` on `currentItems[i]`.
+    const { vm, options, onUpdate } = mountHarness({
+      items: Array.from({ length: 10 }, (_, id) => ({ id, size: 20 })),
+      itemSize: null,
+      minItemSize: 20,
+      clientHeight: 200,
+    })
+
+    await nextTick()
+    await nextTick()
+
+    expect(vm.visiblePool.length).toBeGreaterThan(0)
+
+    options.items = Array.from({ length: 3 }, (_, id) => ({ id, size: 20 }))
+    // Punch a hole before the recompute lands. This trips the gate on the
+    // synchronous `updateVisibleItems` path before the fresh `sizes` settles.
+    const sizesRef = vm.sizes as Array<{ accumulator: number, size: number | undefined } | undefined>
+    if (sizesRef.length > 0) {
+      sizesRef[sizesRef.length - 1] = undefined
+    }
+
+    onUpdate.mockClear()
+    expect(() => vm.updateVisibleItems(true)).not.toThrow()
+
+    await nextTick()
+    await nextTick()
+
+    // All visible indices must lie within the new 3-item array.
+    for (const view of vm.visiblePool as View[]) {
+      expect(view.nr.index).toBeLessThan(3)
+      expect(view.nr.index).toBeGreaterThanOrEqual(0)
+    }
+  })
+
+  it('does not truncate the end-of-range search on a mid-array sparse slot', async () => {
+    // Regression for issue #925 part B: end-search loops at L1273/L1288 used to
+    // fall back to `Number.POSITIVE_INFINITY` for missing accumulator entries.
+    // For an end-of-range scan (loop while `accumulator < scroll.end`), that
+    // terminated the loop on the first sparse slot, collapsing the range to
+    // empty. The fix flips the fallback to `0` so the scan continues past
+    // sparse entries.
+    const { vm, onUpdate } = mountHarness({
+      items: Array.from({ length: 4 }, (_, id) => ({ id, size: 20 })),
+      itemSize: null,
+      minItemSize: 20,
+      clientHeight: 80,
+    })
+
+    await nextTick()
+    await nextTick()
+
+    const baselineRange = onUpdate.mock.lastCall as [number, number, number, number]
+    expect(baselineRange[1]).toBeGreaterThan(0)
+
+    // Punch a hole mid-array (index 1) but keep the last index populated so
+    // the readiness gate does NOT trip — we want to exercise the end-search
+    // loop directly.
+    const sizesRef = vm.sizes as Array<{ accumulator: number, size: number | undefined } | undefined>
+    const saved = sizesRef[1]
+    sizesRef[1] = undefined
+
+    onUpdate.mockClear()
+    vm.updateVisibleItems(true)
+
+    sizesRef[1] = saved
+
+    // The end-search must scan past the sparse slot rather than terminate on
+    // it. The recovery range's endIndex must reach at least the baseline.
+    const recoveryRange = onUpdate.mock.lastCall as [number, number, number, number]
+    expect(recoveryRange[1]).toBeGreaterThanOrEqual(baselineRange[1])
+  })
+
+  it('still assigns a view for an in-range index whose cached size is 0', async () => {
+    // Regression for issue #906: the step-2 loop in updateVisibleItems used
+    // to early-return when `sizesValue[i].size` was 0 (or `sizesValue[i]`
+    // was undefined), skipping view assignment for that index. Combined
+    // with step 1 having already recycled every prior view (on the
+    // itemsChanged / non-continuous paths), the DOM slot was left blank
+    // until the next reconciliation tick. The fix falls back to
+    // `_computedMinItemSize` so every index in the resolved range claims
+    // a pooled view regardless of cache transients.
+    const { vm } = mountHarness({
+      items: Array.from({ length: 5 }, (_, id) => ({ id, size: 20 })),
+      itemSize: null,
+      minItemSize: 20,
+      clientHeight: 100,
+    })
+
+    await nextTick()
+    await nextTick()
+
+    // Sanity: all five items should be in the visible pool to start with.
+    const initialIndices = vm.visiblePool.map((view: View) => view.nr.index)
+    expect(initialIndices).toEqual([0, 1, 2, 3, 4])
+
+    // Punch size=0 into the middle of the cache. The accumulators stay
+    // populated so the binary search still includes index 2 in the range —
+    // we want to exercise the per-index assignment loop, not the gate.
+    const sizesRef = vm.sizes as Array<{ accumulator: number, size: number | undefined } | undefined>
+    const savedSize = sizesRef[2]!.size
+    sizesRef[2]!.size = 0
+
+    vm.updateVisibleItems(true)
+
+    sizesRef[2]!.size = savedSize
+
+    const recoveryIndices = vm.visiblePool.map((view: View) => view.nr.index)
+    expect(recoveryIndices).toContain(2)
+  })
+
+  it('still assigns a view when an in-range sizesValue entry is undefined', async () => {
+    // Same regression as the size=0 case (issue #906), but exercising the
+    // `sizesValue[i] && ...` branch. The fallback must catch undefined
+    // entries too — a sparse cache slot would otherwise also skip the slot.
+    const { vm } = mountHarness({
+      items: Array.from({ length: 5 }, (_, id) => ({ id, size: 20 })),
+      itemSize: null,
+      minItemSize: 20,
+      clientHeight: 100,
+    })
+
+    await nextTick()
+    await nextTick()
+
+    const sizesRef = vm.sizes as Array<{ accumulator: number, size: number | undefined } | undefined>
+    const saved = sizesRef[2]
+    sizesRef[2] = undefined
+
+    vm.updateVisibleItems(true)
+
+    sizesRef[2] = saved
+
+    const recoveryIndices = vm.visiblePool.map((view: View) => view.nr.index)
+    expect(recoveryIndices).toContain(2)
+  })
+
+  it('does not crash on 0 → 1 items transition in variable-size mode', async () => {
+    // Regression: in variable-size mode the size cache is computed lazily from
+    // `items`. When an empty list gains its first row, an upstream wrapper can
+    // synchronously trigger updateVisibleItems before the sizes computed has
+    // refreshed — leaving sizesValue[0] undefined. Walking it dereferenced
+    // `.accumulator` and crashed the consumer.
+    const items = ref<Array<{ id: number }>>([])
+    const Harness = defineComponent({
+      setup() {
+        const el = ref<HTMLElement>()
+        const state = useRecycleScroller(() => ({
+          items: items.value,
+          keyField: 'id' as const,
+          direction: 'vertical' as const,
+          itemSize: null,
+          minItemSize: 40,
+          sizeField: 'size' as const,
+          typeField: 'type',
+          buffer: 0,
+          pageMode: false,
+          shift: false,
+          prerender: 0,
+          emitUpdate: false,
+          disableTransform: false,
+          updateInterval: 0,
+        }), el)
+        return { ...state, el }
+      },
+      template: '<div ref="el" style="height: 100px; overflow-y: auto;" />',
+    })
+
+    const wrapper = mount(Harness)
+    const el = (wrapper.vm as any).el as HTMLElement
+    Object.defineProperty(el, 'clientHeight', { configurable: true, get: () => 100 })
+    Object.defineProperty(el, 'clientWidth', { configurable: true, get: () => 100 })
+
+    await nextTick()
+    await nextTick()
+
+    // Add the first item — this must not throw on the accumulator read path.
+    expect(() => {
+      items.value = [{ id: 0 }]
+    }).not.toThrow()
+    await nextTick()
+    await nextTick()
+
+    expect((wrapper.vm as any).pool.length).toBeGreaterThanOrEqual(0)
+  })
+})
+
+/**
+ * Mount a RecycleScroller harness in page mode, with the scroller's root
+ * element nested inside a wrapping div that acts as the scroll parent.
+ *
+ * The wrapper is attached to `document.body` so `getScrollParent` can walk
+ * the real DOM hierarchy. `clientHeight` and `getBoundingClientRect` of both
+ * the wrapper and the scroller's element are stubbed because jsdom layouts
+ * are zero-sized by default.
+ */
+function mountPageModeHarness(overrides: {
+  parentHeight?: number
+  parentWidth?: number
+  itemCount?: number
+  itemSize?: number | null
+  minItemSize?: number | null
+  scrollParent?: HTMLElement | Window
+  parentBoundsTop?: number
+} = {}) {
+  const parentHeight = overrides.parentHeight ?? 300
+  const parentWidth = overrides.parentWidth ?? 400
+  const itemCount = overrides.itemCount ?? 200
+  const itemSize = overrides.itemSize ?? 50
+  const minItemSize = overrides.minItemSize ?? null
+  const explicitScrollParent = overrides.scrollParent
+  const parentBoundsTop = overrides.parentBoundsTop ?? 0
+  const onUpdate = vi.fn()
+
+  const Harness = defineComponent({
+    setup() {
+      const parent = ref<HTMLElement>()
+      const el = ref<HTMLElement>()
+      const state = useRecycleScroller(() => ({
+        items: Array.from({ length: itemCount }, (_, id) => ({ id })),
+        keyField: 'id' as const,
+        direction: 'vertical' as const,
+        itemSize,
+        minItemSize,
+        sizeField: 'size' as const,
+        typeField: 'type',
+        buffer: 0,
+        pageMode: true,
+        shift: false,
+        prerender: 0,
+        emitUpdate: true,
+        disableTransform: false,
+        updateInterval: 0,
+        scrollParent: explicitScrollParent,
+        onUpdate,
+      }) as any, el)
+      return { ...state, parent, el }
+    },
+    template: '<div ref="parent" style="height: 300px; overflow-y: auto;"><div ref="el" /></div>',
+  })
+
+  const wrapper = mount(Harness, { attachTo: document.body })
+  const vm = wrapper.vm as any
+  const parentEl: HTMLElement = vm.parent
+  const el: HTMLElement = vm.el
+
+  // Stub layout on the resolved scroll parent.
+  Object.defineProperty(parentEl, 'clientHeight', { configurable: true, get: () => parentHeight })
+  Object.defineProperty(parentEl, 'clientWidth', { configurable: true, get: () => parentWidth })
+  parentEl.getBoundingClientRect = vi.fn(() => ({
+    top: parentBoundsTop,
+    left: 0,
+    bottom: parentBoundsTop + parentHeight,
+    right: parentWidth,
+    width: parentWidth,
+    height: parentHeight,
+    x: 0,
+    y: parentBoundsTop,
+    toJSON: () => ({}),
+  }))
+
+  // Stub the scroller element's bounding rect — assume aligned with parent top
+  // initially, total content size = itemCount * itemSize.
+  const totalSize = itemCount * (itemSize ?? minItemSize ?? 50)
+  el.getBoundingClientRect = vi.fn(() => ({
+    top: parentBoundsTop - parentEl.scrollTop,
+    left: 0,
+    bottom: parentBoundsTop - parentEl.scrollTop + totalSize,
+    right: parentWidth,
+    width: parentWidth,
+    height: totalSize,
+    x: 0,
+    y: parentBoundsTop - parentEl.scrollTop,
+    toJSON: () => ({}),
+  }))
+
+  return { wrapper, vm, onUpdate, parent: parentEl, el }
+}
+
+describe('useRecycleScroller pageMode with div scroll parent', () => {
+  it('uses the auto-detected div scroll parent for getScroll viewport size', async () => {
+    // Regression for issue #928: when pageMode is on and the closest
+    // overflow:auto ancestor is a div, `getScroll().end - start` must match
+    // the div's clientHeight rather than `window.innerHeight`.
+    const { vm } = mountPageModeHarness({ parentHeight: 300 })
+
+    await nextTick()
+    await nextTick()
+
+    const scroll = vm.getScroll()
+    expect(scroll.end - scroll.start).toBe(300)
+  })
+
+  it('attaches the scroll listener to the resolved div parent', async () => {
+    const requestAnimationFrameSpy = vi.spyOn(window, 'requestAnimationFrame')
+    requestAnimationFrameSpy.mockImplementation((callback: FrameRequestCallback) => {
+      callback(0)
+      return 321
+    })
+
+    const { vm, parent, onUpdate } = mountPageModeHarness({ parentHeight: 300 })
+
+    await nextTick()
+    await nextTick()
+    onUpdate.mockClear()
+
+    parent.scrollTop = 120
+    parent.dispatchEvent(new Event('scroll'))
+
+    expect(onUpdate).toHaveBeenCalled()
+    // After scrolling 120px into the parent, getScroll().start reflects that.
+    const scroll = vm.getScroll()
+    expect(scroll.start).toBe(120)
+    expect(scroll.end - scroll.start).toBe(300)
+
+    requestAnimationFrameSpy.mockRestore()
+  })
+
+  it('does not attach a resize listener to a non-window scroll parent', async () => {
+    // DOM elements don't fire `resize`; only window does. The existing
+    // ResizeObserver on the scroller's root catches size changes.
+    const parentSpy = vi.fn()
+    const Harness = defineComponent({
+      setup() {
+        const parent = ref<HTMLElement>()
+        const el = ref<HTMLElement>()
+        const state = useRecycleScroller(() => ({
+          items: Array.from({ length: 50 }, (_, id) => ({ id })),
+          keyField: 'id' as const,
+          direction: 'vertical' as const,
+          itemSize: 20,
+          minItemSize: null,
+          sizeField: 'size' as const,
+          typeField: 'type',
+          buffer: 0,
+          pageMode: true,
+          shift: false,
+          prerender: 0,
+          emitUpdate: true,
+          disableTransform: false,
+          updateInterval: 0,
+        }) as any, el)
+        return { ...state, parent, el }
+      },
+      template: '<div ref="parent" style="height: 200px; overflow-y: auto;"><div ref="el" /></div>',
+    })
+    const wrapper = mount(Harness, { attachTo: document.body })
+    const vm = wrapper.vm as any
+    const parent: HTMLElement = vm.parent
+    const originalAdd = parent.addEventListener.bind(parent)
+    parent.addEventListener = vi.fn((type: string, listener: any, opts?: any) => {
+      parentSpy(type)
+      originalAdd(type, listener, opts)
+    }) as any
+    Object.defineProperty(parent, 'clientHeight', { configurable: true, get: () => 200 })
+    Object.defineProperty(parent, 'clientWidth', { configurable: true, get: () => 200 })
+
+    await nextTick()
+    await nextTick()
+
+    // No resize listener should have been registered on the parent div.
+    expect(parentSpy).not.toHaveBeenCalledWith('resize')
+  })
+
+  it('honors an explicit scrollParent option over auto-detection', async () => {
+    // The user can pass a specific HTMLElement to bypass the DOM walk.
+    const customParent = document.createElement('div')
+    customParent.style.height = '500px'
+    customParent.style.overflow = 'auto'
+    Object.defineProperty(customParent, 'clientHeight', { configurable: true, get: () => 500 })
+    Object.defineProperty(customParent, 'clientWidth', { configurable: true, get: () => 400 })
+    customParent.getBoundingClientRect = vi.fn(() => ({
+      top: 0,
+      left: 0,
+      bottom: 500,
+      right: 400,
+      width: 400,
+      height: 500,
+      x: 0,
+      y: 0,
+      toJSON: () => ({}),
+    }))
+
+    const { vm, parent } = mountPageModeHarness({
+      parentHeight: 300,
+      scrollParent: customParent,
+    })
+
+    await nextTick()
+    await nextTick()
+
+    // Even though the auto-detected ancestor is 300px, the explicit override
+    // (500px) is what `getScroll` measures against.
+    const scroll = vm.getScroll()
+    expect(scroll.end - scroll.start).toBe(500)
+    // Sanity: the auto-detected parent is NOT what we resolved to.
+    expect(parent.clientHeight).toBe(300)
+  })
+})
+
+describe('useRecycleScroller enabled option', () => {
+  it('does not attach scroll listeners when enabled is false', async () => {
+    const items = ref<Array<{ id: number }>>(Array.from({ length: 6 }, (_, id) => ({ id })))
+    const enabled = ref(false)
+    const Harness = defineComponent({
+      setup() {
+        const el = ref<HTMLElement>()
+        const state = useRecycleScroller(() => ({
+          items: items.value,
+          keyField: 'id' as const,
+          direction: 'vertical' as const,
+          itemSize: 10,
+          minItemSize: null,
+          sizeField: 'size' as const,
+          typeField: 'type',
+          buffer: 0,
+          pageMode: false,
+          shift: false,
+          prerender: 0,
+          emitUpdate: true,
+          disableTransform: false,
+          updateInterval: 0,
+          enabled: enabled.value,
+        }), el)
+        return { ...state, el }
+      },
+      template: '<div ref="el" style="height: 100px; overflow-y: auto;" />',
+    })
+
+    const wrapper = mount(Harness)
+    const el = (wrapper.vm as any).el as HTMLElement
+    Object.defineProperty(el, 'clientHeight', { configurable: true, get: () => 100 })
+    Object.defineProperty(el, 'clientWidth', { configurable: true, get: () => 100 })
+
+    const addEventListenerSpy = vi.spyOn(el, 'addEventListener')
+
+    await nextTick()
+    await nextTick()
+
+    // No scroll listener attached, pool empty, ready stays false.
+    expect(addEventListenerSpy).not.toHaveBeenCalledWith('scroll', expect.any(Function), expect.anything())
+    expect((wrapper.vm as any).pool.length).toBe(0)
+    expect((wrapper.vm as any).ready).toBe(false)
+
+    addEventListenerSpy.mockRestore()
+  })
+
+  it('re-arms listeners and renders pool when enabled flips to true', async () => {
+    const items = ref<Array<{ id: number }>>(Array.from({ length: 6 }, (_, id) => ({ id })))
+    const enabled = ref(false)
+    const Harness = defineComponent({
+      setup() {
+        const el = ref<HTMLElement>()
+        const state = useRecycleScroller(() => ({
+          items: items.value,
+          keyField: 'id' as const,
+          direction: 'vertical' as const,
+          itemSize: 10,
+          minItemSize: null,
+          sizeField: 'size' as const,
+          typeField: 'type',
+          buffer: 0,
+          pageMode: false,
+          shift: false,
+          prerender: 0,
+          emitUpdate: true,
+          disableTransform: false,
+          updateInterval: 0,
+          enabled: enabled.value,
+        }), el)
+        return { ...state, el }
+      },
+      template: '<div ref="el" style="height: 100px; overflow-y: auto;" />',
+    })
+
+    const wrapper = mount(Harness)
+    const el = (wrapper.vm as any).el as HTMLElement
+    Object.defineProperty(el, 'clientHeight', { configurable: true, get: () => 100 })
+    Object.defineProperty(el, 'clientWidth', { configurable: true, get: () => 100 })
+
+    await nextTick()
+    expect((wrapper.vm as any).pool.length).toBe(0)
+
+    enabled.value = true
+    await nextTick()
+    await nextTick()
+
+    expect((wrapper.vm as any).pool.length).toBeGreaterThan(0)
+    expect((wrapper.vm as any).ready).toBe(true)
+  })
+
+  it('updateVisibleItems is a no-op when disabled', async () => {
+    const items = ref<Array<{ id: number }>>(Array.from({ length: 6 }, (_, id) => ({ id })))
+    const Harness = defineComponent({
+      setup() {
+        const el = ref<HTMLElement>()
+        const state = useRecycleScroller(() => ({
+          items: items.value,
+          keyField: 'id' as const,
+          direction: 'vertical' as const,
+          itemSize: 10,
+          minItemSize: null,
+          sizeField: 'size' as const,
+          typeField: 'type',
+          buffer: 0,
+          pageMode: false,
+          shift: false,
+          prerender: 0,
+          emitUpdate: true,
+          disableTransform: false,
+          updateInterval: 0,
+          enabled: false,
+        }), el)
+        return { ...state, el }
+      },
+      template: '<div ref="el" style="height: 100px; overflow-y: auto;" />',
+    })
+
+    const wrapper = mount(Harness)
+    await nextTick()
+    const result = (wrapper.vm as any).updateVisibleItems(true)
+    expect(result).toEqual({ continuous: true })
+    expect((wrapper.vm as any).pool.length).toBe(0)
+  })
+})

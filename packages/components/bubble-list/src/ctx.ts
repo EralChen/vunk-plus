@@ -15,6 +15,11 @@ export const props = {
 
   scrollbarAppendTo: null,
 
+  virtual: {
+    type: Boolean,
+    default: false,
+  },
+
   autoScrollThreshold: {
     type: Number,
     default: 200,

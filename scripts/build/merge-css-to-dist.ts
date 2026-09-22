@@ -16,9 +16,17 @@ export default series(
       cwd: cssOutPath,
       onlyFiles: true,
     })
+
+    // element CSS
     const elementCssFile = path.resolve(distDir, './element/index.css')
     if (fs.existsSync(elementCssFile)) {
       cssFiles.push(elementCssFile)
+    }
+
+    // vue-virtual-scroller CSS
+    const vvsCssFile = path.resolve(distDir, './vue-virtual-scroller/vue-virtual-scroller.css')
+    if (fs.existsSync(vvsCssFile)) {
+      cssFiles.push(vvsCssFile)
     }
 
     if (!cssFiles.length) return

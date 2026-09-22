@@ -16,6 +16,7 @@
     "@vue/shared": "^3.5.38",
     "@vunk-plus/ant": "workspace:*",
     "@vunk-plus/antx": "workspace:*",
+    "@vunk-plus/vue-virtual-scroller": "workspace:*",
     "consola": "^3.4.2",
     "howler": "^2.2.4",
     "markdown-it-async": "^2.2.0",

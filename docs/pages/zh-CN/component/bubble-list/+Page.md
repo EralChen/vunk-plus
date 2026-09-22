@@ -8,6 +8,17 @@
 bubble-list/basic
 :::
 
+## Virtual 虚拟列表
+
+当消息量较大（数百条以上）时，可以开启 `virtual` 属性启用虚拟列表。
+
+虚拟列表仅渲染可视区域内的 DOM 节点（含一定缓冲区），动态测量每个气泡的实际高度，
+通过二分查找快速定位可见范围，大幅降低 DOM 节点数量和重排开销。
+
+:::demo
+bubble-list/virtual
+:::
+
 ## TemplateType 扩展
 
 templateType 定义了气泡内容的渲染方式。

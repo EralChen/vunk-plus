@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import { VkBubbleRenderer, VkBubbleRenderTemplates, VkBubbleTemplates } from '@vunk-plus/components/bubble-templates'
 import { ElAutoResizer } from 'element-plus'
+import { ref, watch } from 'vue'
 import BubbleList from './core/index.vue'
 import {
   props as dProps,
@@ -10,7 +11,20 @@ defineOptions({
   name: 'VkBubbleList',
   inheritAttrs: false,
 })
-defineProps(dProps)
+const p = defineProps(dProps)
+
+const bubbleListRef = ref<InstanceType<typeof BubbleList>>()
+
+// backward compat: still call elRef if parent passed it
+watch(() => p.elRef, (fn) => {
+  if (fn) fn(bubbleListRef.value)
+}, { immediate: true })
+
+defineExpose({
+  scrollToTop: () => bubbleListRef.value?.scrollToTop(),
+  scrollToBottom: () => bubbleListRef.value?.scrollToBottom(),
+  scrollToBubble: (index: number) => bubbleListRef.value?.scrollToBubble(index),
+})
 </script>
 
 <template>
@@ -24,10 +38,11 @@ defineProps(dProps)
     <ElAutoResizer>
       <template #default="{ height }">
         <BubbleList
-          :ref="elRef"
+          ref="bubbleListRef"
           :btn-icon-size="18"
           :max-height="`${height}px`"
           :scrollbar-append-to="scrollbarAppendTo"
+          :virtual="virtual"
           :auto-scroll-threshold="autoScrollThreshold"
           :style="{
             '--el-bubble-list-max-height': `${height}px`,

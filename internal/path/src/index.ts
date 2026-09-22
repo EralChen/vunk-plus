@@ -25,6 +25,9 @@ export const pkgsAntDir = path.resolve(packagesDir, './ant')
 // antx (vendored ant-design-x-vue)
 export const pkgsAntxDir = path.resolve(packagesDir, './antx')
 
+// vue-virtual-scroller (vendored, with pageMode scrollToBottom fix)
+export const pkgsVueVirtualScrollerDir = path.resolve(packagesDir, './vue-virtual-scroller')
+
 // entry
 export const pkgsEntryDir = path.resolve(packagesDir, './entry')
 export const pkgsEntryFile = path.resolve(pkgsEntryDir, './main.ts')

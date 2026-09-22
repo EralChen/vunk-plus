@@ -1,0 +1,16 @@
+{
+  "name": "@vunk-plus/vue-virtual-scroller",
+  "version": "3.0.5",
+  "private": true,
+  "main": "./dist/index.mjs",
+  "module": "src/index.ts",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "run-p build:es build:types",
+    "build:es": "vite build",
+    "build:types": "vue-tsc"
+  },
+  "peerDependencies": {
+    "vue": "^3.3.0"
+  }
+}

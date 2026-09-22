@@ -1,0 +1,1975 @@
+import type { ComputedRef, CSSProperties, MaybeRefOrGetter, Ref } from 'vue'
+import type { CacheSnapshot, DefaultKeyField, ItemKey, ItemSizeValue, KeyFieldValue, ScrollDirection, ScrollState, ScrollToOptions, SizeEntry, Sizes, ValidKeyField, ValidSizeField, View, ViewNonReactive } from '../types'
+import type { PooledViewPositionMode } from '../utils/viewStyle'
+import type { ScrollerCallbacks, ScrollerOptionCallbacks, ScrollerOptionElements, ScrollerOptionEnabled } from './scrollerOptions'
+import { computed, markRaw, nextTick, onActivated, onBeforeUnmount, onMounted, ref, shallowReactive, toValue, watch } from 'vue'
+import config from '../config'
+import { buildCacheSnapshot, findPrependOffset, getAlignedScrollOffset, getItemKeys, restoreCacheMap } from '../engine/cache'
+import { resolveItemKey } from '../engine/keyField'
+import { getViewportSize, normalizeOffset, scrollElementTo } from '../engine/scroll'
+import { resolveScrollParent } from '../scrollparent'
+import { supportsPassive } from '../utils'
+import { getFixedItemSize, resolveSnapshotItemSize, resolveVariableItemSize } from '../utils/itemSize'
+import { getPooledViewStyle, resolvePooledViewMode } from '../utils/viewStyle'
+import { normalizeScrollerInputs, resolveScrollerOptions } from './scrollerOptions'
+
+export interface UseRecycleScrollerOptions<TItem = unknown, TSizeField extends string = 'size'> extends ScrollerOptionElements, ScrollerOptionCallbacks, ScrollerOptionEnabled {
+  items: MaybeRefOrGetter<TItem[]>
+  keyField: KeyFieldValue<TItem>
+  direction?: ScrollDirection
+  itemSize: ItemSizeValue<TItem>
+  gridItems?: number
+  itemSecondarySize?: number
+  minItemSize: number | string | null
+  sizeField?: ValidSizeField<TItem, TSizeField>
+  typeField: string
+  buffer: number
+  pageMode: boolean
+  shift?: boolean
+  cache?: CacheSnapshot
+  prerender: number
+  emitUpdate: boolean
+  disableTransform?: boolean
+  flowMode?: boolean
+  /**
+   * Park recycled hidden views at custom main-axis position.
+   */
+  hiddenPosition?: number
+  updateInterval: number
+  /**
+   * Maximum views this scroller may render before reporting a missing scroll boundary.
+   * Positive values override the global limit for this instance.
+   */
+  itemsLimit?: number
+}
+
+export interface UseRecycleScrollerReturn<TItem = unknown, TKey = ItemKey<TItem>> {
+  pool: Ref<Array<View<TItem, TKey>>>
+  visiblePool: ComputedRef<Array<View<TItem, TKey>>>
+  totalSize: Ref<number>
+  startSpacerSize: Ref<number>
+  endSpacerSize: Ref<number>
+  ready: Ref<boolean>
+  sizes: ComputedRef<Sizes | never[]>
+  simpleArray: ComputedRef<boolean>
+  scrollToItem: (index: number, options?: ScrollToOptions) => void
+  scrollToPosition: (position: number, options?: ScrollToOptions) => void
+  getScroll: () => ScrollState
+  findItemIndex: (offset: number) => number
+  getItemOffset: (index: number) => number
+  getItemSize: (index: number) => number
+  getViewStyle: (view: View<TItem, TKey>) => CSSProperties
+  cacheSnapshot: ComputedRef<CacheSnapshot>
+  restoreCache: (snapshot: CacheSnapshot | null | undefined) => boolean
+  updateVisibleItems: (itemsChanged: boolean, checkPositionDiff?: boolean) => { continuous: boolean }
+  handleResize: () => void
+  handleVisibilityChange: (isVisible: boolean, entry: IntersectionObserverEntry) => void
+  sortViews: () => void
+}
+
+type ViewWithStyleStamp<TItem = unknown, TKey = ItemKey<TItem>> = View<TItem, TKey> & {
+  _vs_styleStamp: number
+  _vs_visibilityStamp: number
+}
+
+let uid = 0
+const EMPTY_SIZES: never[] = []
+
+/**
+ * Touch array slots so computed wrappers react to shallow list mutations such as
+ * push, splice, reorder, or item replacement without deep-watching item fields.
+ */
+function trackArrayShallowMutations<TItem>(items: TItem[]) {
+  for (let index = 0; index < items.length; index++) {
+    // eslint-disable-next-line ts/no-unused-expressions
+    items[index]
+  }
+}
+
+/**
+ * Resolve the recycler type bucket for one item.
+ */
+function getItemType<TItem>(item: TItem, typeField: string): unknown {
+  return item && typeof item === 'object'
+    ? (item as Record<string, unknown>)[typeField]
+    : undefined
+}
+
+/**
+ * Capture item type buckets so same-key content updates can avoid full recycling.
+ */
+function getItemTypes<TItem>(items: TItem[], typeField: string): unknown[] {
+  return items.map(item => getItemType(item, typeField))
+}
+
+/**
+ * Compare item identity that affects recycled view ownership.
+ */
+function hasSameItemIdentitySequence<TKey>(
+  nextKeys: TKey[],
+  nextTypes: unknown[],
+  previousKeys: TKey[],
+  previousTypes: unknown[],
+): boolean {
+  if (nextKeys.length !== previousKeys.length || nextTypes.length !== previousTypes.length) {
+    return false
+  }
+
+  for (let index = 0; index < nextKeys.length; index++) {
+    if (nextKeys[index] !== previousKeys[index] || nextTypes[index] !== previousTypes[index]) {
+      return false
+    }
+  }
+
+  return true
+}
+
+function touchView<TItem, TKey>(view: View<TItem, TKey>) {
+  const stampedView = view as ViewWithStyleStamp<TItem, TKey>
+  stampedView._vs_styleStamp++
+}
+
+/**
+ * Bump a dedicated visibility stamp so flow-mode rows only restyle when their
+ * visible/parked state changes, not whenever the recycled view gets rebound to
+ * a different logical item.
+ */
+function touchViewVisibility<TItem, TKey>(view: View<TItem, TKey>) {
+  const stampedView = view as ViewWithStyleStamp<TItem, TKey>
+  stampedView._vs_visibilityStamp++
+  stampedView._vs_styleStamp++
+}
+
+interface GridRenderWindow {
+  renderedIndices: number[]
+  startIndex: number
+  endIndex: number
+  visibleStartIndex: number
+  visibleEndIndex: number
+  totalSize: number
+}
+
+interface RenderWindowRange {
+  startIndex: number
+  endIndex: number
+  visibleStartIndex: number
+  visibleEndIndex: number
+}
+
+/**
+ * Walk rendered indices without allocating a temporary range array for linear windows.
+ */
+function forEachRenderedIndex(
+  startIndex: number,
+  endIndex: number,
+  renderedIndices: number[] | null,
+  cb: (index: number) => void,
+) {
+  if (renderedIndices) {
+    for (const index of renderedIndices) {
+      cb(index)
+    }
+    return
+  }
+
+  for (let index = startIndex; index < endIndex; index++) {
+    cb(index)
+  }
+}
+
+interface FlowWindowEdges {
+  rawViewportStart: number
+  rawViewportEnd: number
+  renderStart: number
+  renderEnd: number
+}
+
+interface FlowModeOrderContext {
+  activeStart: number
+  activeCount: number
+  headInsertCount: number
+}
+
+const FLOW_IDLE_HYSTERESIS_PX = 8
+const FLOW_IDLE_SCROLL_EPSILON_PX = 1
+
+type ResolvedRecycleScrollerItems<TOptions extends UseRecycleScrollerOptions<any, any>>
+  = TOptions['items'] extends MaybeRefOrGetter<infer TItems extends any[]> ? TItems : never
+type InferredRecycleScrollerItem<TOptions extends UseRecycleScrollerOptions<any, any>> = ResolvedRecycleScrollerItems<TOptions>[number]
+type InferredRecycleScrollerKeyField<TOptions extends UseRecycleScrollerOptions<any, any>>
+  = Extract<TOptions['keyField'], KeyFieldValue<InferredRecycleScrollerItem<TOptions>>>
+
+export function useRecycleScroller<TItem, TKeyField extends KeyFieldValue<TItem> = DefaultKeyField<TItem>, TSizeField extends string = 'size'>(
+  options: MaybeRefOrGetter<UseRecycleScrollerOptions<TItem, TSizeField> & {
+    keyField: ValidKeyField<TItem, TKeyField>
+  }>,
+  el?: MaybeRefOrGetter<HTMLElement | undefined>,
+  before?: MaybeRefOrGetter<HTMLElement | undefined>,
+  after?: MaybeRefOrGetter<HTMLElement | undefined>,
+  callbacks?: ScrollerCallbacks,
+): UseRecycleScrollerReturn<TItem, ItemKey<TItem, TKeyField>>
+export function useRecycleScroller<TOptions extends UseRecycleScrollerOptions<any, any>>(
+  options: MaybeRefOrGetter<TOptions>,
+  el?: MaybeRefOrGetter<HTMLElement | undefined>,
+  before?: MaybeRefOrGetter<HTMLElement | undefined>,
+  after?: MaybeRefOrGetter<HTMLElement | undefined>,
+  callbacks?: ScrollerCallbacks,
+): UseRecycleScrollerReturn<
+  InferredRecycleScrollerItem<TOptions>,
+  ItemKey<InferredRecycleScrollerItem<TOptions>, InferredRecycleScrollerKeyField<TOptions>>
+>
+export function useRecycleScroller<TOptions extends UseRecycleScrollerOptions<any, any>>(
+  options: MaybeRefOrGetter<TOptions>,
+  el?: MaybeRefOrGetter<HTMLElement | undefined>,
+  before?: MaybeRefOrGetter<HTMLElement | undefined>,
+  after?: MaybeRefOrGetter<HTMLElement | undefined>,
+  callbacks?: ScrollerCallbacks,
+  overrides?: {
+    pageMode?: boolean
+  },
+): UseRecycleScrollerReturn<
+  InferredRecycleScrollerItem<TOptions>,
+  ItemKey<InferredRecycleScrollerItem<TOptions>, InferredRecycleScrollerKeyField<TOptions>>
+> {
+  type TItem = InferredRecycleScrollerItem<TOptions>
+  type TKeyField = InferredRecycleScrollerKeyField<TOptions>
+
+  const resolvedOptions = resolveScrollerOptions(options)
+  const normalizedInputs = normalizeScrollerInputs(resolvedOptions, el, before, after, callbacks)
+  const items = computed(() => {
+    const currentItems = toValue(getOptions().items)
+    trackArrayShallowMutations(currentItems)
+    return currentItems
+  })
+
+  // Reactive state
+  const pool = ref<Array<View<TItem, ItemKey<TItem, TKeyField>>>>([]) as Ref<Array<View<TItem, ItemKey<TItem, TKeyField>>>>
+  const totalSize = ref(0)
+  const startSpacerSize = ref(0)
+  const endSpacerSize = ref(0)
+  const ready = ref(false)
+
+  // Internal state (non-reactive)
+  let _startIndex = 0
+  let _endIndex = 0
+  let _visibleStartIndex = 0
+  let _visibleEndIndex = 0
+  let _hasWindowState = false
+  /**
+   * Last successfully computed render range in variable-size mode. Used as a
+   * fallback when the readiness gate trips on a transiently sparse `sizes`
+   * cache (items mutated in place faster than the `sizes` computed can
+   * re-evaluate), so the viewport doesn't blank for the affected tick.
+   * Skipped in fixed-size mode (the gate cannot trip there) and during
+   * prerender (its range is synthetic, not scroll-anchored).
+   */
+  let _lastGoodRange: {
+    startIndex: number
+    endIndex: number
+    visibleStartIndex: number
+    visibleEndIndex: number
+    totalSizeValue: number
+  } | null = null
+  const _views = new Map<ItemKey<TItem, TKeyField>, View<TItem, ItemKey<TItem, TKeyField>>>()
+  const _recycledPools = new Map<unknown, Array<View<TItem, ItemKey<TItem, TKeyField>>>>()
+  let _scrollDirty = false
+  let _lastUpdateScrollPosition = 0
+  let _lastUpdateSecondaryScrollPosition = 0
+  let _prerender = false
+  let _updateTimeout: ReturnType<typeof setTimeout> | null = null
+  let _refreshTimout: ReturnType<typeof setTimeout> | null = null
+  let _sortTimer: ReturnType<typeof setTimeout> | null = null
+  let _computedMinItemSize = 0
+  let _scrollListenerTarget: (Window | Element) | null = null
+  let _resizeListenerTarget: (Window | Element) | null = null
+  let _previousKeys: Array<ItemKey<TItem, TKeyField>> = []
+  let _previousTypes: unknown[] = []
+  let _shiftAnchor: { key: ItemKey<TItem, TKeyField>, offset: number } | null = null
+  let _shiftAnchorClearTimer: ReturnType<typeof setTimeout> | null = null
+  let _itemsLimitWarnTimer: ReturnType<typeof setTimeout> | null = null
+  let _applyingShiftAnchor = false
+  let _flowModeDirectionWarned = false
+  let _flowModeGridWarned = false
+  const _rafIds = new Set<number>()
+  const _restoredSizes = ref<Record<ItemKey<TItem, TKeyField>, number>>({} as Record<ItemKey<TItem, TKeyField>, number>)
+  const _variableSizeEntries: SizeEntry[] = []
+  const _variableSizeBaseEntry: SizeEntry = {
+    accumulator: 0,
+  }
+
+  /**
+   * Resolve current option object without collapsing hot-path inputs into one aggregate computed.
+   */
+  function getOptions() {
+    return resolvedOptions.value
+  }
+
+  /**
+   * Resolve effective page mode, including wrapper overrides such as `useWindowScroller`.
+   */
+  function getPageMode() {
+    return overrides?.pageMode ?? getOptions().pageMode
+  }
+
+  /**
+   * Resolve the `enabled` flag (defaults to `true` when omitted).
+   */
+  const isEnabled = computed(() => toValue(getOptions().enabled ?? true))
+
+  /**
+   * Resolve the page-mode scroll-parent target as a single source of truth
+   * for the listener target, viewport size, and scroll-position math (issue
+   * #928). Honors an explicit `scrollParent` override, otherwise walks the
+   * DOM for the nearest scrollable ancestor and normalizes html/body to
+   * `window`.
+   */
+  const scrollParentTarget = computed<Window | HTMLElement | undefined>(() => {
+    return resolveScrollParent(
+      normalizedInputs.el.value,
+      normalizedInputs.scrollParent.value,
+    )
+  })
+
+  // Computed
+  const simpleArray = computed(() => {
+    const currentItems = items.value
+    return currentItems.length > 0 && typeof currentItems[0] !== 'object'
+  })
+
+  const sizes = computed<Sizes | never[]>(() => {
+    const opts = getOptions()
+    const fixedItemSize = getFixedItemSize(opts.itemSize)
+    if (fixedItemSize === null) {
+      const currentItems = items.value
+      const sizes = Array.from({ length: currentItems.length }) as unknown as Sizes
+      _variableSizeBaseEntry.accumulator = 0
+      sizes[-1] = _variableSizeBaseEntry
+      const minItemSize = opts.minItemSize as number
+      const restoredSizes = _restoredSizes.value
+      const isSimpleArray = simpleArray.value
+      let computedMinSize = 10000
+      let accumulator = 0
+      let current: number
+      for (let i = 0, l = currentItems.length; i < l; i++) {
+        const key = isSimpleArray ? i : resolveItemKey(currentItems[i], i, opts.keyField)
+        current = resolveVariableItemSize(
+          currentItems[i],
+          i,
+          opts.itemSize,
+          restoredSizes[key],
+          minItemSize,
+          opts.sizeField,
+        )
+        if (current < computedMinSize) {
+          computedMinSize = current
+        }
+        accumulator += current
+        const entry = _variableSizeEntries[i] ?? (_variableSizeEntries[i] = {
+          accumulator: 0,
+          size: undefined,
+        })
+        entry.accumulator = accumulator
+        entry.size = current
+        sizes[i] = entry
+      }
+      _variableSizeEntries.length = currentItems.length
+      _computedMinItemSize = computedMinSize
+      return sizes
+    }
+    return EMPTY_SIZES
+  })
+
+  /**
+   * Computed list of pooled views that are currently assigned to visible items,
+   * sorted by index.
+   *
+   * Reactivity note: `view.nr` is `markRaw`, so reads of `view.nr.used` do NOT
+   * create a reactive dependency. If we only relied on `pool.value`, this
+   * computed would stay stale whenever a `used` flag flipped without a pool
+   * array mutation — e.g. on the `itemsChanged` path where
+   * `removeAndRecycleAllViews()` marks every view unused and the subsequent
+   * main loop reuses recycled views (no push/splice) and no new view is
+   * created. `touchViewVisibility` bumps `view._vs_visibilityStamp`
+   * (shallow-reactive) in exactly the two places `used` changes — recycling
+   * in and recycling out — so reading that stamp here is the tightest
+   * possible reactive hook: one dep per pooled view, invalidated only when
+   * visibility actually changes. The same stamp also dedupes any transient
+   * `used=true` duplicates by ensuring the filter always runs against
+   * fresh state.
+   */
+  const visiblePool = computed(() =>
+    pool.value
+      .filter((view) => {
+        // Establish reactive dep on visibility stamp; `nr` is markRaw.
+        void (view as ViewWithStyleStamp<TItem, ItemKey<TItem, TKeyField>>)._vs_visibilityStamp
+        return view.nr.used
+      })
+      .sort((a, b) => a.nr.index - b.nr.index),
+  )
+
+  const cacheSnapshot = computed<CacheSnapshot>(() => {
+    const opts = getOptions()
+    const keyField = simpleArray.value ? null : opts.keyField
+    return buildCacheSnapshot(items.value, keyField, (item, index, key) => {
+      return resolveSnapshotItemSize(
+        item as TItem,
+        index,
+        opts.itemSize,
+        _restoredSizes.value[key as ItemKey<TItem, TKeyField>],
+        opts.sizeField,
+      )
+    })
+  })
+
+  function getDirection(opts = getOptions()): ScrollDirection {
+    return opts.direction ?? 'vertical'
+  }
+
+  /**
+   * Warn once for unsupported flow-mode combinations and resolve actual mode.
+   */
+  function getViewPositionMode(opts = getOptions()): PooledViewPositionMode {
+    const direction = getDirection(opts)
+    let flowMode = opts.flowMode ?? false
+
+    if (flowMode && direction !== 'vertical') {
+      if (!_flowModeDirectionWarned) {
+        console.warn('[vue-recycle-scroller] flowMode only supports vertical lists. Falling back to standard positioning.')
+        _flowModeDirectionWarned = true
+      }
+      flowMode = false
+    }
+
+    if (flowMode && opts.gridItems) {
+      if (!_flowModeGridWarned) {
+        console.warn('[vue-recycle-scroller] flowMode does not support gridItems. Falling back to standard positioning.')
+        _flowModeGridWarned = true
+      }
+      flowMode = false
+    }
+
+    return resolvePooledViewMode({
+      direction,
+      disableTransform: opts.disableTransform ?? false,
+      flowMode,
+      gridItems: opts.gridItems,
+    })
+  }
+
+  /**
+   * Keep active views first in DOM order for native-flow rendering.
+   */
+  function sortFlowModePool() {
+    pool.value.sort((viewA, viewB) => {
+      if (viewA.nr.used !== viewB.nr.used) {
+        return viewA.nr.used ? -1 : 1
+      }
+
+      if (viewA.nr.used && viewB.nr.used) {
+        return viewA.nr.index - viewB.nr.index
+      }
+
+      return viewA.nr.id - viewB.nr.id
+    })
+  }
+
+  // Methods
+  function restoreCache(snapshot: CacheSnapshot | null | undefined): boolean {
+    const opts = getOptions()
+    _restoredSizes.value = restoreCacheMap(snapshot, items.value, simpleArray.value ? null : opts.keyField)
+    return Object.keys(_restoredSizes.value).length > 0
+  }
+
+  function getRecycledPool(type: unknown): Array<View<TItem, ItemKey<TItem, TKeyField>>> {
+    let recycledPool = _recycledPools.get(type)
+    if (!recycledPool) {
+      recycledPool = []
+      _recycledPools.set(type, recycledPool)
+    }
+    return recycledPool
+  }
+
+  function createView(
+    viewPool: Array<View<TItem, ItemKey<TItem, TKeyField>>>,
+    index: number,
+    item: TItem,
+    key: ItemKey<TItem, TKeyField>,
+    type: unknown,
+  ): View<TItem, ItemKey<TItem, TKeyField>> {
+    const nr: ViewNonReactive<ItemKey<TItem, TKeyField>> = markRaw({
+      id: uid++,
+      index,
+      used: true,
+      key,
+      type,
+    })
+    const view = shallowReactive({
+      item,
+      position: 0,
+      offset: 0,
+      nr,
+      _vs_styleStamp: 0,
+      _vs_visibilityStamp: 0,
+    }) as View<TItem, ItemKey<TItem, TKeyField>>
+    viewPool.push(view)
+    return view
+  }
+
+  function getRecycledView(type: unknown): View<TItem, ItemKey<TItem, TKeyField>> | undefined {
+    const recycledPool = getRecycledPool(type)
+    if (recycledPool && recycledPool.length) {
+      const view = recycledPool.pop()!
+      view.nr.used = true
+      touchViewVisibility(view)
+      return view
+    }
+    return undefined
+  }
+
+  /**
+   * Move one pooled view to a precise DOM slot without re-sorting the full pool.
+   */
+  function movePoolView(view: View<TItem, ItemKey<TItem, TKeyField>>, targetIndex: number) {
+    const poolValue = pool.value
+    const currentIndex = poolValue.indexOf(view)
+    if (currentIndex === -1) {
+      return
+    }
+
+    const boundedTargetIndex = Math.max(0, Math.min(targetIndex, poolValue.length - 1))
+    if (currentIndex === boundedTargetIndex) {
+      return
+    }
+
+    poolValue.splice(currentIndex, 1)
+    poolValue.splice(boundedTargetIndex, 0, view)
+  }
+
+  /**
+   * Keep parked flow-mode views after the active DOM range so native table order stays stable.
+   */
+  function moveFlowModeViewToEnd(view: View<TItem, ItemKey<TItem, TKeyField>>) {
+    movePoolView(view, pool.value.length - 1)
+  }
+
+  /**
+   * Capture contiguous active segment after flow-mode removals.
+   */
+  function createFlowModeOrderContext(): FlowModeOrderContext {
+    const poolValue = pool.value
+    let activeStart = 0
+    while (activeStart < poolValue.length && !poolValue[activeStart].nr.used) {
+      activeStart++
+    }
+
+    let activeCount = 0
+    for (let i = activeStart; i < poolValue.length && poolValue[i].nr.used; i++) {
+      activeCount++
+    }
+
+    return {
+      activeStart,
+      activeCount,
+      headInsertCount: 0,
+    }
+  }
+
+  /**
+   * Reinsert newly visible flow-mode views only at the entering edge that changed.
+   * This avoids a full sort on every scroll tick, which showed up as Vue move/insert churn.
+   */
+  function placeFlowModeVisibleView(
+    view: View<TItem, ItemKey<TItem, TKeyField>>,
+    index: number,
+    orderContext: FlowModeOrderContext,
+  ) {
+    let targetIndex: number | null = null
+
+    if (index < _startIndex) {
+      targetIndex = orderContext.activeStart + orderContext.headInsertCount
+      orderContext.headInsertCount++
+      orderContext.activeCount++
+    }
+    else if (index >= _endIndex) {
+      targetIndex = orderContext.activeStart + orderContext.activeCount
+      orderContext.activeCount++
+    }
+
+    if (targetIndex != null) {
+      movePoolView(view, targetIndex)
+    }
+  }
+
+  function removeAndRecycleView(view: View<TItem, ItemKey<TItem, TKeyField>>, parkFlowModeView = false) {
+    const type = view.nr.type
+    const recycledPool = getRecycledPool(type)
+    recycledPool.push(view)
+    view.nr.used = false
+    view.position = getOptions().hiddenPosition ?? -999999
+    touchViewVisibility(view)
+    _views.delete(view.nr.key)
+
+    if (parkFlowModeView) {
+      moveFlowModeViewToEnd(view)
+    }
+  }
+
+  function removeAndRecycleAllViews() {
+    _views.clear()
+    _recycledPools.clear()
+    for (let i = 0, l = pool.value.length; i < l; i++) {
+      const view = pool.value[i]
+      if (view) {
+        removeAndRecycleView(view)
+      }
+    }
+  }
+
+  function requestFrame(cb: () => void): number {
+    let frameId = -1
+    frameId = requestAnimationFrame(() => {
+      _rafIds.delete(frameId)
+      cb()
+    })
+    _rafIds.add(frameId)
+    return frameId
+  }
+
+  function cancelPendingFrames() {
+    for (const frameId of _rafIds) {
+      cancelAnimationFrame(frameId)
+    }
+    _rafIds.clear()
+  }
+
+  function clearPendingTimeouts() {
+    if (_updateTimeout) {
+      clearTimeout(_updateTimeout)
+      _updateTimeout = null
+    }
+    if (_refreshTimout) {
+      clearTimeout(_refreshTimout)
+      _refreshTimout = null
+    }
+    if (_sortTimer) {
+      clearTimeout(_sortTimer)
+      _sortTimer = null
+    }
+    if (_shiftAnchorClearTimer) {
+      clearTimeout(_shiftAnchorClearTimer)
+      _shiftAnchorClearTimer = null
+    }
+    if (_itemsLimitWarnTimer) {
+      clearTimeout(_itemsLimitWarnTimer)
+      _itemsLimitWarnTimer = null
+    }
+  }
+
+  function handleResize() {
+    if (!isEnabled.value) {
+      return
+    }
+    normalizedInputs.callbacks.onResize?.()
+    if (ready.value)
+      updateVisibleItems(false)
+  }
+
+  function handleScroll() {
+    if (!isEnabled.value) {
+      return
+    }
+    if (_shiftAnchor && !_applyingShiftAnchor) {
+      clearShiftAnchor()
+    }
+
+    const opts = getOptions()
+    if (!_scrollDirty) {
+      _scrollDirty = true
+      if (_updateTimeout)
+        return
+
+      const requestUpdate = () => requestFrame(() => {
+        _scrollDirty = false
+        const { continuous } = updateVisibleItems(false, true)
+
+        // It seems sometimes chrome doesn't fire scroll event :/
+        // When non continuous scrolling is ending, we force a refresh
+        if (!continuous) {
+          if (_refreshTimout)
+            clearTimeout(_refreshTimout)
+          _refreshTimout = setTimeout(handleScroll, opts.updateInterval + 100)
+        }
+      })
+
+      requestUpdate()
+
+      // Schedule the next update with throttling
+      if (opts.updateInterval) {
+        _updateTimeout = setTimeout(() => {
+          _updateTimeout = null
+          if (_scrollDirty)
+            requestUpdate()
+        }, opts.updateInterval)
+      }
+    }
+  }
+
+  function handleVisibilityChange(isVisible: boolean, entry: IntersectionObserverEntry) {
+    if (!isEnabled.value) {
+      return
+    }
+    if (ready.value) {
+      if (isVisible || entry.boundingClientRect.width !== 0 || entry.boundingClientRect.height !== 0) {
+        normalizedInputs.callbacks.onVisible?.()
+        requestFrame(() => {
+          updateVisibleItems(false)
+        })
+      }
+      else {
+        normalizedInputs.callbacks.onHidden?.()
+      }
+    }
+  }
+
+  /**
+   * Resolve the page-mode scroll listener target. Reads from the shared
+   * `scrollParentTarget` computed so listener-attachment, geometry math, and
+   * imperative scrolling cannot drift apart.
+   */
+  function getListenerTarget(): Window | Element {
+    return (scrollParentTarget.value as Window | Element | undefined) ?? window
+  }
+
+  function getLeadingSlotSize(): number {
+    const beforeEl = normalizedInputs.before.value
+    if (!beforeEl) {
+      return 0
+    }
+
+    const opts = getOptions()
+    return getDirection(opts) === 'vertical'
+      ? beforeEl.scrollHeight
+      : beforeEl.scrollWidth
+  }
+
+  function getScroll(): ScrollState {
+    const elValue = normalizedInputs.el.value
+    if (!elValue) {
+      return { start: 0, end: 0 }
+    }
+    const opts = getOptions()
+    const direction = getDirection(opts)
+    const isVertical = direction === 'vertical'
+    let scrollState: ScrollState
+
+    if (getPageMode()) {
+      // Page mode measures the scroller against the resolved scroll-parent
+      // viewport — `window` by default, or a custom element when supplied
+      // (issue #928). For a div parent, `start` is the offset of the
+      // scroller's top relative to the PARENT's clip box (not the viewport)
+      // and `size` is the parent's clientHeight/Width.
+      const bounds = elValue.getBoundingClientRect()
+      const boundsSize = isVertical ? bounds.height : bounds.width
+      const parent = scrollParentTarget.value
+      const isWindowParent = !parent || parent === window
+      const parentTop = isWindowParent
+        ? 0
+        : (parent as HTMLElement).getBoundingClientRect().top
+      const parentLeft = isWindowParent
+        ? 0
+        : (parent as HTMLElement).getBoundingClientRect().left
+      const parentHeight = isWindowParent
+        ? window.innerHeight
+        : (parent as HTMLElement).clientHeight
+      const parentWidth = isWindowParent
+        ? window.innerWidth
+        : (parent as HTMLElement).clientWidth
+      let start = isVertical
+        ? -(bounds.top - parentTop)
+        : -(bounds.left - parentLeft)
+      let size = isVertical ? parentHeight : parentWidth
+      if (start < 0) {
+        size += start
+        start = 0
+      }
+      if (start + size > boundsSize) {
+        size = boundsSize - start
+      }
+      scrollState = {
+        start,
+        end: start + size,
+      }
+    }
+    else if (isVertical) {
+      scrollState = {
+        start: elValue.scrollTop,
+        end: elValue.scrollTop + elValue.clientHeight,
+      }
+    }
+    else {
+      scrollState = {
+        start: normalizeOffset(elValue.scrollLeft, direction, elValue),
+        end: normalizeOffset(elValue.scrollLeft, direction, elValue) + elValue.clientWidth,
+      }
+    }
+
+    return scrollState
+  }
+
+  function getSecondaryScroll(): ScrollState {
+    const elValue = normalizedInputs.el.value
+    if (!elValue) {
+      return { start: 0, end: 0 }
+    }
+    const opts = getOptions()
+
+    if (getDirection(opts) === 'vertical') {
+      const start = normalizeOffset(elValue.scrollLeft, 'horizontal', elValue)
+      return {
+        start,
+        end: start + elValue.clientWidth,
+      }
+    }
+
+    return {
+      start: elValue.scrollTop,
+      end: elValue.scrollTop + elValue.clientHeight,
+    }
+  }
+
+  /**
+   * Detect whether variable-size scroll window crossed previous rendered item boundaries.
+   */
+  function hasVariableSizeWindowChange(scroll: ScrollState, count: number, sizesValue: Sizes, buffer: number): boolean {
+    const leadingSlotSize = getLeadingSlotSize()
+    const adjustedStart = scroll.start - buffer - leadingSlotSize
+    const adjustedEnd = scroll.end + buffer - leadingSlotSize
+
+    if (_startIndex > 0) {
+      const previousStartBoundary = sizesValue[_startIndex - 1]?.accumulator ?? 0
+      if (adjustedStart <= previousStartBoundary) {
+        return true
+      }
+    }
+
+    if (_startIndex < count - 1) {
+      const nextStartBoundary = sizesValue[_startIndex]?.accumulator ?? Number.POSITIVE_INFINITY
+      if (adjustedStart > nextStartBoundary) {
+        return true
+      }
+    }
+
+    if (_endIndex > 1) {
+      const previousEndBoundary = sizesValue[_endIndex - 2]?.accumulator ?? 0
+      if (adjustedEnd <= previousEndBoundary) {
+        return true
+      }
+    }
+
+    if (_endIndex < count) {
+      const nextEndBoundary = sizesValue[_endIndex - 1]?.accumulator ?? Number.POSITIVE_INFINITY
+      if (adjustedEnd > nextEndBoundary) {
+        return true
+      }
+    }
+
+    return false
+  }
+
+  function getItemSize(index: number): number {
+    const opts = getOptions()
+    const fixedItemSize = getFixedItemSize(opts.itemSize)
+    if (fixedItemSize !== null) {
+      return fixedItemSize
+    }
+
+    const sizeEntry = (sizes.value as Sizes)[index]
+    return sizeEntry?.size || Number(opts.minItemSize) || 0
+  }
+
+  /**
+   * Build inline styles for a pooled view.
+   */
+  function getViewStyle(view: View<TItem, ItemKey<TItem, TKeyField>>): CSSProperties {
+    const opts = getOptions()
+    return getPooledViewStyle(view, {
+      direction: getDirection(opts),
+      mode: getViewPositionMode(opts),
+      itemSize: getFixedItemSize(opts.itemSize),
+      gridItems: opts.gridItems,
+      itemSecondarySize: opts.itemSecondarySize,
+    })
+  }
+
+  function getItemOffset(index: number): number {
+    const opts = getOptions()
+    const gridItems = opts.gridItems || 1
+    const fixedItemSize = getFixedItemSize(opts.itemSize)
+    if (index <= 0) {
+      return 0
+    }
+
+    if (fixedItemSize !== null) {
+      return Math.floor(index / gridItems) * fixedItemSize
+    }
+
+    return ((sizes.value as Sizes)[index - 1]?.accumulator) || 0
+  }
+
+  function findItemIndex(offset: number): number {
+    const opts = getOptions()
+    const count = items.value.length
+    const gridItems = opts.gridItems || 1
+    const fixedItemSize = getFixedItemSize(opts.itemSize)
+
+    if (!count) {
+      return 0
+    }
+
+    if (fixedItemSize !== null) {
+      const index = Math.floor(offset / fixedItemSize) * gridItems
+      return Math.min(Math.max(index, 0), count - 1)
+    }
+
+    let low = 0
+    let high = count - 1
+    let found = 0
+
+    while (low <= high) {
+      const mid = Math.floor((low + high) / 2)
+      const midOffset = getItemOffset(mid)
+      if (midOffset <= offset) {
+        found = mid
+        low = mid + 1
+      }
+      else {
+        high = mid - 1
+      }
+    }
+
+    return found
+  }
+
+  function clearShiftAnchor() {
+    if (_shiftAnchorClearTimer) {
+      clearTimeout(_shiftAnchorClearTimer)
+      _shiftAnchorClearTimer = null
+    }
+    _shiftAnchor = null
+  }
+
+  function scheduleShiftAnchorClear() {
+    if (_shiftAnchorClearTimer) {
+      clearTimeout(_shiftAnchorClearTimer)
+    }
+    _shiftAnchorClearTimer = setTimeout(() => {
+      _shiftAnchor = null
+      _shiftAnchorClearTimer = null
+    }, 150)
+  }
+
+  function captureShiftAnchor(previousItems: TItem[], keyField: KeyFieldValue<TItem> | null) {
+    if (!previousItems.length) {
+      clearShiftAnchor()
+      return
+    }
+
+    const scrollStart = Math.max(getScroll().start - getLeadingSlotSize(), 0)
+    const anchorIndex = Math.min(findItemIndex(scrollStart), previousItems.length - 1)
+    const anchorItem = previousItems[anchorIndex]
+    const anchorKey = (keyField
+      ? resolveItemKey(anchorItem, anchorIndex, keyField) as ItemKey<TItem, TKeyField>
+      : anchorIndex as ItemKey<TItem, TKeyField>)
+
+    const anchorStart = getLeadingSlotSize() + getItemOffset(anchorIndex)
+    _shiftAnchor = {
+      key: anchorKey,
+      offset: getScroll().start - anchorStart,
+    }
+  }
+
+  function applyShiftAnchor(nextItems?: TItem[]): boolean {
+    if (!_shiftAnchor) {
+      return false
+    }
+
+    const opts = getOptions()
+    const nextResolvedItems = nextItems ?? items.value
+    const keyField = simpleArray.value ? null : opts.keyField
+    const keys = getItemKeys(nextResolvedItems, keyField)
+    const anchorIndex = keys.indexOf(_shiftAnchor.key)
+
+    if (anchorIndex === -1) {
+      clearShiftAnchor()
+      return false
+    }
+
+    const target = getLeadingSlotSize() + getItemOffset(anchorIndex) + _shiftAnchor.offset
+    const current = getScroll().start
+
+    if (Math.abs(target - current) < 0.5) {
+      return false
+    }
+
+    _applyingShiftAnchor = true
+    scrollToPosition(target)
+    requestFrame(() => {
+      _applyingShiftAnchor = false
+    })
+    return true
+  }
+
+  function addListeners() {
+    removeListeners()
+
+    if (!isEnabled.value) {
+      return
+    }
+
+    const scrollTarget = getPageMode()
+      ? getListenerTarget()
+      : normalizedInputs.el.value
+    if (!scrollTarget) {
+      return
+    }
+
+    _scrollListenerTarget = scrollTarget
+    _scrollListenerTarget.addEventListener('scroll', handleScroll, supportsPassive()
+      ? { passive: true }
+      : false)
+
+    // Only `window` dispatches `resize`; DOM elements don't. The scroller's
+    // own ResizeObserver already catches root-element size changes, so for
+    // a div scroll parent we skip the redundant element listener (#928).
+    if (getPageMode() && scrollTarget === window) {
+      _resizeListenerTarget = scrollTarget
+      _resizeListenerTarget.addEventListener('resize', handleResize as EventListener)
+    }
+  }
+
+  function removeListeners() {
+    if (_scrollListenerTarget) {
+      _scrollListenerTarget.removeEventListener('scroll', handleScroll)
+      _scrollListenerTarget = null
+    }
+
+    if (_resizeListenerTarget) {
+      _resizeListenerTarget.removeEventListener('resize', handleResize as EventListener)
+      _resizeListenerTarget = null
+    }
+  }
+
+  function getGridRenderWindow(
+    count: number,
+    gridItems: number,
+    itemSize: number,
+    itemSecondarySize: number,
+    primaryScroll: ScrollState,
+    secondaryScroll: ScrollState,
+  ): GridRenderWindow {
+    const totalSize = Math.ceil(count / gridItems) * itemSize
+    const primaryStart = Math.max(0, Math.floor(primaryScroll.start / itemSize))
+    const primaryEnd = Math.min(Math.ceil(primaryScroll.end / itemSize), Math.ceil(count / gridItems))
+    const secondaryStart = Math.max(0, Math.floor(secondaryScroll.start / itemSecondarySize))
+    const secondaryEnd = Math.min(Math.ceil(secondaryScroll.end / itemSecondarySize), gridItems)
+
+    const renderedIndices: number[] = []
+
+    for (let primary = primaryStart; primary < primaryEnd; primary++) {
+      const groupStart = primary * gridItems
+      for (let secondary = secondaryStart; secondary < secondaryEnd; secondary++) {
+        const index = groupStart + secondary
+        if (index >= count) {
+          break
+        }
+        renderedIndices.push(index)
+      }
+    }
+
+    const firstIndex = renderedIndices[0] ?? 0
+    const lastIndex = renderedIndices.at(-1) ?? -1
+
+    return {
+      renderedIndices,
+      startIndex: firstIndex,
+      endIndex: lastIndex + 1,
+      visibleStartIndex: firstIndex,
+      visibleEndIndex: lastIndex,
+      totalSize,
+    }
+  }
+
+  function supportsGridSecondaryVirtualization() {
+    const opts = getOptions()
+    const fixedItemSize = getFixedItemSize(opts.itemSize)
+    if (!opts.gridItems || fixedItemSize == null) {
+      return false
+    }
+
+    const elValue = normalizedInputs.el.value
+    if (!elValue) {
+      return false
+    }
+
+    const itemSecondarySize = opts.itemSecondarySize || fixedItemSize
+    const secondaryViewportSize = getDirection(opts) === 'vertical'
+      ? elValue.clientWidth
+      : elValue.clientHeight
+
+    return itemSecondarySize * opts.gridItems > secondaryViewportSize
+  }
+
+  /**
+   * Keep a start boundary sticky when only one row toggles near the edge.
+   */
+  function stabilizeStartBoundary(candidate: number, previous: number, count: number, edge: number): number {
+    if (Math.abs(candidate - previous) !== 1 || previous < 0 || previous >= count) {
+      return candidate
+    }
+
+    const boundary = candidate > previous
+      ? getItemOffset(previous) + getItemSize(previous)
+      : getItemOffset(previous)
+
+    return Math.abs(boundary - edge) <= FLOW_IDLE_HYSTERESIS_PX
+      ? previous
+      : candidate
+  }
+
+  /**
+   * Keep an end boundary sticky under the same one-row oscillation rule.
+   */
+  function stabilizeEndBoundary(
+    candidate: number,
+    previous: number,
+    count: number,
+    edge: number,
+    exclusive: boolean,
+  ): number {
+    if (Math.abs(candidate - previous) !== 1) {
+      return candidate
+    }
+
+    const boundaryIndex = exclusive ? previous - 1 : previous
+    if (boundaryIndex < 0 || boundaryIndex >= count) {
+      return candidate
+    }
+
+    const boundary = candidate > previous
+      ? getItemOffset(boundaryIndex) + getItemSize(boundaryIndex)
+      : getItemOffset(boundaryIndex)
+
+    return Math.abs(boundary - edge) <= FLOW_IDLE_HYSTERESIS_PX
+      ? previous
+      : candidate
+  }
+
+  /**
+   * Stabilize idle flow-mode variable-size windows against tiny layout churn.
+   */
+  function stabilizeFlowWindow(nextRange: RenderWindowRange, count: number, edges: FlowWindowEdges): RenderWindowRange {
+    const stabilizedRange: RenderWindowRange = {
+      ...nextRange,
+      visibleStartIndex: stabilizeStartBoundary(nextRange.visibleStartIndex, _visibleStartIndex, count, edges.rawViewportStart),
+      visibleEndIndex: stabilizeEndBoundary(nextRange.visibleEndIndex, _visibleEndIndex, count, edges.rawViewportEnd, false),
+      startIndex: stabilizeStartBoundary(nextRange.startIndex, _startIndex, count, edges.renderStart),
+      endIndex: stabilizeEndBoundary(nextRange.endIndex, _endIndex, count, edges.renderEnd, true),
+    }
+
+    if (stabilizedRange.startIndex > stabilizedRange.visibleStartIndex) {
+      stabilizedRange.startIndex = stabilizedRange.visibleStartIndex
+    }
+
+    const minimumEndIndex = Math.min(count, stabilizedRange.visibleEndIndex + 1)
+    if (stabilizedRange.endIndex < minimumEndIndex) {
+      stabilizedRange.endIndex = minimumEndIndex
+    }
+
+    if (stabilizedRange.endIndex < stabilizedRange.startIndex) {
+      stabilizedRange.endIndex = stabilizedRange.startIndex
+    }
+
+    return stabilizedRange
+  }
+
+  function updateVisibleItems(itemsChanged: boolean, checkPositionDiff = false): { continuous: boolean } {
+    if (!isEnabled.value) {
+      return { continuous: true }
+    }
+    const opts = getOptions()
+    const itemSize = getFixedItemSize(opts.itemSize)
+    const gridItems = opts.gridItems || 1
+    const itemSecondarySize = opts.itemSecondarySize || itemSize || 0
+    const minItemSize = _computedMinItemSize
+    const typeField = opts.typeField
+    const keyField = simpleArray.value ? null : opts.keyField
+    const currentItems = items.value
+    const count = currentItems.length
+    const sizesValue = sizes.value as Sizes
+    const views = _views
+    const poolValue = pool.value
+    let renderedIndices: number[] | null = null
+    let renderedIndexSet: Set<number> | null = null
+    let startIndex: number, endIndex: number
+    let totalSizeValue: number
+    let visibleStartIndex: number, visibleEndIndex: number
+
+    // In variable-size mode the size cache is computed from `items`. When items
+    // change, the cache may be transiently sparse for one update tick (the size
+    // computed re-evaluates lazily, downstream wrappers like `useDynamicScroller`
+    // may run watchers on the upstream items array before our sizes computed has
+    // refreshed). Walking `sizesValue` while it's incomplete dereferences
+    // undefined slots and crashes the binary search below. A valid cache is
+    // signaled by the last slot being populated.
+    //
+    // When the gate trips and we have a previously good range we reuse it
+    // (clamped to current `count`) so the viewport doesn't blank for the
+    // affected tick — the next reconciliation will replace it with a fresh
+    // range. See issue #925 for the streaming-chat scenario this addresses.
+    const isVariableSizeCacheReady = itemSize !== null
+      || count === 0
+      || sizesValue[count - 1] != null
+
+    if (!count || !isVariableSizeCacheReady) {
+      if (!count || !_lastGoodRange) {
+        startIndex = endIndex = visibleStartIndex = visibleEndIndex = totalSizeValue = 0
+      }
+      else {
+        // Clamp the saved indices to current `count` so a wholesale shrink
+        // (N → smaller N) can't leave indices pointing past `currentItems`,
+        // and re-derive `totalSizeValue` from the live cache when possible.
+        startIndex = Math.min(_lastGoodRange.startIndex, count)
+        endIndex = Math.min(_lastGoodRange.endIndex, count)
+        visibleStartIndex = Math.min(_lastGoodRange.visibleStartIndex, count)
+        visibleEndIndex = Math.min(_lastGoodRange.visibleEndIndex, count)
+        totalSizeValue = sizesValue[count - 1]?.accumulator ?? _lastGoodRange.totalSizeValue
+      }
+    }
+    else if (_prerender) {
+      startIndex = visibleStartIndex = 0
+      endIndex = visibleEndIndex = Math.min(opts.prerender, currentItems.length)
+      totalSizeValue = 0
+    }
+    else {
+      const rawScroll = getScroll()
+      const rawSecondaryScroll = getSecondaryScroll()
+      const previousScrollPosition = _lastUpdateScrollPosition
+      const previousSecondaryScrollPosition = _lastUpdateSecondaryScrollPosition
+      const scroll = { ...rawScroll }
+      const secondaryScroll = { ...rawSecondaryScroll }
+
+      // Skip update if user hasn't scrolled enough
+      if (checkPositionDiff) {
+        let positionDiff = rawScroll.start - previousScrollPosition
+        if (positionDiff < 0)
+          positionDiff = -positionDiff
+
+        let secondaryPositionDiff = rawSecondaryScroll.start - previousSecondaryScrollPosition
+        if (secondaryPositionDiff < 0)
+          secondaryPositionDiff = -secondaryPositionDiff
+
+        const variableSizeWindowChanged = itemSize === null
+          && hasVariableSizeWindowChange(rawScroll, count, sizesValue, opts.buffer)
+        const primaryThresholdMet = (itemSize === null && (positionDiff >= minItemSize || variableSizeWindowChanged))
+          || (itemSize !== null && positionDiff >= itemSize)
+        const secondaryThresholdMet = gridItems > 1
+          && itemSize != null
+          && secondaryPositionDiff >= itemSecondarySize
+
+        if (!primaryThresholdMet && !secondaryThresholdMet) {
+          return {
+            continuous: true,
+          }
+        }
+      }
+      _lastUpdateScrollPosition = rawScroll.start
+      _lastUpdateSecondaryScrollPosition = rawSecondaryScroll.start
+
+      const buffer = opts.buffer
+      scroll.start -= buffer
+      scroll.end += buffer
+      secondaryScroll.start -= buffer
+      secondaryScroll.end += buffer
+
+      // account for leading slot
+      let beforeSize = 0
+      const beforeEl = normalizedInputs.before.value
+      if (beforeEl) {
+        beforeSize = beforeEl.scrollHeight
+        scroll.start -= beforeSize
+      }
+
+      // account for trailing slot
+      const afterEl = normalizedInputs.after.value
+      if (afterEl) {
+        const afterSize = afterEl.scrollHeight
+        scroll.end += afterSize
+      }
+
+      const shouldStabilizeIdleFlowWindow = getViewPositionMode(opts) === 'flow'
+        && itemSize === null
+        && !checkPositionDiff
+        && _hasWindowState
+        && Math.abs(rawScroll.start - previousScrollPosition) <= FLOW_IDLE_SCROLL_EPSILON_PX
+        && Math.abs(rawSecondaryScroll.start - previousSecondaryScrollPosition) <= FLOW_IDLE_SCROLL_EPSILON_PX
+
+      // Variable size mode
+      if (itemSize === null) {
+        let h: number
+        let a = 0
+        let b = count - 1
+        let i = ~~(count / 2)
+        let oldI: number
+
+        // Searching for startIndex
+        // Optional chaining + sentinel fallbacks defend against transient sparse
+        // size caches that slip past the readiness check above (e.g. concurrent
+        // mutations during the binary search).
+        do {
+          oldI = i
+          h = sizesValue[i]?.accumulator ?? 0
+          if (h < scroll.start) {
+            a = i
+          }
+          else if (i < count - 1 && (sizesValue[i + 1]?.accumulator ?? Number.POSITIVE_INFINITY) > scroll.start) {
+            b = i
+          }
+          i = ~~((a + b) / 2)
+        } while (i !== oldI)
+        if (i < 0)
+          i = 0
+        startIndex = i
+
+        // For container style
+        totalSizeValue = sizesValue[count - 1]?.accumulator ?? 0
+
+        // Searching for endIndex. The fallback is `0` (not `+∞`) so a missing
+        // accumulator doesn't terminate the scan on the first sparse slot —
+        // for end-of-range search the right direction is "include the missing
+        // item optimistically and keep scanning" (see issue #925 part B).
+        for (endIndex = i; endIndex < count && (sizesValue[endIndex]?.accumulator ?? 0) < scroll.end; endIndex++);
+        if (endIndex === -1) {
+          endIndex = currentItems.length - 1
+        }
+        else {
+          endIndex++
+          // Bounds
+          if (endIndex > count)
+            endIndex = count
+        }
+
+        // search visible startIndex
+        for (visibleStartIndex = startIndex; visibleStartIndex < count && (beforeSize + (sizesValue[visibleStartIndex]?.accumulator ?? Number.POSITIVE_INFINITY)) < scroll.start; visibleStartIndex++);
+
+        // search visible endIndex. Same direction rationale as the endIndex
+        // search above — fall back to `0` so a sparse slot doesn't collapse
+        // the visible window. The visibleStartIndex search above intentionally
+        // keeps `+∞` because terminating on a missing entry there is the
+        // correct direction (keeps the missing item inside the visible range).
+        for (visibleEndIndex = visibleStartIndex; visibleEndIndex < count && (beforeSize + (sizesValue[visibleEndIndex]?.accumulator ?? 0)) < scroll.end; visibleEndIndex++);
+
+        if (shouldStabilizeIdleFlowWindow) {
+          const stabilizedRange = stabilizeFlowWindow({
+            startIndex,
+            endIndex,
+            visibleStartIndex,
+            visibleEndIndex,
+          }, count, {
+            rawViewportStart: rawScroll.start - beforeSize,
+            rawViewportEnd: rawScroll.end - beforeSize,
+            renderStart: rawScroll.start - buffer - beforeSize,
+            renderEnd: rawScroll.end + buffer - beforeSize,
+          })
+
+          startIndex = stabilizedRange.startIndex
+          endIndex = stabilizedRange.endIndex
+          visibleStartIndex = stabilizedRange.visibleStartIndex
+          visibleEndIndex = stabilizedRange.visibleEndIndex
+        }
+
+        // Persist this tick's range as the fallback for the next transient
+        // readiness-gate trip. Only meaningful in variable-size mode — the
+        // gate cannot trip in fixed-size mode and the `_prerender` branch
+        // sets a synthetic, non-scroll-anchored range that must not be
+        // reused as a fallback.
+        _lastGoodRange = {
+          startIndex,
+          endIndex,
+          visibleStartIndex,
+          visibleEndIndex,
+          totalSizeValue,
+        }
+      }
+      else {
+        // Fixed size mode
+        if (gridItems > 1) {
+          const gridWindow = getGridRenderWindow(
+            count,
+            gridItems,
+            itemSize,
+            itemSecondarySize,
+            scroll,
+            secondaryScroll,
+          )
+
+          renderedIndices = gridWindow.renderedIndices
+          renderedIndexSet = new Set(renderedIndices)
+          startIndex = gridWindow.startIndex
+          endIndex = gridWindow.endIndex
+          visibleStartIndex = gridWindow.visibleStartIndex
+          visibleEndIndex = gridWindow.visibleEndIndex
+          totalSizeValue = gridWindow.totalSize
+        }
+        else {
+          startIndex = ~~(scroll.start / itemSize * gridItems)
+          const remainer = startIndex % gridItems
+          startIndex -= remainer
+          endIndex = Math.ceil(scroll.end / itemSize * gridItems)
+          visibleStartIndex = Math.max(0, Math.floor((scroll.start - beforeSize) / itemSize * gridItems))
+          visibleEndIndex = Math.floor((scroll.end - beforeSize) / itemSize * gridItems)
+
+          // Bounds
+          if (startIndex < 0)
+            startIndex = 0
+          if (endIndex > count)
+            endIndex = count
+          if (visibleStartIndex < 0)
+            visibleStartIndex = 0
+          if (visibleEndIndex > count)
+            visibleEndIndex = count
+
+          totalSizeValue = Math.ceil(count / gridItems) * itemSize
+        }
+      }
+    }
+
+    const itemsLimit = typeof opts.itemsLimit === 'number' && opts.itemsLimit > 0
+      ? opts.itemsLimit
+      : config.itemsLimit
+    const renderedItemsCount = renderedIndices?.length ?? endIndex - startIndex
+    if (renderedItemsCount > itemsLimit) {
+      itemsLimitError()
+    }
+
+    totalSize.value = totalSizeValue
+    startSpacerSize.value = 0
+    endSpacerSize.value = getViewPositionMode(opts) === 'flow' ? totalSizeValue : 0
+
+    let view: View<TItem, ItemKey<TItem, TKeyField>> | undefined
+
+    const continuous = startIndex <= _endIndex && endIndex >= _startIndex
+    const flowMode = getViewPositionMode(opts) === 'flow'
+    const keepFlowModeOrderIncrementally = flowMode && continuous && !itemsChanged
+    let flowModeOrderContext: FlowModeOrderContext | null = null
+
+    // Step 1: Mark any invisible elements as unused
+    if (!continuous || itemsChanged) {
+      removeAndRecycleAllViews()
+    }
+    else {
+      const removeInvisibleViewAtIndex = (poolIndex: number) => {
+        const currentView = poolValue[poolIndex]
+        if (!currentView) {
+          return
+        }
+        view = currentView
+        if (view.nr.used) {
+          const viewVisible = renderedIndexSet
+            ? renderedIndexSet.has(view.nr.index)
+            : (view.nr.index >= startIndex && view.nr.index < endIndex)
+          // Recycle only when the view's index has left the visible range.
+          // A 0 / undefined cached size for a still-visible row is a
+          // transient state (e.g. an item that hasn't been measured yet);
+          // recycling on it would force step 2 to immediately re-claim the
+          // slot, and any per-tick gap visible to the browser shows up as
+          // a blank row. See issue #906.
+          if (!viewVisible) {
+            removeAndRecycleView(view, keepFlowModeOrderIncrementally)
+          }
+        }
+      }
+
+      if (keepFlowModeOrderIncrementally) {
+        for (let i = poolValue.length - 1; i >= 0; i--) {
+          removeInvisibleViewAtIndex(i)
+        }
+        flowModeOrderContext = createFlowModeOrderContext()
+      }
+      else {
+        for (let i = 0, l = poolValue.length; i < l; i++) {
+          removeInvisibleViewAtIndex(i)
+        }
+      }
+    }
+
+    // Step 2: Assign a view and update props for every view that became visible
+    let item: TItem, type: unknown
+    let firstVisiblePosition: number | null = null
+    let renderedVisibleSize = 0
+    forEachRenderedIndex(startIndex, endIndex, renderedIndices, (i) => {
+      // Fall back to `_computedMinItemSize` (and ultimately `1`) so every
+      // index in the resolved range claims a pooled view even when the
+      // cache is transiently sparse or reports `size: 0` for an unmeasured
+      // row. Returning early here would leave the DOM slot blank until
+      // the next reconciliation tick — exactly the "blank rows" symptom
+      // reported in issue #906, made worse by `scrollToItem` jumps which
+      // recycle every view in step 1 and rely on this loop to repopulate.
+      const cachedSize = sizesValue[i] && sizesValue[i].size
+      const elementSize = itemSize || cachedSize || _computedMinItemSize || 1
+      item = currentItems[i]
+      const key = (keyField ? resolveItemKey(item, i, keyField) : i) as ItemKey<TItem, TKeyField>
+      view = views.get(key)
+      let isNewVisibleView = false
+
+      if (!view) {
+        // Item just became visible
+        type = (item as any)[typeField]
+        view = getRecycledView(type)
+
+        if (view) {
+          const viewStateChanged = view.nr.index !== i || view.nr.key !== key
+          view.item = item
+          view.nr.index = i
+          view.nr.key = key
+          if (view.nr.type !== type) {
+            console.warn('Reused view\'s type does not match pool\'s type')
+          }
+          if (viewStateChanged) {
+            touchView(view)
+          }
+        }
+        else {
+          // No recycled view available, create a new one
+          view = createView(poolValue, i, item, key, type)
+        }
+        views.set(key, view)
+        isNewVisibleView = true
+      }
+      else {
+        if (view.item !== item) {
+          view.item = item
+        }
+        if (!view.nr.used) {
+          console.warn(`Expected existing view's used flag to be true, got ${view.nr.used}`)
+        }
+      }
+
+      // Update position
+      if (itemSize === null) {
+        view.position = sizesValue[i - 1]?.accumulator || 0
+        view.offset = 0
+      }
+      else {
+        view.position = Math.floor(i / gridItems) * itemSize
+        view.offset = (i % gridItems) * itemSecondarySize
+      }
+
+      if (flowModeOrderContext && isNewVisibleView) {
+        placeFlowModeVisibleView(view, i, flowModeOrderContext)
+      }
+
+      firstVisiblePosition ??= view.position
+      renderedVisibleSize += elementSize
+    })
+
+    if (flowMode) {
+      if (firstVisiblePosition == null) {
+        startSpacerSize.value = 0
+        endSpacerSize.value = totalSizeValue
+      }
+      else {
+        startSpacerSize.value = firstVisiblePosition
+        endSpacerSize.value = Math.max(0, totalSizeValue - firstVisiblePosition - renderedVisibleSize)
+      }
+      if (!keepFlowModeOrderIncrementally) {
+        sortFlowModePool()
+      }
+    }
+    else {
+      startSpacerSize.value = 0
+      endSpacerSize.value = 0
+    }
+
+    _startIndex = startIndex
+    _endIndex = endIndex
+    _visibleStartIndex = visibleStartIndex
+    _visibleEndIndex = visibleEndIndex
+    _hasWindowState = true
+    if (opts.emitUpdate)
+      normalizedInputs.callbacks.onUpdate?.(startIndex, endIndex, visibleStartIndex, visibleEndIndex)
+
+    // After the user has finished scrolling
+    // Sort views so text selection is correct
+    if (getViewPositionMode(opts) !== 'flow') {
+      if (_sortTimer)
+        clearTimeout(_sortTimer)
+      _sortTimer = setTimeout(sortViews, opts.updateInterval + 300)
+    }
+
+    return {
+      continuous,
+    }
+  }
+
+  function itemsLimitError() {
+    _itemsLimitWarnTimer = setTimeout(() => {
+      _itemsLimitWarnTimer = null
+      console.warn('It seems the scroller element isn\'t scrolling, so it tries to render all the items at once.', 'Scroller:', normalizedInputs.el.value)
+      console.warn('Make sure the scroller has a fixed height (or width) and \'overflow-y\' (or \'overflow-x\') set to \'auto\' so it can scroll correctly and only render the items visible in the scroll viewport.')
+    })
+    throw new Error('Rendered items limit reached')
+  }
+
+  function hasVisibleViewGap(): boolean {
+    if (supportsGridSecondaryVirtualization()) {
+      return false
+    }
+
+    const visibleViews = pool.value.filter(({ nr }) => nr.used)
+    for (let i = 1; i < visibleViews.length; i++) {
+      if (visibleViews[i].nr.index !== visibleViews[i - 1].nr.index + 1) {
+        return true
+      }
+    }
+    return false
+  }
+
+  function sortViews() {
+    if (!isEnabled.value) {
+      return
+    }
+    if (getViewPositionMode() === 'flow') {
+      sortFlowModePool()
+      return
+    }
+
+    pool.value.sort((viewA, viewB) => viewA.nr.index - viewB.nr.index)
+
+    if (hasVisibleViewGap()) {
+      updateVisibleItems(false)
+      if (_sortTimer)
+        clearTimeout(_sortTimer)
+    }
+  }
+
+  function scrollToItem(index: number, scrollOptions?: ScrollToOptions) {
+    if (!isEnabled.value) {
+      return
+    }
+    const opts = getOptions()
+    const direction = getDirection(opts)
+    const elValue = normalizedInputs.el.value
+    if (!elValue) {
+      return
+    }
+    const targetIndex = Math.max(0, Math.min(index, items.value.length - 1))
+    const viewportStart = getScroll().start
+    const viewportSize = getViewportSize(elValue, direction, opts.pageMode, scrollParentTarget.value)
+    const itemStart = getItemOffset(targetIndex)
+    const itemSize = getItemSize(targetIndex)
+    const target = getAlignedScrollOffset(
+      itemStart,
+      itemSize,
+      viewportStart,
+      viewportSize,
+      scrollOptions?.align,
+      scrollOptions?.offset ?? 0,
+    )
+
+    if (target == null) {
+      return
+    }
+
+    scrollToPosition(target, scrollOptions)
+
+    const fixedItemSize = getFixedItemSize(opts.itemSize)
+    if (opts.gridItems && fixedItemSize != null) {
+      const elValue = normalizedInputs.el.value
+      if (!elValue) {
+        return
+      }
+      const gridItems = opts.gridItems
+      const itemSecondarySize = opts.itemSecondarySize || fixedItemSize
+      const secondaryIndex = targetIndex % gridItems
+      const secondaryItemStart = secondaryIndex * itemSecondarySize
+      const secondaryDirection = direction === 'vertical' ? 'horizontal' : 'vertical'
+      const secondaryViewportStart = secondaryDirection === 'horizontal'
+        ? normalizeOffset(elValue.scrollLeft, 'horizontal', elValue)
+        : elValue.scrollTop
+      const secondaryViewportSize = secondaryDirection === 'horizontal'
+        ? elValue.clientWidth
+        : elValue.clientHeight
+      const secondaryTarget = getAlignedScrollOffset(
+        secondaryItemStart,
+        itemSecondarySize,
+        secondaryViewportStart,
+        secondaryViewportSize,
+        scrollOptions?.align,
+        scrollOptions?.offset ?? 0,
+      )
+
+      if (secondaryTarget != null) {
+        scrollElementTo(elValue, secondaryDirection, secondaryTarget, scrollOptions)
+      }
+    }
+  }
+
+  function scrollToPosition(position: number, scrollOptions?: ScrollToOptions) {
+    if (!isEnabled.value) {
+      return
+    }
+    const opts = getOptions()
+    const direction = getDirection(opts)
+    const elValue = normalizedInputs.el.value
+    if (!elValue) {
+      return
+    }
+
+    if (getPageMode()) {
+      // Page-mode scroll-to: targets the resolved scroll parent (window or a
+      // custom element). Reads from the shared `scrollParentTarget` so the
+      // imperative scroll lands in the same coordinate space as `getScroll`.
+      const target = scrollParentTarget.value ?? window
+      const startProp = direction === 'vertical' ? 'top' : 'left'
+      const isWindowParent = target === window
+      const viewportEl = isWindowParent
+        ? (document.scrollingElement || document.documentElement) as HTMLElement
+        : target as HTMLElement
+      const bounds = viewportEl.getBoundingClientRect()
+      const scroller = elValue.getBoundingClientRect()
+      const currentScroll = isWindowParent
+        ? (direction === 'vertical' ? window.scrollY : window.scrollX)
+        : normalizeOffset(
+            direction === 'vertical'
+              ? (viewportEl as any).scrollTop
+              : (viewportEl as any).scrollLeft,
+            direction,
+            viewportEl,
+          )
+      const scrollerPosition = (scroller as any)[startProp] - (bounds as any)[startProp]
+      scrollElementTo(isWindowParent ? window : viewportEl, direction, position + currentScroll + scrollerPosition, scrollOptions)
+    }
+    else {
+      scrollElementTo(elValue, direction, position, scrollOptions)
+    }
+  }
+
+  // In SSR mode, we also prerender the same number of item for the first render
+  const initialOpts = getOptions()
+  const initialItems = items.value
+  _previousKeys = getItemKeys(initialItems, initialItems.length > 0 && typeof initialItems[0] !== 'object' ? null : initialOpts.keyField) as Array<ItemKey<TItem, TKeyField>>
+  _previousTypes = getItemTypes(initialItems, initialOpts.typeField)
+  if (initialOpts.cache) {
+    restoreCache(initialOpts.cache)
+  }
+  if (isEnabled.value && initialOpts.prerender) {
+    _prerender = true
+    updateVisibleItems(false)
+  }
+
+  if (initialOpts.gridItems && getFixedItemSize(initialOpts.itemSize) == null) {
+    console.error('[vue-recycle-scroller] You must provide an itemSize when using gridItems')
+  }
+
+  onMounted(() => {
+    if (!isEnabled.value) {
+      return
+    }
+    addListeners()
+    nextTick(() => {
+      // In SSR mode, render the number of visible items
+      _prerender = false
+      updateVisibleItems(true)
+      ready.value = true
+    })
+  })
+
+  onActivated(() => {
+    if (!isEnabled.value) {
+      return
+    }
+    const lastPosition = _lastUpdateScrollPosition
+    if (typeof lastPosition === 'number') {
+      nextTick(() => {
+        scrollToPosition(lastPosition)
+      })
+    }
+  })
+
+  onBeforeUnmount(() => {
+    clearPendingTimeouts()
+    cancelPendingFrames()
+    removeListeners()
+  })
+
+  // React to runtime `enabled` flips: when re-armed, attach listeners and
+  // perform a full update; when disarmed, tear listeners down and cancel any
+  // pending RAFs/timers so the composable becomes a true no-op.
+  watch(isEnabled, (enabled) => {
+    if (enabled) {
+      addListeners()
+      nextTick(() => {
+        updateVisibleItems(true)
+        ready.value = true
+      })
+    }
+    else {
+      removeListeners()
+      clearPendingTimeouts()
+      cancelPendingFrames()
+      ready.value = false
+    }
+  })
+
+  // Watchers
+  watch(() => getOptions().cache, (snapshot) => {
+    if (!isEnabled.value) {
+      return
+    }
+    restoreCache(snapshot)
+    updateVisibleItems(true)
+  })
+
+  // Read the raw items ref directly instead of going through the `items`
+  // computed. Upstream wrappers (e.g. `useDynamicScroller`) mutate their
+  // backing array in place and call `triggerRef` to notify subscribers. The
+  // `items` computed then re-evaluates and returns the same array reference,
+  // which Vue dedupes — so any watcher chained through that computed would
+  // never fire. Subscribing to the raw ref guarantees the items watcher runs
+  // on every upstream mutation, even when the array identity is preserved.
+  watch(() => toValue(getOptions().items).slice(), (nextItems, previousItems) => {
+    if (!isEnabled.value) {
+      return
+    }
+    const opts = getOptions()
+    const keyField = simpleArray.value ? null : opts.keyField
+    const nextKeys = getItemKeys(nextItems, keyField)
+    const nextTypes = getItemTypes(nextItems, opts.typeField)
+    const previousKeysSnapshot = _previousKeys
+    const previousTypesSnapshot = _previousTypes
+    const itemsChanged = !hasSameItemIdentitySequence(
+      nextKeys as Array<ItemKey<TItem, TKeyField>>,
+      nextTypes,
+      previousKeysSnapshot,
+      previousTypesSnapshot,
+    )
+
+    if (opts.shift) {
+      const prependOffset = findPrependOffset(previousKeysSnapshot, nextKeys as Array<ItemKey<TItem, TKeyField>>)
+      if (prependOffset > 0) {
+        captureShiftAnchor(previousItems ?? [], keyField)
+      }
+      else {
+        clearShiftAnchor()
+      }
+    }
+    else {
+      clearShiftAnchor()
+    }
+
+    _previousKeys = nextKeys as Array<ItemKey<TItem, TKeyField>>
+    _previousTypes = nextTypes
+    applyShiftAnchor(nextItems)
+    updateVisibleItems(itemsChanged)
+  })
+
+  watch(() => getOptions().keyField, () => {
+    if (!isEnabled.value) {
+      return
+    }
+    const opts = getOptions()
+    const keyField = simpleArray.value ? null : opts.keyField
+    _previousKeys = getItemKeys(items.value, keyField) as Array<ItemKey<TItem, TKeyField>>
+    _previousTypes = getItemTypes(items.value, opts.typeField)
+    clearShiftAnchor()
+    updateVisibleItems(true)
+  })
+
+  watch(() => getOptions().typeField, () => {
+    if (!isEnabled.value) {
+      return
+    }
+    const opts = getOptions()
+    _previousTypes = getItemTypes(items.value, opts.typeField)
+    clearShiftAnchor()
+    updateVisibleItems(true)
+  })
+
+  watch(getPageMode, () => {
+    if (!isEnabled.value) {
+      return
+    }
+    removeListeners()
+    addListeners()
+    updateVisibleItems(false)
+  })
+
+  watch(normalizedInputs.el, () => {
+    if (!isEnabled.value) {
+      return
+    }
+    removeListeners()
+    addListeners()
+    updateVisibleItems(false)
+  })
+
+  // Move the scroll listener when the user supplies a reactive `scrollParent`
+  // and its identity changes — keeps the listener target in sync with where
+  // geometry is measured (issue #928).
+  watch(scrollParentTarget, () => {
+    if (!isEnabled.value || !getPageMode()) {
+      return
+    }
+    removeListeners()
+    addListeners()
+    updateVisibleItems(false)
+  })
+
+  watch(sizes, () => {
+    if (!isEnabled.value) {
+      return
+    }
+    if (applyShiftAnchor()) {
+      scheduleShiftAnchorClear()
+    }
+    updateVisibleItems(false)
+  })
+
+  watch(() => getOptions().gridItems, () => {
+    if (!isEnabled.value) {
+      return
+    }
+    updateVisibleItems(true)
+  })
+
+  watch(() => getOptions().itemSecondarySize, () => {
+    if (!isEnabled.value) {
+      return
+    }
+    updateVisibleItems(true)
+  })
+
+  return {
+    pool,
+    visiblePool,
+    totalSize,
+    startSpacerSize,
+    endSpacerSize,
+    ready,
+    sizes,
+    simpleArray,
+    scrollToItem,
+    scrollToPosition,
+    getScroll,
+    findItemIndex,
+    getItemOffset,
+    getItemSize,
+    getViewStyle,
+    cacheSnapshot,
+    restoreCache,
+    updateVisibleItems,
+    handleResize,
+    handleVisibilityChange,
+    sortViews,
+  }
+}

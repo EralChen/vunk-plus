@@ -11,6 +11,7 @@ import {
   pkgsElementDir,
   pkgsAntDir,
   pkgsAntxDir,
+  pkgsVueVirtualScrollerDir,
   pkgsEntryDir,
 } from '@lib-env/path'
 import path from 'path'
@@ -25,6 +26,7 @@ const packages = [
   { name: 'element', dir: pkgsElementDir },
   { name: 'ant', dir: pkgsAntDir },
   { name: 'antx', dir: pkgsAntxDir },
+  { name: 'vue-virtual-scroller', dir: pkgsVueVirtualScrollerDir },
   { name: 'entry', dir: pkgsEntryDir, isEntry: true },
 ]
 

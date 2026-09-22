@@ -1,0 +1,111 @@
+import type { ComputedRef, MaybeRefOrGetter } from 'vue'
+import { computed, toValue } from 'vue'
+
+/**
+ * Shared lifecycle callbacks exposed by headless scroller composables.
+ */
+export interface ScrollerCallbacks {
+  onResize?: () => void
+  onVisible?: () => void
+  onHidden?: () => void
+  onUpdate?: (startIndex: number, endIndex: number, visibleStartIndex: number, visibleEndIndex: number) => void
+}
+
+/**
+ * Shared activation flag for headless scroller composables.
+ */
+export interface ScrollerOptionEnabled {
+  /**
+   * When `false`, the composable mounts in a passive state: no watchers,
+   * observers, scroll/resize listeners, RAFs, or timers are attached, and
+   * exported reactive sources stay at their inert defaults. Toggling back
+   * to `true` re-arms the scroller without remounting the consumer.
+   *
+   * Useful for call sites that want a stable composable invocation but
+   * conditionally render virtualized output (e.g. an opt-in `virtualize`
+   * prop on a wrapping component).
+   *
+   * @default true
+   */
+  enabled?: MaybeRefOrGetter<boolean>
+}
+
+/**
+ * Common single-object inputs for headless scroller composables.
+ *
+ * `scrollParent` overrides the auto-detected scroll parent used by page mode
+ * (issue #928). Accepts an `HTMLElement` to listen and measure against, or
+ * `Window` to force the page itself as the viewport. When omitted, the
+ * scroller walks the DOM via `getScrollParent` for the nearest overflow:auto
+ * ancestor and falls back to `window`.
+ */
+export interface ScrollerOptionElements {
+  el?: MaybeRefOrGetter<HTMLElement | undefined>
+  before?: MaybeRefOrGetter<HTMLElement | undefined>
+  after?: MaybeRefOrGetter<HTMLElement | undefined>
+  scrollParent?: MaybeRefOrGetter<HTMLElement | Window | undefined>
+}
+
+/**
+ * Common single-object callback hooks for headless scroller composables.
+ */
+export interface ScrollerOptionCallbacks extends ScrollerCallbacks {}
+
+/**
+ * Normalized element refs and callback hooks resolved from either object or legacy positional inputs.
+ */
+export interface NormalizedScrollerInputs {
+  el: ComputedRef<HTMLElement | undefined>
+  before: ComputedRef<HTMLElement | undefined>
+  after: ComputedRef<HTMLElement | undefined>
+  scrollParent: ComputedRef<HTMLElement | Window | undefined>
+  callbacks: ScrollerCallbacks
+}
+
+/**
+ * Cache single-object scroller options so getter-based callers do not rebuild the object on every access.
+ */
+export function resolveScrollerOptions<TOptions>(
+  options: MaybeRefOrGetter<TOptions>,
+): ComputedRef<TOptions> {
+  return computed(() => toValue(options))
+}
+
+/**
+ * Resolve shared scroller inputs while keeping `items` and DOM refs as separate reactive sources.
+ */
+export function normalizeScrollerInputs<TOptions extends ScrollerOptionElements & ScrollerOptionCallbacks>(
+  options: MaybeRefOrGetter<TOptions>,
+  el?: MaybeRefOrGetter<HTMLElement | undefined>,
+  before?: MaybeRefOrGetter<HTMLElement | undefined>,
+  after?: MaybeRefOrGetter<HTMLElement | undefined>,
+  callbacks?: ScrollerCallbacks,
+): NormalizedScrollerInputs {
+  const resolvedOptions = resolveScrollerOptions(options)
+
+  return {
+    el: computed(() => {
+      const optionEl = resolvedOptions.value.el
+      return toValue(el ?? optionEl)
+    }),
+    before: computed(() => {
+      const optionBefore = resolvedOptions.value.before
+      return toValue(before ?? optionBefore)
+    }),
+    after: computed(() => {
+      const optionAfter = resolvedOptions.value.after
+      return toValue(after ?? optionAfter)
+    }),
+    scrollParent: computed(() => {
+      const optionScrollParent = resolvedOptions.value.scrollParent
+      return toValue(optionScrollParent)
+    }),
+    callbacks: {
+      onResize: () => (callbacks?.onResize ?? resolvedOptions.value.onResize)?.(),
+      onVisible: () => (callbacks?.onVisible ?? resolvedOptions.value.onVisible)?.(),
+      onHidden: () => (callbacks?.onHidden ?? resolvedOptions.value.onHidden)?.(),
+      onUpdate: (startIndex, endIndex, visibleStartIndex, visibleEndIndex) =>
+        (callbacks?.onUpdate ?? resolvedOptions.value.onUpdate)?.(startIndex, endIndex, visibleStartIndex, visibleEndIndex),
+    },
+  }
+}

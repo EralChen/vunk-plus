@@ -9,7 +9,7 @@ import path from 'path'
 import Icons from 'unplugin-icons/vite'
 import IconsResolver from 'unplugin-icons/resolver'
 import Components from 'unplugin-vue-components/vite'
-import vueDevTools from 'vite-plugin-vue-devtools'
+// import vueDevTools from 'vite-plugin-vue-devtools'
 import { workRoot } from '@lib-env/path'
 import { fixPath } from '@lib-env/build-utils'
 import { createMarkdownPlugin } from '@vunk/shared/vite/markdown'
@@ -82,7 +82,7 @@ export default defineConfig(async ({ mode }) => {
     },
 
     plugins: [
-      vueDevTools(),
+      // vueDevTools(),
 
       vike(),
 
