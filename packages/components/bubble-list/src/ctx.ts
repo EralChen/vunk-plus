@@ -20,6 +20,15 @@ export const props = {
     default: false,
   },
 
+  /**
+   * Key field name for virtual list items.
+   * Defaults to 'key'. Set to 'id' or any other field your items use.
+   */
+  keyField: {
+    type: String,
+    default: 'key',
+  },
+
   autoScrollThreshold: {
     type: Number,
     default: 200,

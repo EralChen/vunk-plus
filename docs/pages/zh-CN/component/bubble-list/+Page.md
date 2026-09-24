@@ -19,6 +19,17 @@ bubble-list/basic
 bubble-list/virtual
 :::
 
+## Outline 大纲导航
+
+模拟聊天大纲导航的交互，点击大纲项通过 `scrollToBubble` 跳转到对应消息。
+
+组件内置了精确定位逻辑：先通过 `DynamicScroller.scrollToItem` 触达目标区域，
+等待目标 DOM 渲染后，用 `getBoundingClientRect` 做像素级修正，无需用户额外处理。
+
+:::demo
+bubble-list/outline
+:::
+
 ## TemplateType 扩展
 
 templateType 定义了气泡内容的渲染方式。

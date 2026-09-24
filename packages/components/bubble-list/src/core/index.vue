@@ -65,6 +65,14 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  /**
+   * Key field name for virtual list items.
+   * DynamicScroller uses this to uniquely identify each item.
+   */
+  keyField: {
+    type: String,
+    default: 'key',
+  },
 })
 
 defineEmits({
@@ -152,7 +160,16 @@ function scrollToTop() {
 // 父组件触发滚动到指定气泡框
 function scrollToBubble(index: number) {
   if (props.virtual) {
+    // 第一次：滚动到估算位置，触发目标 item 进入缓冲区
     scrollerRef.value?.scrollToItem(index)
+    // handleScroll 内部用 requestAnimationFrame 延迟渲染，
+    // 且渲染后 ResizeObserver 要到下一帧才更新尺寸。
+    // 双层 rAF 确保第二个 scrollToItem 拿到精确测量值。
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        scrollerRef.value?.scrollToItem(index)
+      })
+    })
     return
   }
   const container = scrollbarRef.value?.wrapRef
@@ -214,7 +231,7 @@ defineExpose({
           ref="scrollerRef"
           :items="list"
           :min-item-size="54"
-          :key-field="'key'"
+          :key-field="keyField"
           :page-mode="true"
           :scroll-parent="virtualScrollParent"
           class="vk-bubble-list-dynamic-scroller"
@@ -363,8 +380,8 @@ defineExpose({
   max-height: var(--el-bubble-list-max-height);
   position: relative;
 }
-.vk-bubble-list .el-bubble + .el-bubble {
-  margin-top: 16px;
+.vk-bubble-list .el-bubble  {
+  margin-bottom: 16px;
 }
 
 /* ---- Virtual scroller ---- */
@@ -379,9 +396,11 @@ defineExpose({
   /* no overflow here – parent VkScrollbar owns the scroll */
 }
 
-/* Spacing between virtual items */
-.vk-bubble-list-virtual-item + .vk-bubble-list-virtual-item {
-  margin-top: 16px;
+/* Virtual items are inside absolutely-positioned wrappers;
+   margin-top won't work – use padding-bottom so ResizeObserver
+   picks it up as part of the measured height. */
+.vk-bubble-list-virtual-item {
+  padding-bottom: 16px;
 }
 
 .vk-bubble-list-default-back-button {

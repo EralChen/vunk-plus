@@ -8,8 +8,8 @@
   },
   "dependencies": {
     "@file-viewer/preset-office": "^3.1.1",
-    "@file-viewer/vue3": "^3.1.1",
     "@file-viewer/renderer-pdf": "^3.1.1",
+    "@file-viewer/vue3": "^3.1.1",
     "@shikijs/core": "^3.2.2",
     "@shikijs/transformers": "^3.2.2",
     "@vunk/gsap": "0.0.0-alpha.3",

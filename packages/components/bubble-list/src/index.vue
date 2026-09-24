@@ -43,6 +43,7 @@ defineExpose({
           :max-height="`${height}px`"
           :scrollbar-append-to="scrollbarAppendTo"
           :virtual="virtual"
+          :key-field="keyField"
           :auto-scroll-threshold="autoScrollThreshold"
           :style="{
             '--el-bubble-list-max-height': `${height}px`,
