@@ -1,14 +1,17 @@
 <script lang="ts" setup>
 import type { __VkBubbleList } from '@vunk-plus/components/bubble-list'
 import { Role, VkBubbleList } from '@vunk-plus/components/bubble-list'
-import { computed, ref } from 'vue'
+import { computed, nextTick, onMounted, onUnmounted, ref } from 'vue'
 import testData from './test.json'
 
 /**
  * 大纲导航 Demo
  *
- * 点击大纲项 → scrollToBubble 跳转到对应消息。
- * 组件内置二段式精确定位（scrollToItem + DOM 修正），无需用户额外处理。
+ * 点击大纲项 → await scrollToBubble 跳转到对应消息。
+ * 组件内置二段式精确定位，返回 Promise，调用方可 await。
+ *
+ * 回收的虚拟 item 标记为 data-visible="false"，DOM 查询时用
+ * `[data-visible="true"]` 避免污染。
  */
 
 const items = ref<__VkBubbleList.Item[]>(testData as any)
@@ -36,9 +39,9 @@ const userMessages = computed<OutlineEntry[]>(() => {
   return result
 })
 
-function scrollToEntry(entry: OutlineEntry) {
+async function scrollToEntry(entry: OutlineEntry) {
   activeIndex.value = entry.index
-  bubbleListRef.value?.scrollToBubble(entry.index)
+  await bubbleListRef.value?.scrollToBubble(entry.index)
 }
 </script>
 

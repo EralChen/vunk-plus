@@ -23,8 +23,24 @@ bubble-list/virtual
 
 模拟聊天大纲导航的交互，点击大纲项通过 `scrollToBubble` 跳转到对应消息。
 
-组件内置了精确定位逻辑：先通过 `DynamicScroller.scrollToItem` 触达目标区域，
-等待目标 DOM 渲染后，用 `getBoundingClientRect` 做像素级修正，无需用户额外处理。
+### scrollToBubble(index): Promise\<void\>
+
+返回 Promise，调用方可 `await` 确保滚动完成后再执行后续逻辑（如解除 loading 状态、重新触发
+IntersectionObserver 等），无需自己加 setTimeout 防抖。
+
+### getItemOffset(index): number | undefined
+
+获取指定 index 在内容空间中的像素偏移量。可用于自定义滚动位置计算。
+
+### getVisibleRange(): { start: number, end: number } | undefined
+
+获取当前可见区域的 item 索引区间。常用于大纲高亮当前项。
+
+### 回收 item 的 DOM 标记
+
+虚拟列表回收的 item 仍保留在 DOM 中（`translateY(-999999px)`）。组件已添加
+`data-visible="false"` 属性标记回收项，DOM 查询时使用 `[data-visible="true"]`
+即可过滤掉回收项。
 
 :::demo
 bubble-list/outline

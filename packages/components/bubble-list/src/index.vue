@@ -24,6 +24,8 @@ defineExpose({
   scrollToTop: () => bubbleListRef.value?.scrollToTop(),
   scrollToBottom: () => bubbleListRef.value?.scrollToBottom(),
   scrollToBubble: (index: number) => bubbleListRef.value?.scrollToBubble(index),
+  getItemOffset: (index: number) => bubbleListRef.value?.getItemOffset(index),
+  getVisibleRange: () => bubbleListRef.value?.getVisibleRange(),
 })
 </script>
 

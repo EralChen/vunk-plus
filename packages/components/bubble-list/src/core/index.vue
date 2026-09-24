@@ -87,6 +87,9 @@ const scrollbarRef = ref<InstanceType<typeof VkScrollbar>>()
 interface _ScrollerExposed {
   scrollToBottom: () => void
   scrollToItem: (index: number) => void
+  getItemOffset: (index: number) => number
+  getItemSize: (index: number) => number
+  findItemIndex: (offset: number) => number
 }
 
 /** Virtual mode only: DynamicScroller instance */
@@ -132,6 +135,9 @@ const btnShow = computed(() => {
     && distanceToBottom.value > props.backButtonThreshold
 })
 
+/** 手动跳转进行中时，暂停 autoScroll 以免覆盖目标位置 */
+let _manualScrolling = false
+
 function getDistanceToBottom() {
   const wrap = scrollbarRef.value?.wrapRef as HTMLDivElement | undefined
   if (!wrap) return
@@ -158,31 +164,111 @@ function scrollToTop() {
 }
 
 // 父组件触发滚动到指定气泡框
-function scrollToBubble(index: number) {
+async function scrollToBubble(index: number): Promise<void> {
   if (props.virtual) {
-    // 第一次：滚动到估算位置，触发目标 item 进入缓冲区
-    scrollerRef.value?.scrollToItem(index)
-    // handleScroll 内部用 requestAnimationFrame 延迟渲染，
-    // 且渲染后 ResizeObserver 要到下一帧才更新尺寸。
-    // 双层 rAF 确保第二个 scrollToItem 拿到精确测量值。
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
+    const wrap = scrollbarRef.value?.wrapRef
+    if (!wrap) return
+
+    _manualScrolling = true
+    try {
+      // 快速路径：目标已在 DOM 且可见 → 直接像素修正
+      const alreadyVisible = wrap.querySelector(
+        `[data-index="${index}"][data-visible="true"] .el-bubble`,
+      ) as HTMLElement | null
+      if (alreadyVisible) {
+        const wrapRect = wrap.getBoundingClientRect()
+        const bubbleRect = alreadyVisible.getBoundingClientRect()
+        wrap.scrollTo({
+          top: bubbleRect.top - wrapRect.top + wrap.scrollTop - 24,
+          behavior: 'auto',
+        })
+        return
+      }
+
+      // 目标不在视口：从已测量区域末端开始，逐批向前推进。
+      // 直接 scrollTo 到已知 accumulator 位置，避免依赖未测量 item 的估算值。
+      // 每批滚动后，紧邻的未测量 item 被渲染并被 ResizeObserver 测量，
+      // accumulator 链自然延长。
+      let cursor = 0
+      while (cursor < index) {
+        // 滚动到当前已知 accumulator 末端，触发下一批 item 渲染
+        const knownEnd = scrollerRef.value?.getItemOffset(cursor + 1) ?? 0
+        wrap.scrollTo({ top: knownEnd, behavior: 'auto' })
+        await new Promise<void>(resolve => {
+          requestAnimationFrame(() => {
+            requestAnimationFrame(() => resolve())
+          })
+        })
+        // 推进：每批渲染约 20 个 item
+        cursor = Math.min(cursor + 20, index)
+      }
+
+      // 最终跳转 + 二次 DOM 修正：
+      // 第一次修正后 scroll 会触发 re-render → ResizeObserver →
+      // accumulator 更新 → item translateY 变化 → 位置再次偏移。
+      // 等一帧稳定后做第二次修正保证精确。
+      for (const pass of [1, 2]) {
         scrollerRef.value?.scrollToItem(index)
-      })
-    })
+        await new Promise<void>(resolve => {
+          requestAnimationFrame(() => {
+            requestAnimationFrame(() => resolve())
+          })
+        })
+        const bubble = wrap.querySelector(
+          `[data-index="${index}"][data-visible="true"] .el-bubble`,
+        ) as HTMLElement | null
+        if (bubble) {
+          const wrapRect = wrap.getBoundingClientRect()
+          const bubbleRect = bubble.getBoundingClientRect()
+          wrap.scrollTo({
+            top: bubbleRect.top - wrapRect.top + wrap.scrollTop - 24,
+            behavior: 'auto',
+          })
+        }
+      }
+    }
+    finally {
+      _manualScrolling = false
+    }
     return
   }
-  const container = scrollbarRef.value?.wrapRef
-  if (!container) return
-  const bubbles = container.querySelectorAll('.el-bubble')
-  if (index >= bubbles.length) return
-  const targetBubble = bubbles[index] as HTMLElement
-  const containerRect = container.getBoundingClientRect()
-  const bubbleRect = targetBubble.getBoundingClientRect()
-  container.scrollTo({
-    top: bubbleRect.top - containerRect.top + container.scrollTop,
-    behavior: 'smooth',
-  })
+  _manualScrolling = true
+  try {
+    const container = scrollbarRef.value?.wrapRef
+    if (!container) return
+    const bubbles = container.querySelectorAll('.el-bubble')
+    if (index >= bubbles.length) return
+    const targetBubble = bubbles[index] as HTMLElement
+    const containerRect = container.getBoundingClientRect()
+    const bubbleRect = targetBubble.getBoundingClientRect()
+    container.scrollTo({
+      top: bubbleRect.top - containerRect.top + container.scrollTop,
+      behavior: 'smooth',
+    })
+  }
+  finally {
+    _manualScrolling = false
+  }
+}
+
+/** 获取指定 index 在内容空间中的偏移量（像素），未测量过的 item 返回估算值 */
+function getItemOffset(index: number): number | undefined {
+  return scrollerRef.value?.getItemOffset(index)
+}
+
+/**
+ * 获取当前可见范围（index 区间），用于大纲导航高亮当前项。
+ * 基于 findItemIndex + getItemOffset 估算，非实时精确值。
+ */
+function getVisibleRange(): { start: number, end: number } | undefined {
+  const el = scrollerRef.value
+  const wrap = scrollbarRef.value?.wrapRef
+  if (!el || !wrap) return undefined
+  const scrollTop = wrap.scrollTop
+  const viewportHeight = wrap.clientHeight
+  const start = el.findItemIndex(scrollTop)
+  const end = el.findItemIndex(scrollTop + viewportHeight)
+  return { start, end }
 }
 
 // 开启自动滚动
@@ -197,6 +283,7 @@ onMounted(() => {
 
 if (props.autoScroll) {
   useResizeObserver(scrollViewEl, () => {
+    if (_manualScrolling) return
     const distance = getDistanceToBottom()
     if (distance !== undefined && distance > props.autoScrollThreshold) return
     scrollToBottom()
@@ -208,6 +295,8 @@ defineExpose({
   scrollToTop,
   scrollToBottom,
   scrollToBubble,
+  getItemOffset,
+  getVisibleRange,
 })
 </script>
 
@@ -241,6 +330,7 @@ defineExpose({
               :item="item"
               :active="active"
               :data-index="index"
+              :data-visible="active"
               class="vk-bubble-list-virtual-item"
             >
               <Bubble
