@@ -19,6 +19,7 @@ const textSize = useFormSize()
 const ns = useNamespace('text')
 
 const hasTitle = ref(false)
+const textContent = ref('')
 
 const textKls = computed(() => [
   ns.b(),
@@ -27,6 +28,12 @@ const textKls = computed(() => [
   ns.is('truncated', props.truncated),
   ns.is('line-clamp', !isUndefined(props.lineClamp)),
 ])
+
+// textRef 指向的节点会被 ElOnlyChild 重建，且 textContent 不是响应式的，
+// 只能在 tooltip 展开前重新读取，渲染期读取会拿到旧文本
+function syncTextContent () {
+  textContent.value = textRef.value?.textContent ?? ''
+}
 
 function bindTitle () {
   const inheritTitle = useAttrs().title
@@ -50,16 +57,22 @@ function bindTitle () {
   hasTitle.value = shouldAddTitle
 }
 
-onMounted(bindTitle)
-onUpdated(bindTitle)
+function refresh () {
+  syncTextContent()
+  bindTitle()
+}
+
+onMounted(refresh)
+onUpdated(refresh)
 </script>
 
 <template>
   <VkWrapper
     :is="ElTooltip"
     :show="hasTitle"
-    :content="textRef?.textContent"
+    :content="textContent"
     v-bind="tooltipProps"
+    @before-show="syncTextContent"
   >
     <component
       :is="tag"
@@ -75,7 +88,7 @@ onUpdated(bindTitle)
     </component>
 
     <template v-if="$slots.content" #content>
-      <slot name="content" :content="textRef?.textContent" />
+      <slot name="content" :content="textContent" />
     </template>
   </VkWrapper>
 </template>
